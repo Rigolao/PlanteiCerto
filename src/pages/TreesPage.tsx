@@ -13,9 +13,9 @@ const SKELETON_COUNT = 6;
 
 const filters: { key: FiltroAtributo; label: string; icon: string }[] = [
   { key: 'todos', label: 'Todas', icon: '≡' },
-  { key: 'compatibilidade', label: 'Melhor p/ Calçadas', icon: '🏙️' },
-  { key: 'limpeza', label: 'Maior Limpeza', icon: '🍃' },
-  { key: 'clima', label: 'Mais Força Climática', icon: '🌍' },
+  { key: 'nativas', label: 'Nativas do Brasil', icon: '🇧🇷' },
+  { key: 'paisagismo', label: 'Bom p/ Paisagismo', icon: '🏙️' },
+  { key: 'sem_espinhos', label: 'Sem Espinhos', icon: '🌿' },
 ];
 
 export function TreesPage({ trees: externalTrees }: TreesPageProps) {
@@ -33,14 +33,16 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
       const lower = termoBusca.toLowerCase();
       result = result.filter(
         a =>
-          a.nomePopular.toLowerCase().includes(lower) ||
-          a.nomeCientifico.toLowerCase().includes(lower)
+          a.taxonomia.nomeComum.toLowerCase().includes(lower) ||
+          a.taxonomia.nomeBotanico.toLowerCase().includes(lower)
       );
     }
-    if (filtroAtivo !== 'todos') {
-      result = [...result].sort(
-        (a, b) => b.atributos[filtroAtivo].nota - a.atributos[filtroAtivo].nota
-      );
+    if (filtroAtivo === 'nativas') {
+      result = result.filter(a => a.taxonomia.nativa);
+    } else if (filtroAtivo === 'paisagismo') {
+      result = result.filter(a => a.usoUrbanismo.recomendadoPaisagismo);
+    } else if (filtroAtivo === 'sem_espinhos') {
+      result = result.filter(a => a.usoUrbanismo.riscos.espinhos === false);
     }
     return result;
   }, [trees, termoBusca, filtroAtivo]);

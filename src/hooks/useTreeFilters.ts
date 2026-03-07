@@ -10,11 +10,19 @@ export function useTreeFilters(trees: Arvore[]) {
 
     if (termoBusca) {
       const lower = termoBusca.toLowerCase();
-      result = result.filter(a => a.nomePopular.toLowerCase().includes(lower));
+      result = result.filter(a => 
+        a.taxonomia.nomeComum.toLowerCase().includes(lower) || 
+        a.taxonomia.nomeBotanico.toLowerCase().includes(lower) ||
+        a.taxonomia.outrosNomes.some(n => n.toLowerCase().includes(lower))
+      );
     }
 
-    if (filtroAtivo !== 'todos') {
-      result = result.filter(a => a.atributos[filtroAtivo].nota === 5);
+    if (filtroAtivo === 'nativas') {
+      result = result.filter(a => a.taxonomia.nativa);
+    } else if (filtroAtivo === 'paisagismo') {
+      result = result.filter(a => a.usoUrbanismo.recomendadoPaisagismo);
+    } else if (filtroAtivo === 'sem_espinhos') {
+      result = result.filter(a => a.usoUrbanismo.riscos.espinhos === false);
     }
 
     return result;

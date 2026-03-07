@@ -15,10 +15,10 @@ interface DrawerProps {
 }
 
 const filters: { key: FiltroAtributo; label: string }[] = [
-  { key: 'todos', label: 'Todas' },
-  { key: 'compatibilidade', label: '🏙️ Melhor p/ Calçadas' },
-  { key: 'limpeza', label: '🍃 Maior Limpeza' },
-  { key: 'clima', label: '🌍 Mais Força Climática' },
+  { key: 'todos', label: '≡ Todas as Árvores' },
+  { key: 'nativas', label: '🇧🇷 Nativas do Brasil' },
+  { key: 'paisagismo', label: '🏙️ Bom p/ Paisagismo' },
+  { key: 'sem_espinhos', label: '🌿 Sem Espinhos' },
 ];
 
 export function Drawer({ isOpen, onClose, termoBusca, setTermoBusca, filtroAtivo, setFiltroAtivo, currentTab }: DrawerProps) {

@@ -14,13 +14,13 @@ export function PointItem({ ponto, arvore, onEdit, onRemove }: PointItemProps) {
       {arvore && (
         <img
           src={arvore.imagem}
-          alt={arvore.nomePopular}
+          alt={arvore.taxonomia.nomeComum}
           className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
         />
       )}
       <div className="flex-1 min-w-0">
         <span className="font-bold text-foreground text-sm block group-hover:text-primary transition-colors">
-          {arvore?.nomePopular || 'Árvore desconhecida'}
+          {arvore?.taxonomia.nomeComum || 'Árvore desconhecida'}
         </span>
         <span className="text-muted-foreground text-[11px] block truncate">
           {ponto.observacao || 'Sem observações'}

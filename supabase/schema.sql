@@ -9,24 +9,15 @@ create extension if not exists "uuid-ossp";
 -- TABELA: trees (Catálogo de árvores)
 -- ============================================
 create table public.trees (
-  id              serial primary key,
-  nome_popular    text not null,
-  nome_cientifico text not null,
-  imagem          text not null,
-  descricao       text not null,
-  altura          text not null,
-  raiz            text not null,
-  espacamento     text not null,
-  compat_nota     smallint not null check (compat_nota between 1 and 5),
-  compat_legenda  text not null,
-  compat_sub      text[] not null default '{}',
-  limpeza_nota    smallint not null check (limpeza_nota between 1 and 5),
-  limpeza_legenda text not null,
-  limpeza_sub     text[] not null default '{}',
-  clima_nota      smallint not null check (clima_nota between 1 and 5),
-  clima_legenda   text not null,
-  clima_sub       text[] not null default '{}',
-  created_at      timestamptz not null default now()
+  id serial primary key,
+  imagem text not null,
+  descricao text not null,
+  taxonomia jsonb not null default '{}'::jsonb,
+  ecologia jsonb not null default '{}'::jsonb,
+  morfologia jsonb not null default '{}'::jsonb,
+  fenologia jsonb not null default '{}'::jsonb,
+  uso_urbanismo jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
 );
 
 alter table public.trees enable row level security;
@@ -76,3 +67,15 @@ create policy "Users can update points of own projects" on public.points for upd
 create policy "Users can delete points from own projects" on public.points for delete
   using (exists (select 1 from public.projects where projects.id = points.project_id and projects.user_id = auth.uid()));
 create index idx_points_project_id on public.points(project_id);
+
+-- ============================================
+-- STORAGE: Bucket avatars
+-- ============================================
+insert into storage.buckets (id, name, public) 
+values ('avatars', 'avatars', true) 
+on conflict do nothing;
+
+create policy "public_avatars" on storage.objects for select using ( bucket_id = 'avatars' );
+create policy "insert_avatars" on storage.objects for insert to authenticated with check ( bucket_id = 'avatars' );
+create policy "update_avatars" on storage.objects for update to authenticated using ( bucket_id = 'avatars' );
+create policy "delete_avatars" on storage.objects for delete to authenticated using ( bucket_id = 'avatars' );

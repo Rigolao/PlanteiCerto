@@ -26,22 +26,7 @@ function setDraw(doc: jsPDF, color: readonly [number, number, number]) {
   doc.setDrawColor(color[0], color[1], color[2]);
 }
 
-/** Desenha uma barra de progresso horizontal para notas de 1 a 5 */
-function drawProgressBar(doc: jsPDF, x: number, y: number, width: number, score: number) {
-  const height = 1.5;
-  const radius = 0.75;
-  
-  // Fundo da barra
-  setFill(doc, COLORS.border);
-  doc.roundedRect(x, y - 1, width, height, radius, radius, 'F');
-  
-  // Progresso
-  setFill(doc, COLORS.primary);
-  const progressWidth = (score / 5) * width;
-  if (progressWidth > 0) {
-    doc.roundedRect(x, y - 1, progressWidth, height, radius, radius, 'F');
-  }
-}
+
 
 export async function generateProjectPDF(
   project: Projeto,
@@ -165,9 +150,9 @@ export async function generateProjectPDF(
   doc.text('#', cols.n + 2, headerY);
   doc.text('ESPÉCIE', cols.nome, headerY);
   doc.text('NOME CIENTÍFICO', cols.cientifico, headerY);
-  doc.text('CALÇADA', cols.calcada, headerY);
-  doc.text('LIMPEZA', cols.limpeza, headerY);
-  doc.text('CLIMA', cols.clima, headerY);
+  doc.text('NATIVA', cols.calcada, headerY);
+  doc.text('PAISAGISMO', cols.limpeza, headerY);
+  doc.text('ESPINHOS', cols.clima, headerY);
   
   y += 8;
 
@@ -197,31 +182,28 @@ export async function generateProjectPDF(
     // Nomes
     setText(doc, COLORS.text);
     doc.setFont(undefined as any, 'bold');
-    doc.text(tree.nomePopular, cols.nome, y + 6);
+    doc.text(tree.taxonomia.nomeComum, cols.nome, y + 6);
     
     setText(doc, COLORS.muted);
     doc.setFont(undefined as any, 'italic');
     doc.setFontSize(7);
-    doc.text(tree.nomeCientifico, cols.cientifico, y + 6);
+    doc.text(tree.taxonomia.nomeBotanico, cols.cientifico, y + 6);
 
-    // Scores com Texto + Micro-barras
+    // Scores com Texto
     doc.setFontSize(8);
     doc.setFont(undefined as any, 'normal');
     
-    // Calçada
+    // Nativa
     setText(doc, COLORS.text);
-    doc.text(`${tree.atributos.compatibilidade.nota}`, cols.calcada - 3, y + 6);
-    drawProgressBar(doc, cols.calcada + 1, y + 6, 10, tree.atributos.compatibilidade.nota);
+    doc.text(tree.taxonomia.nativa ? 'Sim' : 'Não', cols.calcada, y + 6);
 
-    // Limpeza
+    // Paisagismo
     setText(doc, COLORS.text);
-    doc.text(`${tree.atributos.limpeza.nota}`, cols.limpeza - 3, y + 6);
-    drawProgressBar(doc, cols.limpeza + 1, y + 6, 10, tree.atributos.limpeza.nota);
+    doc.text(tree.usoUrbanismo.recomendadoPaisagismo ? 'Sim' : 'Não', cols.limpeza, y + 6);
 
-    // Clima
+    // Espinhos
     setText(doc, COLORS.text);
-    doc.text(`${tree.atributos.clima.nota}`, cols.clima - 3, y + 6);
-    drawProgressBar(doc, cols.clima + 1, y + 6, 10, tree.atributos.clima.nota);
+    doc.text(tree.usoUrbanismo.riscos.espinhos ? 'Sim' : 'Não', cols.clima, y + 6);
 
     y += rowH;
   });
