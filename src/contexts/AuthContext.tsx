@@ -12,6 +12,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   updatePassword: (password: string) => Promise<{ error: string | null }>;
+  updateProfile: (nome: string, avatarFile?: File) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           id: session.user.id,
           nome: session.user.user_metadata?.nome || session.user.email?.split('@')[0] || 'Usuário',
           email: session.user.email || '',
+          avatar_url: session.user.user_metadata?.avatar_url,
         });
       }
       setLoading(false);
@@ -46,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           id: session.user.id,
           nome: session.user.user_metadata?.nome || session.user.email?.split('@')[0] || 'Usuário',
           email: session.user.email || '',
+          avatar_url: session.user.user_metadata?.avatar_url,
         });
       } else {
         setUser(null);
@@ -84,6 +87,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message || null };
   };
 
+  const updateProfile = async (nome: string, avatarFile?: File) => {
+    try {
+      let avatar_url = undefined;
+
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${user?.id}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, avatarFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        avatar_url = data.publicUrl;
+      }
+
+      const updateData: { data: { nome: string; avatar_url?: string } } = {
+        data: { nome }
+      };
+
+      if (avatar_url) {
+        updateData.data.avatar_url = avatar_url;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser(updateData);
+      
+      if (updateError) throw updateError;
+      
+      return { error: null };
+    } catch (error: any) {
+      return { error: error.message };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -91,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, resetPassword, updatePassword, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

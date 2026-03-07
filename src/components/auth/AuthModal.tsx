@@ -43,7 +43,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           if (result.error.includes('rate limit exceeded')) {
             setErro('Muitas solicitações em pouco tempo. Aguarde 60 segundos e tente novamente.');
           } else {
-            setErro(result.error);
+            setErro('Ocorreu um erro ao recuperar a senha. Verifique o e-mail ou tente mais tarde.');
           }
         } else {
           setMode('forgot-password-success');
@@ -55,14 +55,24 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       } else if (mode === 'login') {
         const result = await signIn(email, senha);
         if (result.error) {
-          setErro(result.error);
+          if (result.error.includes('Invalid login credentials')) {
+            setErro('E-mail ou senha incorretos.');
+          } else if (result.error.includes('Email not confirmed')) {
+             setErro('Confirme seu e-mail antes de fazer login.');
+          } else {
+            setErro('Ocorreu um erro ao fazer login. Tente novamente mais tarde.');
+          }
         } else {
           handleClose();
         }
       } else if (mode === 'register') {
         const result = await signUp(nome, email, senha);
         if (result.error) {
-          setErro(result.error);
+          if (result.error.includes('already registered')) {
+            setErro('Este e-mail já está em uso.');
+          } else {
+            setErro('Erro ao criar conta. Verifique seus dados e tente novamente.');
+          }
         } else if (result.needsConfirmation) {
           setMode('confirm');
         } else {
@@ -70,7 +80,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         }
       }
     } catch (err: any) {
-      setErro(err.message || 'Ocorreu um erro inesperado.');
+      setErro('Ocorreu um erro na requisição. Verifique sua conexão ou tente mais tarde.');
     } finally {
       setLoading(false);
     }

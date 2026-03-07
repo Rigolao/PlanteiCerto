@@ -14,6 +14,7 @@ export function Header() {
 
   const isArvores = location.pathname === '/';
   const isProjetos = location.pathname === '/projetos';
+  const isPerfil = location.pathname === '/perfil';
 
   // Fecha o drawer ao mudar de rota
   useEffect(() => {
@@ -59,6 +60,18 @@ export function Header() {
                   }`}
               >
                 Meus Projetos
+              </button>
+            )}
+            {user && (
+              <button
+                onClick={() => navigate('/perfil')}
+                className={`flex items-center gap-2 bg-transparent border-none cursor-pointer text-sm font-medium transition-colors ${isPerfil ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                {user.avatar_url ? (
+                  <img src={user.avatar_url} alt="Avatar" className="w-6 h-6 rounded-full object-cover" />
+                ) : null}
+                Meu Perfil
               </button>
             )}
             {user ? (
@@ -143,6 +156,24 @@ export function Header() {
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                   </svg>
                   Meus Projetos
+                </button>
+              )}
+
+              {user && (
+                <button
+                  onClick={() => {
+                    navigate('/perfil');
+                    setDrawerOpen(false);
+                  }}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-xl text-base font-semibold transition-all ${
+                    isPerfil ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
+                  } bg-transparent border-none cursor-pointer text-left`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  Meu Perfil
                 </button>
               )}
             </nav>
