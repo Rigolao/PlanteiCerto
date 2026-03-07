@@ -65,9 +65,9 @@ export function ProjectMap({ project, points, pendingPoints, trees, onAddPending
 
         {/* Layer opcional para adicionar nomes de ruas/labels sobre o satélite */}
         <TileLayer
-          attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
-          url="https://tiles.stadiamaps.com/tiles/stamen_toner_lines/{z}/{x}/{y}{r}.png"
-          opacity={0.4}
+          attribution='&copy; <a href="https://www.esri.com/">Esri</a>, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+          opacity={0.7}
           crossOrigin="anonymous"
         />
 
