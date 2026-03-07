@@ -68,10 +68,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       } else if (mode === 'register') {
         const result = await signUp(nome, email, senha);
         if (result.error) {
-          if (result.error.includes('already registered')) {
-            setErro('Este e-mail já está em uso.');
+          if (result.error.includes('already registered') || result.error.includes('já está cadastrado')) {
+            setErro('Este e-mail já está em uso. Tente fazer login.');
           } else {
-            setErro('Erro ao criar conta. Verifique seus dados e tente novamente.');
+            setErro(result.error);
           }
         } else if (result.needsConfirmation) {
           setMode('confirm');

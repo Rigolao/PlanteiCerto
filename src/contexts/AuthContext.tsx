@@ -70,6 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: { data: { nome } },
     });
     if (error) return { error: error.message };
+
+    // Supabase returns an empty identities array when the user already exists
+    if (data?.user?.identities && data.user.identities.length === 0) {
+      return { error: 'Este e-mail já está cadastrado. Tente fazer login.' };
+    }
+
     // session is null when email confirmation is required
     const needsConfirmation = !data.session;
     return { error: null, needsConfirmation };
