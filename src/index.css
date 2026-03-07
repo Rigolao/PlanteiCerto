@@ -1,29 +1,96 @@
 @import "tailwindcss";
 
 @theme {
-  --color-verde-primario: #2E7D32;
-  --color-verde-claro: #E8F5E9;
-  --color-verde-barra: #4CAF50;
-  --color-terra-escuro: #5D4037;
-  --color-bg-body: #F4F7F6;
-  --color-bg-card: #FFFFFF;
-  --color-texto-principal: #333333;
-  --color-texto-secundario: #666666;
+  /* ===== Core Colors (Light Mode) ===== */
+  --color-background: hsl(80 20% 97%);
+  --color-foreground: hsl(150 10% 15%);
+
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(150 10% 15%);
+
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(150 10% 15%);
+
+  --color-primary: hsl(142 44% 28%);
+  --color-primary-foreground: hsl(0 0% 100%);
+
+  --color-secondary: hsl(80 20% 93%);
+  --color-secondary-foreground: hsl(150 10% 15%);
+
+  --color-muted: hsl(80 10% 94%);
+  --color-muted-foreground: hsl(150 5% 45%);
+
+  --color-accent: hsl(142 30% 92%);
+  --color-accent-foreground: hsl(142 44% 22%);
+
+  --color-destructive: hsl(0 72% 51%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+
+  --color-border: hsl(80 10% 90%);
+  --color-input: hsl(80 10% 90%);
+  --color-ring: hsl(142 44% 28%);
+
+  /* ===== Specific App Colors ===== */
+  --color-rating: hsl(142 50% 45%);
+  --color-earth: hsl(30 30% 45%);
+  --color-earth-light: hsl(35 30% 95%);
+  --color-nature-dark: hsl(142 44% 18%);
   --color-ods-13: #437D46;
   --color-ods-11: #FD9D24;
 
-  --shadow-leve: 0 4px 6px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0 10px 20px rgba(0, 0, 0, 0.12);
-
-  --font-sans: "Roboto", sans-serif;
+  /* ===== Typography ===== */
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-sans: 'DM Sans', sans-serif;
 }
 
-/* ===== Base ===== */
+/* ===== Dark Mode ===== */
+.dark {
+  --color-background: hsl(150 10% 8%);
+  --color-foreground: hsl(80 10% 95%);
+  --color-card: hsl(150 10% 11%);
+  --color-card-foreground: hsl(80 10% 95%);
+  --color-popover: hsl(150 10% 11%);
+  --color-popover-foreground: hsl(80 10% 95%);
+  --color-primary: hsl(142 44% 45%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(150 10% 15%);
+  --color-secondary-foreground: hsl(80 10% 95%);
+  --color-muted: hsl(150 10% 15%);
+  --color-muted-foreground: hsl(80 5% 55%);
+  --color-accent: hsl(142 30% 18%);
+  --color-accent-foreground: hsl(142 30% 80%);
+  --color-destructive: hsl(0 62.8% 30.6%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(150 10% 18%);
+  --color-input: hsl(150 10% 18%);
+  --color-ring: hsl(142 44% 45%);
+}
+
+/* ===== Base Styles ===== */
+* {
+  border-color: var(--color-border);
+}
+
 body {
-  background-color: var(--color-bg-body);
-  color: var(--color-texto-principal);
-  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-body);
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
+/* ===== Utility Classes ===== */
+.font-display {
+  font-family: var(--font-display);
+}
+.font-body {
+  font-family: var(--font-body);
 }
 
 /* ===== Leaflet Marker Pin ===== */
@@ -39,7 +106,7 @@ body {
 }
 
 .marker-pin-head {
-  background: var(--color-verde-primario);
+  background: var(--color-primary);
   color: white;
   padding: 4px 10px;
   border-radius: 16px;
@@ -56,7 +123,7 @@ body {
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 10px solid var(--color-verde-primario);
+  border-top: 10px solid var(--color-primary);
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
 }
 
@@ -64,7 +131,7 @@ body {
 .popup-selecao h4 {
   margin: 0 0 8px;
   font-size: 0.9rem;
-  color: var(--color-verde-primario);
+  color: var(--color-primary);
 }
 
 .popup-arvore-btn {
@@ -72,8 +139,8 @@ body {
   width: 100%;
   padding: 6px 10px;
   margin-bottom: 4px;
-  background: var(--color-verde-claro);
-  border: 1px solid var(--color-verde-primario);
+  background: var(--color-accent);
+  border: 1px solid var(--color-primary);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
@@ -82,7 +149,7 @@ body {
 }
 
 .popup-arvore-btn:hover {
-  background: var(--color-verde-primario);
+  background: var(--color-primary);
   color: white;
 }
 
@@ -90,7 +157,7 @@ body {
   width: 100%;
   margin-top: 6px;
   padding: 6px 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.8rem;
   box-sizing: border-box;
@@ -99,7 +166,7 @@ body {
 /* ===== Leaflet overrides ===== */
 .leaflet-container {
   border-radius: 12px;
-  border: 3px solid var(--color-verde-primario);
+  border: 3px solid var(--color-primary);
 }
 
 /* ===== Scrollbar ===== */
@@ -109,4 +176,10 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 3px;
+}
+
+/* ===== Skeleton Shimmer Animation ===== */
+@keyframes skeleton-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }

@@ -12,23 +12,23 @@ export function AttributeBar({ label, atributo, showDetails = false }: Attribute
   return (
     <div className="mb-3">
       <div className="flex justify-between text-sm mb-1">
-        <span className="text-texto-principal">{label}</span>
-        <span className="text-texto-secundario font-medium">{atributo.nota}/5</span>
+        <span className="text-foreground">{label}</span>
+        <span className="text-muted-foreground font-medium">{atributo.nota}/5</span>
       </div>
       <ProgressBar value={atributo.nota} />
 
       {showDetails && (
         <details className="mt-2 text-sm">
-          <summary className="cursor-pointer text-verde-primario font-medium hover:underline">
+          <summary className="cursor-pointer text-primary font-medium hover:underline">
             Ver parâmetros e legenda
           </summary>
-          <div className="mt-2 pl-3 border-l-2 border-verde-claro">
-            <p className="text-texto-secundario mb-2">
+          <div className="mt-2 pl-3 border-l-2 border-accent">
+            <p className="text-muted-foreground mb-2">
               <strong>Significado:</strong> {atributo.legenda}
             </p>
             <ul className="list-none p-0 m-0 flex flex-col gap-1">
               {atributo.sub.map((s, i) => (
-                <li key={i} className="text-texto-secundario text-xs">
+                <li key={i} className="text-muted-foreground text-xs">
                   • <SubParameter text={s} />
                 </li>
               ))}

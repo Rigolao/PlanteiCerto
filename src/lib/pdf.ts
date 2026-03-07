@@ -3,6 +3,46 @@ import html2canvas from 'html2canvas';
 import type { Projeto, Ponto } from '../types/project';
 import type { Arvore } from '../types/tree';
 
+// ── Design System para o PDF ──────────────────────────────────────────────
+const COLORS = {
+  primary: [34, 100, 55] as const,    // #226437
+  secondary: [236, 246, 239] as const, // Accent light
+  text: [28, 40, 32] as const,        // Foreground
+  muted: [110, 120, 114] as const,    // Muted
+  border: [220, 228, 222] as const,   // Border
+  white: [255, 255, 255] as const,
+  bg: [247, 249, 247] as const,       // Background light
+};
+
+function setFill(doc: jsPDF, color: readonly [number, number, number]) {
+  doc.setFillColor(color[0], color[1], color[2]);
+}
+
+function setText(doc: jsPDF, color: readonly [number, number, number]) {
+  doc.setTextColor(color[0], color[1], color[2]);
+}
+
+function setDraw(doc: jsPDF, color: readonly [number, number, number]) {
+  doc.setDrawColor(color[0], color[1], color[2]);
+}
+
+/** Desenha uma barra de progresso horizontal para notas de 1 a 5 */
+function drawProgressBar(doc: jsPDF, x: number, y: number, width: number, score: number) {
+  const height = 1.5;
+  const radius = 0.75;
+  
+  // Fundo da barra
+  setFill(doc, COLORS.border);
+  doc.roundedRect(x, y - 1, width, height, radius, radius, 'F');
+  
+  // Progresso
+  setFill(doc, COLORS.primary);
+  const progressWidth = (score / 5) * width;
+  if (progressWidth > 0) {
+    doc.roundedRect(x, y - 1, progressWidth, height, radius, radius, 'F');
+  }
+}
+
 export async function generateProjectPDF(
   project: Projeto,
   points: Ponto[],
@@ -11,120 +51,202 @@ export async function generateProjectPDF(
 ): Promise<void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
-  let y = 15;
+  const pageH = doc.internal.pageSize.getHeight();
+  const m = 16; // margem
+  const contentW = pageW - (m * 2);
+  let y = m;
 
-  // --- Header ---
-  doc.setFillColor(46, 125, 50);
-  doc.rect(0, 0, pageW, 30, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(20);
-  doc.setFont(undefined as unknown as string, 'bold');
-  doc.text('Plantei Certo', pageW / 2, 13, { align: 'center' });
-  doc.setFontSize(11);
-  doc.setFont(undefined as unknown as string, 'normal');
-  doc.text('Relatório de Projeto de Arborização', pageW / 2, 22, { align: 'center' });
+  // ─── Header Minimalista (Igual ao App) ───────────────────────────────────
+  setDraw(doc, COLORS.border);
+  doc.setLineWidth(0.2);
+  doc.line(0, 24, pageW, 24); // Borda inferior do header
 
-  y = 40;
+  setText(doc, COLORS.text);
+  doc.setFontSize(18);
+  doc.setFont(undefined as any, 'bold');
+  doc.text('PlanteiCerto', m, 16);
 
-  // --- Project Info ---
-  doc.setTextColor(46, 125, 50);
-  doc.setFontSize(16);
-  doc.setFont(undefined as unknown as string, 'bold');
-  doc.text(project.nome, 15, y);
-  y += 7;
+  setText(doc, COLORS.muted);
+  doc.setFontSize(8);
+  doc.setFont(undefined as any, 'normal');
+  doc.text('Relatório de Arborização Urbana', m, 21);
 
-  doc.setTextColor(100, 100, 100);
-  doc.setFontSize(10);
-  doc.setFont(undefined as unknown as string, 'normal');
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  doc.text(`Doc: ${hoje}`, pageW - m, 16, { align: 'right' });
+
+  y = 32;
+
+  // ─── Project Info Card ──────────────────────────────────────────────────
+  setFill(doc, COLORS.secondary);
+  setDraw(doc, COLORS.border);
+  doc.roundedRect(m, y, contentW, 28, 3, 3, 'FD');
+
+  setText(doc, COLORS.primary);
+  doc.setFontSize(14);
+  doc.setFont(undefined as any, 'bold');
+  doc.text(project.nome, m + 6, y + 10);
+
+  setText(doc, COLORS.text);
+  doc.setFontSize(9);
+  doc.setFont(undefined as any, 'normal');
   if (project.descricao) {
-    doc.text(project.descricao, 15, y);
-    y += 5;
+    const desc = doc.splitTextToSize(project.descricao, contentW - 12);
+    doc.text(desc, m + 6, y + 16);
   }
-  const dataStr = new Date(project.created_at).toLocaleDateString('pt-BR');
-  doc.text(`Criado em: ${dataStr}  |  Total de árvores: ${points.length}`, 15, y);
-  y += 10;
+  
+  const stats = `${points.length} arvores mapeadas | Ribeirão Preto, SP`;
+  setText(doc, COLORS.muted);
+  doc.text(stats, m + 6, y + 24);
 
-  // --- Map Capture ---
+  y += 36;
+
+  // ─── Mapa com Bordas Arredondadas ─────────────────────────────────────────
   try {
     const canvas = await html2canvas(mapElement, {
       useCORS: true,
-      allowTaint: true,
       scale: 2,
       logging: false,
+      backgroundColor: null,
+      ignoreElements: (el) => {
+        // Ignora botões de zoom, atribuições e barra de busca do mapa na foto
+        return el.classList.contains('leaflet-control-container') || el.classList.contains('absolute');
+      }
     });
     const imgData = canvas.toDataURL('image/jpeg', 0.85);
-    const imgW = pageW - 30;
-    const imgH = (canvas.height / canvas.width) * imgW;
-    const finalImgH = Math.min(imgH, 110);
+    const imgW = contentW;
+    const imgH = Math.min((canvas.height / canvas.width) * imgW, 95);
 
-    doc.addImage(imgData, 'JPEG', 15, y, imgW, finalImgH);
-    y += finalImgH + 10;
-  } catch {
-    y += 5;
+    setDraw(doc, COLORS.border);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(m, y, imgW, imgH, 2, 2, 'D');
+    doc.addImage(imgData, 'JPEG', m, y, imgW, imgH);
+    y += imgH + 12;
+  } catch (err) {
+    console.warn('Falha ao capturar mapa:', err);
+    // Placeholder se o mapa falhar (CORS ou erro de renderização)
+    setDraw(doc, COLORS.border);
+    setFill(doc, [250, 250, 250]);
+    doc.roundedRect(m, y, contentW, 40, 2, 2, 'FD');
+    setText(doc, COLORS.muted);
+    doc.setFontSize(8);
+    doc.text('Visualização do mapa indisponível neste relatório.', pageW / 2, y + 20, { align: 'center' });
+    y += 48;
   }
 
-  // --- Tree Table ---
-  doc.setTextColor(46, 125, 50);
-  doc.setFontSize(13);
-  doc.setFont(undefined as unknown as string, 'bold');
-  doc.text('Árvores Plantadas', 15, y);
-  y += 7;
+  // ─── Lista de Espécies ────────────────────────────────────────────────────
+  setText(doc, COLORS.text);
+  doc.setFontSize(12);
+  doc.setFont(undefined as any, 'bold');
+  doc.text('Espécies Selecionadas', m, y);
+  
+  y += 6;
 
-  // Table header
-  doc.setFillColor(232, 245, 233);
-  doc.rect(15, y - 4, pageW - 30, 8, 'F');
-  doc.setTextColor(51, 51, 51);
-  doc.setFontSize(9);
-  doc.setFont(undefined as unknown as string, 'bold');
-  doc.text('#', 18, y);
-  doc.text('Árvore', 28, y);
-  doc.text('Calçada', 90, y);
-  doc.text('Clima', 115, y);
-  doc.text('Observação', 138, y);
-  y += 7;
+  // Cabeçalho da Tabela
+  const cols = {
+    n: m,
+    nome: m + 8,
+    cientifico: m + 60,
+    calcada: m + 105,
+    limpeza: m + 125,
+    clima: m + 145,
+    obs: m + 165
+  };
 
-  // Table rows
-  doc.setFont(undefined as unknown as string, 'normal');
-  doc.setFontSize(9);
-  points.forEach((ponto, idx) => {
-    const arvore = trees.find(a => a.id === ponto.tree_id);
-    if (!arvore) return;
+  setFill(doc, [250, 250, 250]);
+  doc.rect(m, y, contentW, 8, 'F');
+  setDraw(doc, COLORS.border);
+  doc.line(m, y, m + contentW, y);
+  doc.line(m, y + 8, m + contentW, y + 8);
 
-    if (y > 270) {
+  setText(doc, COLORS.muted);
+  doc.setFontSize(7);
+  doc.setFont(undefined as any, 'bold');
+  const headerY = y + 5;
+  doc.text('#', cols.n + 2, headerY);
+  doc.text('ESPÉCIE', cols.nome, headerY);
+  doc.text('NOME CIENTÍFICO', cols.cientifico, headerY);
+  doc.text('CALÇADA', cols.calcada, headerY);
+  doc.text('LIMPEZA', cols.limpeza, headerY);
+  doc.text('CLIMA', cols.clima, headerY);
+  
+  y += 8;
+
+  // Linhas da Tabela
+  doc.setFontSize(8);
+  points.forEach((point, i) => {
+    const tree = trees.find(t => t.id === point.tree_id);
+    if (!tree) return;
+
+    if (y > pageH - 25) {
+      addFooter(doc, pageW, pageH);
       doc.addPage();
-      y = 15;
+      y = m + 10;
     }
 
-    if (idx % 2 === 0) {
-      doc.setFillColor(248, 248, 248);
-      doc.rect(15, y - 4, pageW - 30, 7, 'F');
-    }
+    const rowH = 10;
+    
+    // Separador
+    setDraw(doc, [245, 245, 245]);
+    doc.line(m, y + rowH, m + contentW, y + rowH);
 
-    doc.setTextColor(51, 51, 51);
-    doc.text(`${idx + 1}`, 18, y);
-    doc.setTextColor(46, 125, 50);
-    doc.setFont(undefined as unknown as string, 'bold');
-    doc.text(arvore.nomePopular, 28, y);
-    doc.setFont(undefined as unknown as string, 'normal');
-    doc.setTextColor(51, 51, 51);
-    doc.text(`${arvore.atributos.compatibilidade.nota}/5`, 90, y);
-    doc.text(`${arvore.atributos.clima.nota}/5`, 115, y);
-    doc.text(ponto.observacao || '-', 138, y);
-    y += 7;
+    // Número
+    setText(doc, COLORS.muted);
+    doc.setFont(undefined as any, 'normal');
+    doc.text(`${i + 1}`, cols.n + 2, y + 6);
+
+    // Nomes
+    setText(doc, COLORS.text);
+    doc.setFont(undefined as any, 'bold');
+    doc.text(tree.nomePopular, cols.nome, y + 6);
+    
+    setText(doc, COLORS.muted);
+    doc.setFont(undefined as any, 'italic');
+    doc.setFontSize(7);
+    doc.text(tree.nomeCientifico, cols.cientifico, y + 6);
+
+    // Scores com Texto + Micro-barras
+    doc.setFontSize(8);
+    doc.setFont(undefined as any, 'normal');
+    
+    // Calçada
+    setText(doc, COLORS.text);
+    doc.text(`${tree.atributos.compatibilidade.nota}`, cols.calcada - 3, y + 6);
+    drawProgressBar(doc, cols.calcada + 1, y + 6, 10, tree.atributos.compatibilidade.nota);
+
+    // Limpeza
+    setText(doc, COLORS.text);
+    doc.text(`${tree.atributos.limpeza.nota}`, cols.limpeza - 3, y + 6);
+    drawProgressBar(doc, cols.limpeza + 1, y + 6, 10, tree.atributos.limpeza.nota);
+
+    // Clima
+    setText(doc, COLORS.text);
+    doc.text(`${tree.atributos.clima.nota}`, cols.clima - 3, y + 6);
+    drawProgressBar(doc, cols.clima + 1, y + 6, 10, tree.atributos.clima.nota);
+
+    y += rowH;
   });
 
-  // --- Footer ---
-  y = doc.internal.pageSize.getHeight() - 10;
-  doc.setTextColor(150, 150, 150);
-  doc.setFontSize(8);
-  doc.text(
-    `Plantei Certo - Ribeirão Preto | Gerado em ${new Date().toLocaleDateString('pt-BR')}`,
-    pageW / 2,
-    y,
-    { align: 'center' }
-  );
+  // ─── Rodapé ───────────────────────────────────────────────────────────────
+  addFooter(doc, pageW, pageH);
 
-  // --- Download ---
-  const nomeArquivo = `PlanteiCerto_${project.nome.replace(/\s+/g, '_')}.pdf`;
-  doc.save(nomeArquivo);
+  // ─── Download ─────────────────────────────────────────────────────────────
+  const fileName = `Relatorio_${project.nome.replace(/\s+/g, '_')}.pdf`;
+  doc.save(fileName);
+}
+
+function addFooter(doc: jsPDF, pageW: number, pageH: number) {
+  const m = 16;
+  const footerY = pageH - 12;
+  
+  setDraw(doc, COLORS.border);
+  doc.line(m, footerY - 4, pageW - m, footerY - 4);
+  
+  setText(doc, COLORS.muted);
+  doc.setFontSize(7);
+  doc.setFont(undefined as any, 'normal');
+  doc.text('PlanteiCerto - Democratizando a arborização urbana', m, footerY);
+  
+  const pageNumber = (doc as any).internal.getCurrentPageInfo().pageNumber;
+  doc.text(`Página ${pageNumber}`, pageW / 2, footerY, { align: 'center' });
+  doc.text('www.planteicerto.com.br', pageW - m, footerY, { align: 'right' });
 }

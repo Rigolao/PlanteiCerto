@@ -63,17 +63,17 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   // Tela de confirmação de e-mail
   if (mode === 'confirm') {
     return (
-      <Modal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-md">
+      <Modal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-md" centered>
         <div className="p-6 text-center">
           <div className="text-5xl mb-4">📧</div>
-          <h2 className="text-verde-primario text-xl font-bold mb-2">Confirme seu e-mail</h2>
-          <p className="text-texto-secundario mb-6">
+          <h2 className="text-primary text-xl font-bold mb-2 font-display">Confirme seu e-mail</h2>
+          <p className="text-muted-foreground mb-6">
             Enviamos um link de confirmação para <strong>{email}</strong>.
             Clique no link para ativar sua conta e poder fazer login.
           </p>
           <button
             onClick={handleClose}
-            className="bg-verde-primario text-white font-bold py-3 px-8 rounded-lg border-none cursor-pointer hover:brightness-110 transition-all"
+            className="bg-primary text-primary-foreground font-bold py-3 px-8 rounded-lg border-none cursor-pointer hover:brightness-110 transition-all"
           >
             Entendido
           </button>
@@ -83,9 +83,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-md">
+    <Modal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-md" centered>
       <div className="p-6">
-        <h2 className="text-verde-primario text-xl font-bold mb-4">
+        <h2 className="text-primary text-xl font-bold mb-4 font-display">
           {mode === 'login' ? 'Entrar' : 'Criar Conta'}
         </h2>
 
@@ -102,7 +102,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               value={nome}
               onChange={e => setNome(e.target.value)}
               placeholder="Seu nome"
-              className="px-4 py-3 rounded-lg border border-gray-300 text-sm focus:outline-none focus:border-verde-primario focus:ring-1 focus:ring-verde-primario"
+              className="px-4 py-3 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
             />
           )}
           <input
@@ -111,7 +111,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             onChange={e => setEmail(e.target.value)}
             placeholder="E-mail"
             required
-            className="px-4 py-3 rounded-lg border border-gray-300 text-sm focus:outline-none focus:border-verde-primario focus:ring-1 focus:ring-verde-primario"
+            className="px-4 py-3 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
           />
           <input
             type="password"
@@ -120,19 +120,19 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             placeholder="Senha"
             required
             minLength={6}
-            className="px-4 py-3 rounded-lg border border-gray-300 text-sm focus:outline-none focus:border-verde-primario focus:ring-1 focus:ring-verde-primario"
+            className="px-4 py-3 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
           />
           <button
             type="submit"
             disabled={loading}
-            className="bg-verde-primario text-white font-bold py-3 rounded-lg border-none cursor-pointer hover:brightness-110 transition-all disabled:opacity-50"
+            className="bg-primary text-primary-foreground font-bold py-3 rounded-lg border-none cursor-pointer hover:brightness-110 transition-all disabled:opacity-50"
           >
             {loading ? '...' : mode === 'login' ? 'Entrar' : 'Cadastrar'}
           </button>
         </form>
 
         <p
-          className="text-center mt-4 text-verde-primario text-sm cursor-pointer hover:underline"
+          className="text-center mt-4 text-primary text-sm cursor-pointer hover:underline"
           onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErro(''); }}
         >
           {mode === 'login' ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entre aqui'}

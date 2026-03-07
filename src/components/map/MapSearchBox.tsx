@@ -123,9 +123,9 @@ export function MapSearchBox() {
     >
       <form 
         onSubmit={handleSearch}
-        className="relative flex items-center bg-white/95 backdrop-blur-sm rounded-full shadow-xl border border-verde-primario/30 overflow-hidden focus-within:ring-2 focus-within:ring-verde-primario/50 transition-all duration-300 p-1"
+        className="relative flex items-center bg-card/95 backdrop-blur-sm rounded-full shadow-xl border border-primary/30 overflow-hidden focus-within:ring-2 focus-within:ring-ring/50 transition-all duration-300 p-1"
       >
-        <div className="pl-4 pr-2 text-verde-primario/60 flex items-center justify-center">
+        <div className="pl-4 pr-2 text-primary/60 flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -136,13 +136,13 @@ export function MapSearchBox() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar endereço, CEP ou cidade..."
-          className="flex-1 px-2 py-2.5 text-sm bg-transparent outline-none text-texto-principal placeholder:text-gray-400/80 font-medium"
+          className="flex-1 px-2 py-2.5 text-sm bg-transparent outline-none text-foreground placeholder:text-muted-foreground/60 font-medium"
           disabled={loading}
         />
         <button
           type="submit"
           disabled={loading || !query.trim()}
-          className="bg-verde-primario text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-verde-primario/90 transition-all focus:outline-none disabled:bg-gray-300 active:scale-95 disabled:active:scale-100"
+          className="bg-primary text-primary-foreground w-10 h-10 rounded-full flex items-center justify-center hover:bg-primary/90 transition-all focus:outline-none disabled:bg-secondary active:scale-95 disabled:active:scale-100"
           title="Buscar Local"
         >
           {loading ? (

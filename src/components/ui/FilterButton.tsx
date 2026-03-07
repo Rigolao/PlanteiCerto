@@ -10,8 +10,8 @@ export function FilterButton({ label, active, onClick }: FilterButtonProps) {
       onClick={onClick}
       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer border-none ${
         active
-          ? 'bg-verde-primario text-white shadow-leve'
-          : 'bg-verde-claro text-verde-primario hover:bg-verde-primario/20'
+          ? 'bg-primary text-primary-foreground shadow-sm'
+          : 'bg-accent text-primary hover:bg-primary/20'
       }`}
     >
       {label}

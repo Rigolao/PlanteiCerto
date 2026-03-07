@@ -12,12 +12,12 @@ export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message }: Co
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-sm">
       <div className="p-6">
-        <h3 className="text-lg font-bold text-texto-principal mb-2">{title}</h3>
-        <p className="text-texto-secundario mb-6">{message}</p>
+        <h3 className="text-lg font-bold text-foreground mb-2 font-display">{title}</h3>
+        <p className="text-muted-foreground mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-texto-secundario hover:bg-gray-100 cursor-pointer bg-transparent"
+            className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:bg-secondary cursor-pointer bg-transparent"
           >
             Cancelar
           </button>

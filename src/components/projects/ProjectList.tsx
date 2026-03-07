@@ -18,11 +18,11 @@ export function ProjectList({ projects, onOpenProject, onCreateProject, onDelete
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-verde-primario text-2xl font-bold">Meus Projetos</h2>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-foreground font-display">Meus Projetos</h1>
         <button
           onClick={() => setNewModalOpen(true)}
-          className="bg-verde-primario text-white font-bold px-5 py-2.5 rounded-xl border-none cursor-pointer hover:brightness-110 transition-all text-sm"
+          className="bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-full border-none cursor-pointer hover:brightness-110 transition-all text-sm"
         >
           + Novo Projeto
         </button>
