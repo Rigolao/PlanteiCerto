@@ -1,13 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { LatLng } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { Projeto, Ponto } from '../../types/project';
+import type { Projeto, Ponto, PontoPendente } from '../../types/project';
 import type { Arvore } from '../../types/tree';
 import { TreeMarker } from './TreeMarker';
 import { MapClickHandler } from './MapClickHandler';
-import { TreeSelectionPopup } from './TreeSelectionPopup';
 
 function MapBoundsFitter({ points }: { points: Ponto[] }) {
   const map = useMap();
@@ -31,25 +30,21 @@ function MapBoundsFitter({ points }: { points: Ponto[] }) {
 interface ProjectMapProps {
   project: Projeto;
   points: Ponto[];
+  pendingPoints: PontoPendente[];
   trees: Arvore[];
-  onAddPoint: (treeId: number, lat: number, lng: number, observacao: string) => Promise<unknown>;
+  onAddPendingPoint: (lat: number, lng: number) => void;
   onUpdateMapCenter: (projectId: string, lat: number, lng: number, zoom: number) => Promise<void>;
 }
 
-export function ProjectMap({ project, points, trees, onAddPoint, onUpdateMapCenter }: ProjectMapProps) {
-  const [popupPosition, setPopupPosition] = useState<LatLng | null>(null);
-
+export function ProjectMap({ project, points, pendingPoints, trees, onAddPendingPoint, onUpdateMapCenter }: ProjectMapProps) {
+  
   const handleMapClick = useCallback((latlng: LatLng) => {
-    setPopupPosition(latlng);
-  }, []);
+    onAddPendingPoint(latlng.lat, latlng.lng);
+  }, [onAddPendingPoint]);
 
   const handleMoveEnd = useCallback((lat: number, lng: number, zoom: number) => {
     onUpdateMapCenter(project.id, lat, lng, zoom);
   }, [project.id, onUpdateMapCenter]);
-
-  const handleSelectTree = useCallback(async (treeId: number, lat: number, lng: number, observacao: string) => {
-    await onAddPoint(treeId, lat, lng, observacao);
-  }, [onAddPoint]);
 
   return (
     <MapContainer
@@ -72,16 +67,19 @@ export function ProjectMap({ project, points, trees, onAddPoint, onUpdateMapCent
         />
       ))}
 
-      {popupPosition && (
-        <TreeSelectionPopup
-          position={popupPosition}
-          trees={trees}
-          onSelect={handleSelectTree}
-          onClose={() => setPopupPosition(null)}
-        />
-      )}
+      {pendingPoints.map(p => {
+        // Mock a Ponto and Arvore for TreeMarker so we get a greyed out or temporary pin
+        const tempPonto: Ponto = { ...p, project_id: project.id, tree_id: 0, observacao: 'Pendente' };
+        return (
+          <TreeMarker
+            key={p.id}
+            ponto={tempPonto}
+            arvore={undefined}
+          />
+        );
+      })}
 
-      {/* Auto fit bounds based on points */}
+      {/* Auto fit bounds based on verified points */}
       <MapBoundsFitter points={points} />
     </MapContainer>
   );

@@ -4,6 +4,12 @@ export interface CentroMapa {
   zoom: number;
 }
 
+export interface PontoPendente {
+  id: string; // Gerado temporariamente no front-end
+  lat: number;
+  lng: number;
+}
+
 export interface Ponto {
   id: string;
   project_id: string;

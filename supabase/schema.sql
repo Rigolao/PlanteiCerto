@@ -71,6 +71,8 @@ create policy "Users can view points of own projects" on public.points for selec
   using (exists (select 1 from public.projects where projects.id = points.project_id and projects.user_id = auth.uid()));
 create policy "Users can add points to own projects" on public.points for insert
   with check (exists (select 1 from public.projects where projects.id = points.project_id and projects.user_id = auth.uid()));
+create policy "Users can update points of own projects" on public.points for update
+  using (exists (select 1 from public.projects where projects.id = points.project_id and projects.user_id = auth.uid()));
 create policy "Users can delete points from own projects" on public.points for delete
   using (exists (select 1 from public.projects where projects.id = points.project_id and projects.user_id = auth.uid()));
 create index idx_points_project_id on public.points(project_id);

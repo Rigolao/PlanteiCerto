@@ -59,5 +59,20 @@ export function useProjectPoints(projectId: string | null) {
     return !error;
   };
 
-  return { points, loading, addPoint, removePoint, refetch: fetchPoints };
+  const updatePoint = async (pointId: string, treeId: number, observacao: string) => {
+    const { data, error } = await supabase
+      .from('points')
+      .update({ tree_id: treeId, observacao })
+      .eq('id', pointId)
+      .select()
+      .single();
+
+    if (!error && data) {
+      setPoints(prev => prev.map(p => (p.id === pointId ? data : p)));
+      return data as Ponto;
+    }
+    return null;
+  };
+
+  return { points, loading, addPoint, removePoint, updatePoint, refetch: fetchPoints };
 }
