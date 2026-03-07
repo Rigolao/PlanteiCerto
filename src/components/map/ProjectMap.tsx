@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { useState, useCallback, useEffect } from 'react';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import type { LatLng } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Projeto, Ponto } from '../../types/project';
@@ -7,6 +8,25 @@ import type { Arvore } from '../../types/tree';
 import { TreeMarker } from './TreeMarker';
 import { MapClickHandler } from './MapClickHandler';
 import { TreeSelectionPopup } from './TreeSelectionPopup';
+
+function MapBoundsFitter({ points }: { points: Ponto[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (points.length === 0) return;
+
+    if (points.length === 1) {
+      // Se houver apenas um ponto, centraliza com um zoom adequado
+      map.setView([points[0].lat, points[0].lng], 16);
+    } else {
+      // Se houver múltiplos pontos, cria um bounding box e ajusta o mapa
+      const bounds = L.latLngBounds(points.map(p => [p.lat, p.lng]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+    }
+  }, [map, points]);
+
+  return null;
+}
 
 interface ProjectMapProps {
   project: Projeto;
@@ -60,6 +80,9 @@ export function ProjectMap({ project, points, trees, onAddPoint, onUpdateMapCent
           onClose={() => setPopupPosition(null)}
         />
       )}
+
+      {/* Auto fit bounds based on points */}
+      <MapBoundsFitter points={points} />
     </MapContainer>
   );
 }
