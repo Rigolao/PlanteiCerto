@@ -7,6 +7,7 @@ import type { Projeto, Ponto, PontoPendente } from '../../types/project';
 import type { Arvore } from '../../types/tree';
 import { TreeMarker } from './TreeMarker';
 import { MapClickHandler } from './MapClickHandler';
+import { MapSearchBox } from './MapSearchBox';
 
 function MapBoundsFitter({ points }: { points: Ponto[] }) {
   const map = useMap();
@@ -47,24 +48,28 @@ export function ProjectMap({ project, points, pendingPoints, trees, onAddPending
   }, [project.id, onUpdateMapCenter]);
 
   return (
-    <MapContainer
-      center={[project.centro_lat, project.centro_lng]}
-      zoom={project.centro_zoom}
-      style={{ height: '450px', width: '100%' }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.esri.com/">Esri</a>, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-      />
+    <div className="relative">
+      <MapContainer
+        center={[project.centro_lat, project.centro_lng]}
+        zoom={project.centro_zoom}
+        style={{ height: '450px', width: '100%' }}
+      >
+        {/* Barra Flutuante de Pesquisa de Endereço */}
+        <MapSearchBox />
 
-      {/* Layer opcional para adicionar nomes de ruas/labels sobre o satélite */}
-      <TileLayer
-        attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
-        url="https://tiles.stadiamaps.com/tiles/stamen_toner_lines/{z}/{x}/{y}{r}.png"
-        opacity={0.4}
-      />
+        <TileLayer
+          attribution='&copy; <a href="https://www.esri.com/">Esri</a>, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        />
 
-      <MapClickHandler onClick={handleMapClick} onMoveEnd={handleMoveEnd} />
+        {/* Layer opcional para adicionar nomes de ruas/labels sobre o satélite */}
+        <TileLayer
+          attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
+          url="https://tiles.stadiamaps.com/tiles/stamen_toner_lines/{z}/{x}/{y}{r}.png"
+          opacity={0.4}
+        />
+
+        <MapClickHandler onClick={handleMapClick} onMoveEnd={handleMoveEnd} />
 
       {points.map(p => (
         <TreeMarker
@@ -89,5 +94,6 @@ export function ProjectMap({ project, points, pendingPoints, trees, onAddPending
       {/* Auto fit bounds based on verified points */}
       <MapBoundsFitter points={points} />
     </MapContainer>
+    </div>
   );
 }
