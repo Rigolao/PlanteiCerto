@@ -43,7 +43,7 @@ export function Modal({ isOpen, onClose, children, maxWidth = 'max-w-2xl', cente
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className={`fixed inset-0 z-50 flex justify-center overflow-y-auto p-4 md:p-8 ${centered ? 'items-center' : 'items-start'}`}
+      className={`fixed inset-0 z-[10000] flex justify-center overflow-y-auto p-4 md:p-8 ${centered ? 'items-center' : 'items-start'}`}
       style={{
         backgroundColor: animating ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0)',
         backdropFilter: animating ? 'blur(6px)' : 'blur(0px)',

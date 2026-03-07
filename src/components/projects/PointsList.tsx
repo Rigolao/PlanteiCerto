@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import type { Ponto, PontoPendente } from '../../types/project';
 import type { Arvore } from '../../types/tree';
 import { PointItem } from './PointItem';
 import { Skeleton } from '../ui/Skeleton';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 interface PointsListProps {
   points: Ponto[];
@@ -33,6 +35,8 @@ function PointItemSkeleton() {
 }
 
 export function PointsList({ points, loading, trees, pendingPoints, onRemovePoint, onEditPoint, onRemovePendingPoint, onLinkTree }: PointsListProps) {
+  const [pointToDelete, setPointToDelete] = useState<string | null>(null);
+
   return (
     <div className="mt-4">
       {/* Pontos Pendentes */}
@@ -95,11 +99,21 @@ export function PointsList({ points, loading, trees, pendingPoints, onRemovePoin
               ponto={p}
               arvore={trees.find(a => a.id === p.tree_id)}
               onEdit={() => onEditPoint(p)}
-              onRemove={() => onRemovePoint(p.id)}
+              onRemove={() => setPointToDelete(p.id)}
             />
           ))}
         </ul>
       ) : null}
+
+      <ConfirmationModal
+        isOpen={!!pointToDelete}
+        onClose={() => setPointToDelete(null)}
+        onConfirm={() => pointToDelete && onRemovePoint(pointToDelete)}
+        title="Remover árvore"
+        description="Deseja remover esta árvore do seu projeto? Esta ação não pode ser desfeita."
+        confirmLabel="Remover"
+        variant="danger"
+      />
     </div>
   );
 }

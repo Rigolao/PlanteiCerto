@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Projeto } from '../../types/project';
 import { ProjectCard } from './ProjectCard';
 import { NewProjectModal } from './NewProjectModal';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { EmptyState } from '../ui/EmptyState';
 
 interface ProjectListProps {
@@ -50,12 +50,14 @@ export function ProjectList({ projects, onOpenProject, onCreateProject, onDelete
         onCreate={onCreateProject}
       />
 
-      <ConfirmDialog
+      <ConfirmationModal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
         onConfirm={() => { if (deleteId) onDeleteProject(deleteId); }}
         title="Excluir projeto"
-        message="Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita."
+        description="Tem certeza que deseja excluir este projeto? Todos os pontos mapeados e árvores vinculadas serão perdidos permanentemente."
+        confirmLabel="Sim, excluir projeto"
+        variant="danger"
       />
     </div>
   );

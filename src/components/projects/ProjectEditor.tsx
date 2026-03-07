@@ -92,47 +92,49 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
     <>
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between mb-8 pb-6 border-b border-border flex-wrap gap-4">
-          <div className="flex items-center gap-4">
+        <div className="mb-8 pb-6 border-b border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleBack}
+                className="group flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none cursor-pointer p-0 w-fit"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span className="text-xs font-bold uppercase tracking-wider">Voltar</span>
+              </button>
+              <h2 className="text-foreground text-2xl sm:text-3xl font-bold font-display leading-tight">{project.nome}</h2>
+            </div>
+            
             <button
-              onClick={handleBack}
-              className="group flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none cursor-pointer p-1"
+              onClick={handleGeneratePDF}
+              disabled={generatingPdf || pendingPoints.length > 0}
+              className="flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-full border-none cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all text-sm disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none w-full sm:w-auto shadow-sm"
+              title={pendingPoints.length > 0 ? "Salve os pontos pendentes primeiro." : ""}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-              <span className="text-sm font-medium">Voltar</span>
+              {generatingPdf ? (
+                <>
+                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 4.93L16.24 7.76M7.76 16.24L4.93 19.07M19.07 19.07L16.24 16.24M7.76 7.76L4.93 4.93" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <span>Gerando...</span>
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                  <span>Baixar Relatório PDF</span>
+                </>
+              )}
             </button>
-            <h2 className="text-foreground text-2xl font-bold font-display">{project.nome}</h2>
           </div>
-          
-          <button
-            onClick={handleGeneratePDF}
-            disabled={generatingPdf || pendingPoints.length > 0}
-            className="flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-full border-none cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all text-sm disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none"
-            title={pendingPoints.length > 0 ? "Salve os pontos pendentes primeiro." : ""}
-          >
-            {generatingPdf ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 4.93L16.24 7.76M7.76 16.24L4.93 19.07M19.07 19.07L16.24 16.24M7.76 7.76L4.93 4.93" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                Gerando...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
-                Baixar Relatório PDF
-              </span>
-            )}
-          </button>
         </div>
 
         {/* Instruction */}
