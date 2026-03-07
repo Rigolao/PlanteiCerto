@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alteração de E-mail - PlanteiCerto</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f4f7f5;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(34, 100, 55, 0.05);
+      border: 1px solid #e2e8e4;
+    }
+    .header {
+      background-color: #226437;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .logo {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+    .content {
+      padding: 40px 32px;
+      text-align: center;
+      color: #334155;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1c2820;
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+    .text {
+      font-size: 16px;
+      color: #475569;
+      margin-bottom: 32px;
+    }
+    .button {
+      display: inline-block;
+      background-color: #22c55e;
+      color: #ffffff !important;
+      font-weight: 600;
+      font-size: 16px;
+      text-decoration: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      margin-bottom: 32px;
+    }
+    .footer {
+      background-color: #f8faf9;
+      padding: 24px;
+      text-align: center;
+      font-size: 13px;
+      color: #94a3b8;
+      border-top: 1px solid #e2e8e4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="logo">🌳 PlanteiCerto</h1>
+    </div>
+    <div class="content">
+      <h2 class="title">Atualização de Cadastro 🔄</h2>
+      <p class="text">Olá, {{ .Data.nome }}! Você solicitou a alteração do seu e-mail de acesso na plataforma PlanteiCerto. Por favor, confirme a mudança clicando no botão abaixo.</p>
+      
+      <!-- O Link Mágico Injetado pelo Supabase -->
+      <a href="{{ .ConfirmationURL }}" class="button">Confirmar Novo E-mail</a>
+    </div>
+    <div class="footer">
+      <p style="margin: 0;">© 2026 PlanteiCerto. Democratizando a arborização urbana.</p>
+      <p style="margin: 8px 0 0 0;">Este é um e-mail automático, por favor não responda.</p>
+    </div>
+  </div>
+</body>
+</html>
