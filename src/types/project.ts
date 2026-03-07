@@ -30,4 +30,5 @@ export interface Projeto {
   centro_zoom: number;
   created_at: string;
   pontos?: Ponto[];
+  points?: { count: number }[];
 }

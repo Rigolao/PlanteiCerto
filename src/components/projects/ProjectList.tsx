@@ -36,7 +36,7 @@ export function ProjectList({ projects, onOpenProject, onCreateProject, onDelete
             <ProjectCard
               key={p.id}
               project={p}
-              pointCount={0}
+              pointCount={p.points?.[0]?.count ?? 0}
               onOpen={() => onOpenProject(p.id)}
               onDelete={() => setDeleteId(p.id)}
             />

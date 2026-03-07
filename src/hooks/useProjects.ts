@@ -18,7 +18,7 @@ export function useProjects() {
     setLoading(true);
     const { data, error } = await supabase
       .from('projects')
-      .select('*')
+      .select('*, points(count)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
