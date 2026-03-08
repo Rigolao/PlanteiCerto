@@ -8,6 +8,7 @@ import type { Arvore } from '../../types/tree';
 import { TreeMarker } from './TreeMarker';
 import { MapClickHandler } from './MapClickHandler';
 import { MapSearchBox } from './MapSearchBox';
+import { MyLocationButton } from './MyLocationButton';
 
 function MapBoundsFitter({ points }: { points: Ponto[] }) {
   const map = useMap();
@@ -56,6 +57,7 @@ export function ProjectMap({ project, points, pendingPoints, trees, onAddPending
       >
         {/* Barra Flutuante de Pesquisa de Endereço */}
         <MapSearchBox />
+        <MyLocationButton />
 
         <TileLayer
           attribution='&copy; <a href="https://www.esri.com/">Esri</a>, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'

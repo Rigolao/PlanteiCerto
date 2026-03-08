@@ -119,7 +119,7 @@ export function MapSearchBox() {
   return (
     <div 
       ref={containerRef}
-      className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-sm px-4"
+      className="absolute top-4 left-1/2 -translate-x-1/2 z-[400] w-full max-w-sm px-4"
     >
       <form 
         onSubmit={handleSearch}
