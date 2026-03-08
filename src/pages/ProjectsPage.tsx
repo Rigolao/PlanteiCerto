@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from 'react';
 import { useProjects } from '../hooks/useProjects';
 import { useTrees } from '../hooks/useTrees';
 import { ProjectList } from '../components/projects/ProjectList';
@@ -9,19 +7,9 @@ import { ProjectCardSkeleton } from '../components/ui/Skeleton';
 import type { Projeto } from '../types/project';
 
 export function ProjectsPage() {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const { projects, loading: projectsLoading, createProject, updateProject, deleteProject, updateMapCenter } = useProjects();
   const { trees } = useTrees();
   const [openProject, setOpenProject] = useState<Projeto | null>(null);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/');
-    }
-  }, [user, authLoading, navigate]);
-
-  if (!user) return null;
 
   if (openProject) {
     return (

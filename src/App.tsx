@@ -5,6 +5,7 @@ import { TreesPage } from './pages/TreesPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Toaster } from 'sonner';
 import { useTheme } from './contexts/ThemeContext';
 
@@ -17,9 +18,13 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<TreesPage trees={trees} />} />
-        <Route path="/projetos" element={<ProjectsPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/perfil" element={<ProfilePage />} />
+        
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/projetos" element={<ProjectsPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/perfil" element={<ProfilePage />} />
+        </Route>
       </Route>
     </Routes>
     <Toaster position="bottom-right" richColors theme={theme as any} />

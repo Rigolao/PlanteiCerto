@@ -28,7 +28,11 @@ export function ResetPasswordPage() {
     const { error: updateError } = await updatePassword(password);
     
     if (updateError) {
-      toast.error(updateError);
+      if (updateError.includes('New password should be different from the old password')) {
+        toast.error('A nova senha deve ser diferente da atual.');
+      } else {
+        toast.error(updateError);
+      }
       setLoading(false);
     } else {
       setSuccess(true);

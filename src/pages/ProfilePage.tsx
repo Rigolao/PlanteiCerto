@@ -1,11 +1,9 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export function ProfilePage() {
   const { user, updateProfile, updatePassword } = useAuth();
-  const navigate = useNavigate();
 
   const [nome, setNome] = useState(user?.nome || '');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar_url || null);
@@ -18,11 +16,6 @@ export function ProfilePage() {
   const [loadingAuth, setLoadingAuth] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  if (!user) {
-    navigate('/');
-    return null;
-  }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -63,7 +56,11 @@ export function ProfilePage() {
     const { error } = await updatePassword(password);
 
     if (error) {
-      toast.error('Erro ao alterar senha: ' + error);
+      if (error.includes('New password should be different from the old password')) {
+        toast.error('A nova senha deve ser diferente da atual.');
+      } else {
+        toast.error('Erro ao alterar senha: ' + error);
+      }
     } else {
       toast.success('Senha alterada com sucesso!');
       setPassword('');
@@ -116,7 +113,7 @@ export function ProfilePage() {
                 <label className="text-sm font-semibold text-foreground">Email</label>
                 <input 
                   type="email" 
-                  value={user.email} 
+                  value={user!.email} 
                   disabled 
                   className="w-full px-4 py-2 rounded-xl border border-border bg-muted text-muted-foreground outline-none cursor-not-allowed"
                 />
