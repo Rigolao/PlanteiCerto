@@ -47,11 +47,11 @@ export function TreeMarker({ ponto, arvore, onClick }: TreeMarkerProps) {
     : arvore.taxonomia.nomeComum;
 
   return (
-    <Marker 
-      position={[ponto.lat, ponto.lng]} 
-      icon={icon} 
-      eventHandlers={{ 
-        click: () => onClick?.() 
+    <Marker
+      position={[ponto.lat, ponto.lng]}
+      icon={icon}
+      eventHandlers={{
+        click: () => onClick?.()
       }}
     >
       <Tooltip>{tooltipText}</Tooltip>
