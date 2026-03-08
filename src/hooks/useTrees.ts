@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { staticTrees } from '../data/trees';
 import type { Arvore, Taxonomia, Ecologia, Morfologia, Fenologia, UsoUrbanismo } from '../types/tree';
@@ -28,32 +28,22 @@ function mapDbToArvore(db: DbTree): Arvore {
 }
 
 export function useTrees() {
-  const [trees, setTrees] = useState<Arvore[]>(staticTrees);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchTrees = async () => {
-      try {
-        const { data, error } = await supabase.from('trees').select('*').order('id');
-        if (error || !data || data.length === 0) {
-          setTrees(staticTrees);
-        } else {
-          setTrees((data as DbTree[]).map(mapDbToArvore));
-        }
-      } catch {
-        setTrees(staticTrees);
-      } finally {
-        setLoading(false);
+  const { data: trees = staticTrees, isLoading: loading } = useQuery({
+    queryKey: ['trees'],
+    queryFn: async () => {
+      if (!isSupabaseConfigured()) {
+        return staticTrees;
       }
-    };
 
-    fetchTrees();
-  }, []);
+      const { data, error } = await supabase.from('trees').select('*').order('id');
+      if (error || !data || data.length === 0) {
+        return staticTrees;
+      }
+      
+      return (data as DbTree[]).map(mapDbToArvore);
+    },
+    staleTime: 1000 * 60 * 15, // 15 minutos de cache
+  });
 
   return { trees, loading };
 }
