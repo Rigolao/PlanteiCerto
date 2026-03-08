@@ -26,6 +26,9 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
   const [pointToLink, setPointToLink] = useState<PontoPendente | null>(null);
   const [pointToEdit, setPointToEdit] = useState<Ponto | null>(null);
 
+  // Selection state
+  const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
+
   const handleGeneratePDF = async () => {
     if (!mapRef.current) return;
     setGeneratingPdf(true);
@@ -152,6 +155,8 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
               loading={pointsLoading}
               pendingPoints={pendingPoints}
               trees={trees}
+              selectedPointId={selectedPointId}
+              onSelectPoint={setSelectedPointId}
               onRemovePoint={removePoint}
               onEditPoint={(point) => setPointToEdit(point)}
               onRemovePendingPoint={handleRemovePendingPoint}
@@ -166,6 +171,8 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
               points={points}
               pendingPoints={pendingPoints}
               trees={trees}
+              selectedPointId={selectedPointId}
+              onSelectPoint={setSelectedPointId}
               onAddPendingPoint={handleAddPendingPoint}
               onUpdateMapCenter={onUpdateMapCenter}
             />

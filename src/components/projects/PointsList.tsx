@@ -14,6 +14,8 @@ interface PointsListProps {
   onEditPoint: (ponto: Ponto) => void;
   onRemovePendingPoint: (pointId: string) => void;
   onLinkTree: (point: PontoPendente) => void;
+  selectedPointId?: string | null;
+  onSelectPoint?: (id: string | null) => void;
 }
 
 function PointItemSkeleton() {
@@ -34,7 +36,7 @@ function PointItemSkeleton() {
   );
 }
 
-export function PointsList({ points, loading, trees, pendingPoints, onRemovePoint, onEditPoint, onRemovePendingPoint, onLinkTree }: PointsListProps) {
+export function PointsList({ points, loading, trees, pendingPoints, onRemovePoint, onEditPoint, onRemovePendingPoint, onLinkTree, selectedPointId, onSelectPoint }: PointsListProps) {
   const [pointToDelete, setPointToDelete] = useState<string | null>(null);
 
   return (
@@ -98,6 +100,8 @@ export function PointsList({ points, loading, trees, pendingPoints, onRemovePoin
               key={p.id}
               ponto={p}
               arvore={trees.find(a => a.id === p.tree_id)}
+              isSelected={selectedPointId === p.id}
+              onClick={() => onSelectPoint?.(selectedPointId === p.id ? null : p.id)}
               onEdit={() => onEditPoint(p)}
               onRemove={() => setPointToDelete(p.id)}
             />

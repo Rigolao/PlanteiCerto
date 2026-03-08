@@ -97,6 +97,7 @@ h1, h2, h3, h4 {
 .marker-arvore-wrapper {
   background: none !important;
   border: none !important;
+  pointer-events: none !important;
 }
 
 .marker-pin {
@@ -116,6 +117,8 @@ h1, h2, h3, h4 {
   text-align: center;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
   border: 2px solid white;
+  pointer-events: auto;
+  transition: all 0.2s ease-out;
 }
 
 .marker-pin-tail {
@@ -125,6 +128,23 @@ h1, h2, h3, h4 {
   border-right: 8px solid transparent;
   border-top: 10px solid var(--color-primary);
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+  pointer-events: auto;
+  transition: all 0.2s ease-out;
+}
+
+/* ===== Selected Marker Override ===== */
+.marker-selected .marker-pin-head {
+  background: #3b82f6 !important; /* blue-500 */
+  border-color: white !important;
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5) !important;
+  z-index: 100;
+}
+
+.marker-selected .marker-pin-tail {
+  border-top-color: #3b82f6 !important;
+  transform: scale(1.15) translateY(-2px);
+  transform-origin: top;
 }
 
 /* ===== Leaflet Popup ===== */
@@ -208,4 +228,45 @@ h1, h2, h3, h4 {
 
 .slide-in-from-right {
   animation-name: slide-in-from-right;
+}
+
+/* ===== Custom Marker Cluster overrides ===== */
+.marker-cluster {
+  background: none !important;
+}
+
+.marker-cluster div {
+  position: relative !important;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  background-color: var(--color-primary) !important;
+  color: white !important;
+  font-family: inherit !important;
+  font-weight: bold;
+  font-size: 14px;
+  border: 2px solid white !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+
+.marker-cluster span {
+  line-height: 1 !important;
+}
+
+.marker-cluster div::after {
+  content: '';
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--color-primary);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
 }

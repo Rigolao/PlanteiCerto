@@ -6,11 +6,12 @@ import type { Arvore } from '../../types/tree';
 interface TreeMarkerProps {
   ponto: Ponto;
   arvore: Arvore | undefined;
+  onClick?: () => void;
 }
 
-function createTreeIcon(name: string) {
+function createTreeIcon(name: string, pointId: string) {
   return L.divIcon({
-    className: 'marker-arvore-wrapper',
+    className: `marker-arvore-wrapper marker-ponto-${pointId}`,
     html: `<div class="marker-pin">
       <div class="marker-pin-head">🌳 ${name}</div>
       <div class="marker-pin-tail"></div>
@@ -20,11 +21,11 @@ function createTreeIcon(name: string) {
   });
 }
 
-export function TreeMarker({ ponto, arvore }: TreeMarkerProps) {
+export function TreeMarker({ ponto, arvore, onClick }: TreeMarkerProps) {
   if (!arvore) {
     // Renderiza um pino genérico para Ponto Pendente
     const pendingIcon = L.divIcon({
-      className: 'marker-arvore-wrapper', // Usa o mesmo wrapper transparente
+      className: `marker-arvore-wrapper marker-ponto-${ponto.id}`, // Usa o mesmo wrapper transparente
       html: `<div class="marker-pin" style="background: none; border: none; box-shadow: none;">
         <div class="marker-pin-head" style="background-color: #f59e0b; color: white; border-color: #d97706;">⚠️ Pendente</div>
         <div class="marker-pin-tail" style="border-top-color: #f59e0b; border-bottom: none; border-left: 8px solid transparent; border-right: 8px solid transparent;"></div>
@@ -34,19 +35,25 @@ export function TreeMarker({ ponto, arvore }: TreeMarkerProps) {
     });
 
     return (
-      <Marker position={[ponto.lat, ponto.lng]} icon={pendingIcon}>
+      <Marker position={[ponto.lat, ponto.lng]} icon={pendingIcon} eventHandlers={{ click: () => onClick?.() }}>
         <Tooltip>Ponto Pendente: Vincule uma árvore na lista</Tooltip>
       </Marker>
     );
   }
 
-  const icon = createTreeIcon(arvore.taxonomia.nomeComum);
+  const icon = createTreeIcon(arvore.taxonomia.nomeComum, ponto.id);
   const tooltipText = ponto.observacao
     ? `${arvore.taxonomia.nomeComum} - ${ponto.observacao}`
     : arvore.taxonomia.nomeComum;
 
   return (
-    <Marker position={[ponto.lat, ponto.lng]} icon={icon}>
+    <Marker 
+      position={[ponto.lat, ponto.lng]} 
+      icon={icon} 
+      eventHandlers={{ 
+        click: () => onClick?.() 
+      }}
+    >
       <Tooltip>{tooltipText}</Tooltip>
     </Marker>
   );
