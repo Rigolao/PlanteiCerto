@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthModal } from '../auth/AuthModal';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export function Header() {
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -30,10 +32,15 @@ export function Header() {
     }
   }, [drawerOpen]);
 
+  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const toggleTheme = () => {
+    setTheme(isDarkMode ? 'light' : 'dark');
+  };
 
   return (
     <>
-      <header className="sticky top-0 z-[1000] bg-white border-b border-border">
+      <header className="sticky top-0 z-[1000] bg-background border-b border-border">
         <div className="flex items-center justify-between px-6 md:px-10 h-16 max-w-7xl mx-auto">
           {/* Logo */}
           <button
@@ -89,6 +96,17 @@ export function Header() {
                 Entrar
               </button>
             )}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-secondary text-secondary-foreground border-none cursor-pointer hover:bg-secondary/80 transition-colors"
+              title="Alternar tema"
+            >
+              {isDarkMode ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              )}
+            </button>
           </nav>
 
           {/* Mobile Hamburger */}
@@ -115,7 +133,7 @@ export function Header() {
           />
           
           {/* Content */}
-          <div className="absolute top-0 right-0 bottom-0 w-[280px] bg-white shadow-2xl flex flex-col p-6 animate-in slide-in-from-right duration-300">
+          <div className="absolute top-0 right-0 bottom-0 w-[280px] bg-background shadow-2xl flex flex-col p-6 animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between mb-10">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🌱</span>
@@ -178,7 +196,24 @@ export function Header() {
               )}
             </nav>
 
-            <div className="mt-auto pt-6 border-t border-border">
+            <div className="mt-auto pt-6 border-t border-border flex flex-col gap-4">
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-4 px-4 py-3 rounded-xl text-base font-semibold transition-all text-muted-foreground hover:bg-muted bg-transparent border-none cursor-pointer text-left w-full"
+              >
+                {isDarkMode ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    Modo Claro
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    Modo Escuro
+                  </>
+                )}
+              </button>
+
               {user ? (
                 <div className="flex flex-col gap-4">
                   <div className="px-4">

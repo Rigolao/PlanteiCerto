@@ -82,7 +82,7 @@ export function TreeSelectionDialog({
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="bg-white w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="bg-card w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
         style={{
           maxHeight: '90vh',
           opacity: animating ? 1 : 0,
@@ -195,13 +195,13 @@ export function TreeSelectionDialog({
               value={observacao}
               onChange={(e) => setObservacao(e.target.value)}
               rows={2}
-              className="w-full px-4 py-2.5 rounded-lg border border-border text-sm text-foreground bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring transition-all resize-none"
+              className="w-full px-4 py-2.5 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring transition-all resize-none"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-border flex gap-2.5 flex-shrink-0 bg-white">
+        <div className="px-5 py-4 border-t border-border flex gap-2.5 flex-shrink-0 bg-card">
           <button
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground bg-background border border-border hover:bg-muted transition-colors cursor-pointer"

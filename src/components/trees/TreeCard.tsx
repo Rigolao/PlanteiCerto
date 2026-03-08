@@ -9,7 +9,7 @@ export function TreeCard({ arvore, onClick }: TreeCardProps) {
   return (
     <article
       onClick={onClick}
-      className="bg-white rounded-2xl ring-1 ring-border overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:ring-primary/20 hover:-translate-y-1"
+      className="bg-card rounded-2xl ring-1 ring-border overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:ring-primary/20 hover:-translate-y-1"
     >
       <div className="aspect-[4/3] overflow-hidden">
         <img

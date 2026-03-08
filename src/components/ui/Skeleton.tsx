@@ -24,7 +24,7 @@ export function Skeleton({ className = '' }: SkeletonProps) {
 /** Skeleton para o card de árvore */
 export function TreeCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl ring-1 ring-border overflow-hidden">
+    <div className="bg-card rounded-2xl ring-1 ring-border overflow-hidden">
       {/* Imagem */}
       <Skeleton className="w-full aspect-[4/3] rounded-none" />
       <div className="p-5 pb-4">
@@ -47,7 +47,7 @@ export function TreeCardSkeleton() {
 /** Skeleton para o card de projeto */
 export function ProjectCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl ring-1 ring-border p-6">
+    <div className="bg-card rounded-2xl ring-1 ring-border p-6">
       {/* Ícone + lixeira */}
       <div className="flex items-start justify-between mb-4">
         <Skeleton className="w-10 h-10 rounded-xl" />

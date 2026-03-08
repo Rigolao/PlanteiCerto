@@ -18,7 +18,7 @@ interface PointsListProps {
 
 function PointItemSkeleton() {
   return (
-    <li className="flex items-center justify-between gap-3 bg-white rounded-xl p-3 ring-1 ring-border">
+    <li className="flex items-center justify-between gap-3 bg-card rounded-xl p-3 ring-1 ring-border">
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <Skeleton className="w-8 h-8 rounded-lg flex-shrink-0" />
         <div className="flex-1 space-y-1.5">
@@ -53,7 +53,7 @@ export function PointsList({ points, loading, trees, pendingPoints, onRemovePoin
           </p>
           <ul className="list-none p-0 m-0 flex flex-col gap-2">
             {pendingPoints.map((p, i) => (
-              <li key={p.id} className="flex items-center justify-between gap-3 bg-white/80 rounded-xl p-3 border border-amber-100/50">
+              <li key={p.id} className="flex items-center justify-between gap-3 bg-card/80 rounded-xl p-3 border border-amber-100/50">
                 <span className="font-medium text-amber-900 text-[11px]">Ponto #{i + 1}</span>
                 <div className="flex items-center gap-1.5">
                   <button

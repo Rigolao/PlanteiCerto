@@ -68,7 +68,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
             value={termoBusca}
             onChange={e => setTermoBusca(e.target.value)}
             placeholder="Buscar por nome ou espécie..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border text-sm text-foreground bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
           />
         </div>
       </div>
@@ -82,7 +82,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${
               filtroAtivo === f.key
                 ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                : 'bg-white text-foreground border-border hover:border-primary/40'
+                : 'bg-card text-foreground border-border hover:border-primary/40'
             }`}
           >
             {f.icon} {f.label}

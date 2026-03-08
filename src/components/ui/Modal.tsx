@@ -51,7 +51,7 @@ export function Modal({ isOpen, onClose, children, maxWidth = 'max-w-2xl', cente
       }}
     >
       <div
-        className={`bg-white rounded-2xl shadow-2xl w-full ${maxWidth} my-6 relative overflow-hidden`}
+        className={`bg-card rounded-2xl shadow-2xl w-full ${maxWidth} my-6 relative overflow-hidden`}
         style={{
           opacity: animating ? 1 : 0,
           transform: animating ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(24px)',

@@ -76,7 +76,7 @@ export function ProfilePage() {
     <div className="max-w-3xl mx-auto px-6 py-10">
       <h1 className="text-3xl font-bold mb-8">Meu Perfil</h1>
 
-      <div className="bg-white border border-border rounded-2xl shadow-sm p-6 md:p-8 mb-8">
+      <div className="bg-card border border-border rounded-2xl shadow-sm p-6 md:p-8 mb-8">
         <h2 className="text-xl font-semibold mb-6 border-b border-border pb-4">Informações Públicas</h2>
         
         <form onSubmit={handleSaveProfile} className="space-y-6">
@@ -148,7 +148,7 @@ export function ProfilePage() {
         </form>
       </div>
 
-      <div className="bg-white border border-border rounded-2xl shadow-sm p-6 md:p-8">
+      <div className="bg-card border border-border rounded-2xl shadow-sm p-6 md:p-8">
         <h2 className="text-xl font-semibold mb-6 border-b border-border pb-4">Segurança</h2>
         
         <form onSubmit={handleSavePassword} className="space-y-6">

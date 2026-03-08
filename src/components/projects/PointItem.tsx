@@ -10,7 +10,7 @@ interface PointItemProps {
 
 export function PointItem({ ponto, arvore, onEdit, onRemove }: PointItemProps) {
   return (
-    <li className="flex items-center gap-3 bg-white rounded-xl p-3 ring-1 ring-border shadow-sm hover:ring-primary/30 transition-all group">
+    <li className="flex items-center gap-3 bg-card rounded-xl p-3 ring-1 ring-border shadow-sm hover:ring-primary/30 transition-all group">
       {arvore && (
         <img
           src={arvore.imagem}

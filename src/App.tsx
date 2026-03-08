@@ -5,11 +5,15 @@ import { TreesPage } from './pages/TreesPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { Toaster } from 'sonner';
+import { useTheme } from './contexts/ThemeContext';
 
 export default function App() {
   const { trees } = useTrees();
+  const { theme } = useTheme();
 
   return (
+    <>
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<TreesPage trees={trees} />} />
@@ -18,5 +22,7 @@ export default function App() {
         <Route path="/perfil" element={<ProfilePage />} />
       </Route>
     </Routes>
+    <Toaster position="bottom-right" richColors theme={theme as any} />
+    </>
   );
 }

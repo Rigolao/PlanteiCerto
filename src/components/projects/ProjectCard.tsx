@@ -12,7 +12,7 @@ export function ProjectCard({ project, pointCount, onOpen, onEdit, onDelete }: P
   const data = new Date(project.created_at).toLocaleDateString('pt-BR');
 
   return (
-    <div className="bg-white rounded-2xl ring-1 ring-border p-6 transition-all hover:shadow-lg hover:ring-primary/20">
+    <div className="bg-card rounded-2xl ring-1 ring-border p-6 transition-all hover:shadow-lg hover:ring-primary/20">
       {/* Top Row: Icon + Delete */}
       <div className="flex items-start justify-between mb-5">
         <div className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center">
