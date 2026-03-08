@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,14 +16,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
     setNome('');
     setEmail('');
     setSenha('');
-    setErro('');
   };
 
   const handleClose = () => {
@@ -33,7 +32,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErro('');
     setLoading(true);
 
     try {
@@ -41,26 +39,26 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         const result = await resetPassword(email);
         if (result.error) {
           if (result.error.includes('rate limit exceeded')) {
-            setErro('Muitas solicitações em pouco tempo. Aguarde 60 segundos e tente novamente.');
+            toast.error('Muitas solicitações em pouco tempo. Aguarde 60 segundos e tente novamente.');
           } else {
-            setErro('Ocorreu um erro ao recuperar a senha. Verifique o e-mail ou tente mais tarde.');
+            toast.error('Ocorreu um erro ao recuperar a senha. Verifique o e-mail ou tente mais tarde.');
           }
         } else {
           setMode('forgot-password-success');
         }
       } else if (mode === 'register' && !nome.trim()) {
-        setErro('Preencha seu nome.');
+        toast.error('Preencha seu nome.');
         setLoading(false);
         return;
       } else if (mode === 'login') {
         const result = await signIn(email, senha);
         if (result.error) {
           if (result.error.includes('Invalid login credentials')) {
-            setErro('E-mail ou senha incorretos.');
+            toast.error('E-mail ou senha incorretos.');
           } else if (result.error.includes('Email not confirmed')) {
-             setErro('Confirme seu e-mail antes de fazer login.');
+             toast.error('Confirme seu e-mail antes de fazer login.');
           } else {
-            setErro('Ocorreu um erro ao fazer login. Tente novamente mais tarde.');
+            toast.error('Ocorreu um erro ao fazer login. Tente novamente mais tarde.');
           }
         } else {
           handleClose();
@@ -69,9 +67,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         const result = await signUp(nome, email, senha);
         if (result.error) {
           if (result.error.includes('already registered') || result.error.includes('já está cadastrado')) {
-            setErro('Este e-mail já está em uso. Tente fazer login.');
+            toast.error('Este e-mail já está em uso. Tente fazer login.');
           } else {
-            setErro(result.error);
+            toast.error(result.error);
           }
         } else if (result.needsConfirmation) {
           setMode('confirm');
@@ -80,7 +78,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         }
       }
     } catch (err: any) {
-      setErro('Ocorreu um erro na requisição. Verifique sua conexão ou tente mais tarde.');
+      toast.error('Ocorreu um erro na requisição. Verifique sua conexão ou tente mais tarde.');
     } finally {
       setLoading(false);
     }
@@ -121,13 +119,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           {mode === 'register' && 'Criar Conta'}
           {mode === 'forgot-password' && 'Recuperar Senha'}
         </h2>
-
-        {erro && (
-          <div className="bg-red-50 text-red-600 text-sm p-4 rounded-xl mb-6 flex items-start gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <span>{erro}</span>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {mode === 'register' && (
@@ -207,7 +198,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           ) : (
             <p
               className="text-center text-muted-foreground text-sm cursor-pointer"
-              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErro(''); }}
+              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); }}
             >
               {mode === 'login' ? (
                 <>Não tem conta? <span className="text-primary font-bold hover:underline">Cadastre-se</span></>

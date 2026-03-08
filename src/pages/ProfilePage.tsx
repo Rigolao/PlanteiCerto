@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export function ProfilePage() {
   const { user, updateProfile, updatePassword } = useAuth();
@@ -15,8 +16,6 @@ export function ProfilePage() {
 
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(false);
-
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,14 +35,13 @@ export function ProfilePage() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingProfile(true);
-    setMessage(null);
 
     const { error } = await updateProfile(nome, avatarFile || undefined);
 
     if (error) {
-      setMessage({ type: 'error', text: 'Erro ao atualizar perfil: ' + error });
+      toast.error('Erro ao atualizar perfil: ' + error);
     } else {
-      setMessage({ type: 'success', text: 'Perfil atualizado com sucesso!' });
+      toast.success('Perfil atualizado com sucesso!');
     }
     setLoadingProfile(false);
   };
@@ -51,24 +49,23 @@ export function ProfilePage() {
   const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setMessage({ type: 'error', text: 'As senhas não coincidem.' });
+      toast.error('As senhas não coincidem.');
       return;
     }
     
     if (password.length < 6) {
-      setMessage({ type: 'error', text: 'A senha deve ter no mínimo 6 caracteres.' });
+      toast.error('A senha deve ter no mínimo 6 caracteres.');
       return;
     }
 
     setLoadingAuth(true);
-    setMessage(null);
 
     const { error } = await updatePassword(password);
 
     if (error) {
-      setMessage({ type: 'error', text: 'Erro ao alterar senha: ' + error });
+      toast.error('Erro ao alterar senha: ' + error);
     } else {
-      setMessage({ type: 'success', text: 'Senha alterada com sucesso!' });
+      toast.success('Senha alterada com sucesso!');
       setPassword('');
       setConfirmPassword('');
     }
@@ -78,12 +75,6 @@ export function ProfilePage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
       <h1 className="text-3xl font-bold mb-8">Meu Perfil</h1>
-
-      {message && (
-        <div className={`p-4 rounded-xl mb-8 ${message.type === 'success' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'} border`}>
-          {message.text}
-        </div>
-      )}
 
       <div className="bg-white border border-border rounded-2xl shadow-sm p-6 md:p-8 mb-8">
         <h2 className="text-xl font-semibold mb-6 border-b border-border pb-4">Informações Públicas</h2>

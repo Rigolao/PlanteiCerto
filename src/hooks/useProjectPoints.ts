@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import type { Ponto } from '../types/project';
 
@@ -46,8 +47,10 @@ export function useProjectPoints(projectId: string | null) {
 
     if (!error && data) {
       setPoints(prev => [...prev, data]);
+      toast.success('Árvore adicionada com sucesso!');
       return data as Ponto;
     }
+    toast.error('Erro ao adicionar a árvore no projeto.');
     return null;
   };
 
@@ -55,6 +58,9 @@ export function useProjectPoints(projectId: string | null) {
     const { error } = await supabase.from('points').delete().eq('id', pointId);
     if (!error) {
       setPoints(prev => prev.filter(p => p.id !== pointId));
+      toast.success('Árvore removida do mapa.');
+    } else {
+      toast.error('Erro ao remover a árvore do mapa.');
     }
     return !error;
   };
@@ -69,8 +75,10 @@ export function useProjectPoints(projectId: string | null) {
 
     if (!error && data) {
       setPoints(prev => prev.map(p => (p.id === pointId ? data : p)));
+      toast.success('Dados da árvore atualizados!');
       return data as Ponto;
     }
+    toast.error('Erro ao atualizar os dados da árvore.');
     return null;
   };
 

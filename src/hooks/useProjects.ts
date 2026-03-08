@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Projeto } from '../types/project';
@@ -44,6 +45,10 @@ export function useProjects() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects', user?.id] });
+      toast.success('Projeto criado com sucesso!');
+    },
+    onError: () => {
+      toast.error('Erro ao criar o projeto.');
     },
   });
 
@@ -55,6 +60,10 @@ export function useProjects() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects', user?.id] });
+      toast.success('Projeto removido com sucesso!');
+    },
+    onError: () => {
+      toast.error('Erro ao remover o projeto.');
     },
   });
 
