@@ -118,23 +118,35 @@ export async function generateProjectPDF(
     y += 48;
   }
 
-  // ─── Lista de Espécies ────────────────────────────────────────────────────
+  // ─── Lista Unificada de Espécies (Agrupamento) ────────────────────────────────────────────────────
   setText(doc, COLORS.text);
-  doc.setFontSize(12);
+  doc.setFontSize(14);
   doc.setFont(undefined as any, 'bold');
-  doc.text('Espécies Selecionadas', m, y);
+  doc.text('Espécies Selecionadas (Plantio Unificado)', m, y);
   
-  y += 6;
+  y += 8;
+
+  // Agrupar Pontos por Árvore
+  const speciesMap = new Map<number, { tree: Arvore, count: number }>();
+  points.forEach((point) => {
+    const tree = trees.find(t => t.id === point.tree_id);
+    if (!tree) return;
+    if (!speciesMap.has(tree.id)) {
+      speciesMap.set(tree.id, { tree, count: 0 });
+    }
+    speciesMap.get(tree.id)!.count++;
+  });
+  
+  const groupedSpecies = Array.from(speciesMap.values()).sort((a,b) => b.count - a.count);
 
   // Cabeçalho da Tabela
   const cols = {
-    n: m,
-    nome: m + 8,
-    cientifico: m + 60,
-    calcada: m + 105,
-    limpeza: m + 125,
-    clima: m + 145,
-    obs: m + 165
+    foto: m,
+    nome: m + 20,
+    cientifico: m + 70,
+    qtd: m + 118,
+    nativa: m + 138,
+    floracao: m + 155,
   };
 
   setFill(doc, [250, 250, 250]);
@@ -147,66 +159,122 @@ export async function generateProjectPDF(
   doc.setFontSize(7);
   doc.setFont(undefined as any, 'bold');
   const headerY = y + 5;
-  doc.text('#', cols.n + 2, headerY);
+  doc.text('FOTO DO PORTE', cols.foto + 2, headerY);
   doc.text('ESPÉCIE', cols.nome, headerY);
   doc.text('NOME CIENTÍFICO', cols.cientifico, headerY);
-  doc.text('NATIVA', cols.calcada, headerY);
-  doc.text('PAISAGISMO', cols.limpeza, headerY);
-  doc.text('ESPINHOS', cols.clima, headerY);
+  doc.text('QUANTIDADE', cols.qtd, headerY);
+  doc.text('NATIVA BR?', cols.nativa, headerY);
+  doc.text('MESES DE FLORAÇÃO', cols.floracao, headerY);
   
   y += 8;
 
   // Linhas da Tabela
-  doc.setFontSize(8);
-  points.forEach((point, i) => {
-    const tree = trees.find(t => t.id === point.tree_id);
-    if (!tree) return;
+  const rowH = 28; // enough space for multi-line text + photo
+  
+  for (const item of groupedSpecies) {
+    const { tree, count } = item;
 
-    if (y > pageH - 25) {
+    if (y + rowH > pageH - 25) {
       addFooter(doc, pageW, pageH);
       doc.addPage();
       y = m + 10;
+
+      // Re-draw header
+      setFill(doc, [250, 250, 250]);
+      doc.rect(m, y, contentW, 8, 'F');
+      setDraw(doc, COLORS.border);
+      doc.line(m, y, m + contentW, y);
+      doc.line(m, y + 8, m + contentW, y + 8);
+
+      setText(doc, COLORS.muted);
+      doc.setFontSize(7);
+      doc.setFont(undefined as any, 'bold');
+      const hdrY = y + 5;
+      doc.text('FOTO DO PORTE', cols.foto + 2, hdrY);
+      doc.text('ESPÉCIE', cols.nome, hdrY);
+      doc.text('NOME CIENTÍFICO', cols.cientifico, hdrY);
+      doc.text('QUANTIDADE', cols.qtd, hdrY);
+      doc.text('NATIVA BR?', cols.nativa, hdrY);
+      doc.text('MESES DE FLORAÇÃO', cols.floracao, hdrY);
+
+      y += 8;
     }
 
-    const rowH = 10;
-    
-    // Separador
     setDraw(doc, [245, 245, 245]);
     doc.line(m, y + rowH, m + contentW, y + rowH);
 
-    // Número
-    setText(doc, COLORS.muted);
-    doc.setFont(undefined as any, 'normal');
-    doc.text(`${i + 1}`, cols.n + 2, y + 6);
+    // Foto (assíncrona converte pra canvas cover quadrado)
+    if (tree.imagem) {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = tree.imagem;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 150;
+        canvas.height = 150;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+           const scale = Math.max(150 / img.width, 150 / img.height);
+           const w = img.width * scale;
+           const h = img.height * scale;
+           const dx = (150 - w) / 2;
+           const dy = (150 - h) / 2;
+           
+           ctx.drawImage(img, dx, dy, w, h);
+           const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+           
+           // Apply a simple rounded border logic by just drawing it
+           doc.addImage(dataUrl, 'JPEG', cols.foto + 1, y + 3, 16, 16);
+           setDraw(doc, COLORS.border);
+           doc.roundedRect(cols.foto + 1, y + 3, 16, 16, 1, 1, 'D');
+        }
+      } catch (err) {
+         console.warn("PDF Image load failed for:", tree.imagem);
+      }
+    }
+
+    const textY = y + 13; // Middle vertical alignment roughly
+    const textBaseY = y + 10;
 
     // Nomes
     setText(doc, COLORS.text);
     doc.setFont(undefined as any, 'bold');
-    doc.text(tree.taxonomia.nomeComum, cols.nome, y + 6);
+    doc.setFontSize(9);
+    const splitName = doc.splitTextToSize(tree.taxonomia.nomeComum, 45);
+    doc.text(splitName, cols.nome, textBaseY);
     
     setText(doc, COLORS.muted);
     doc.setFont(undefined as any, 'italic');
-    doc.setFontSize(7);
-    doc.text(tree.taxonomia.nomeBotanico, cols.cientifico, y + 6);
+    doc.setFontSize(7.5);
+    const splitSci = doc.splitTextToSize(tree.taxonomia.nomeBotanico, 43);
+    doc.text(splitSci, cols.cientifico, textBaseY);
 
-    // Scores com Texto
-    doc.setFontSize(8);
+    // Qtd
+    setText(doc, COLORS.primary);
+    doc.setFontSize(12);
+    doc.setFont(undefined as any, 'bold');
+    doc.text(`${count} UN`, cols.qtd, textY);
+
+    // Info Addicionais
+    doc.setFontSize(9);
     doc.setFont(undefined as any, 'normal');
     
     // Nativa
     setText(doc, COLORS.text);
-    doc.text(tree.taxonomia.nativa ? 'Sim' : 'Não', cols.calcada, y + 6);
+    doc.text(tree.taxonomia.nativa ? 'Sim' : 'Não', cols.nativa, textY);
 
-    // Paisagismo
-    setText(doc, COLORS.text);
-    doc.text(tree.usoUrbanismo.recomendadoPaisagismo ? 'Sim' : 'Não', cols.limpeza, y + 6);
-
-    // Espinhos
-    setText(doc, COLORS.text);
-    doc.text(tree.usoUrbanismo.riscos.espinhos ? 'Sim' : 'Não', cols.clima, y + 6);
+    // Floracao
+    const floracaoStr = tree.fenologia?.floracao?.periodo?.join(', ') || 'Desconhecida';
+    const splitFlor = doc.splitTextToSize(floracaoStr, 38);
+    doc.text(splitFlor, cols.floracao, textBaseY);
 
     y += rowH;
-  });
+  }
 
   // ─── Rodapé ───────────────────────────────────────────────────────────────
   addFooter(doc, pageW, pageH);
