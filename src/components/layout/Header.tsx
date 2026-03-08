@@ -127,11 +127,11 @@ export function Header() {
       {drawerOpen && (
         <div className="fixed inset-0 z-[10001] md:hidden">
           {/* Overlay */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => setDrawerOpen(false)}
           />
-          
+
           {/* Content */}
           <div className="absolute top-0 right-0 bottom-0 w-[280px] bg-background shadow-2xl flex flex-col p-6 animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between mb-10">
@@ -153,9 +153,8 @@ export function Header() {
             <nav className="flex flex-col gap-2">
               <button
                 onClick={() => navigate('/')}
-                className={`flex items-center gap-4 px-4 py-3 rounded-xl text-base font-semibold transition-all ${
-                  isArvores ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
-                } bg-transparent border-none cursor-pointer text-left`}
+                className={`flex items-center gap-4 px-4 py-3 rounded-xl text-base font-semibold transition-all ${isArvores ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
+                  } bg-transparent border-none cursor-pointer text-left`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2L4.5 9.15a1 1 0 0 0-.3.72V22h15.6V9.87a1 1 0 0 0-.3-.72z"></path>
@@ -166,9 +165,8 @@ export function Header() {
               {user && (
                 <button
                   onClick={() => navigate('/projetos')}
-                  className={`flex items-center gap-4 px-4 py-3 rounded-xl text-base font-semibold transition-all ${
-                    isProjetos ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
-                  } bg-transparent border-none cursor-pointer text-left`}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-xl text-base font-semibold transition-all ${isProjetos ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
+                    } bg-transparent border-none cursor-pointer text-left`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -183,9 +181,8 @@ export function Header() {
                     navigate('/perfil');
                     setDrawerOpen(false);
                   }}
-                  className={`flex items-center gap-4 px-4 py-3 rounded-xl text-base font-semibold transition-all ${
-                    isPerfil ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
-                  } bg-transparent border-none cursor-pointer text-left`}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-xl text-base font-semibold transition-all ${isPerfil ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
+                    } bg-transparent border-none cursor-pointer text-left`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
