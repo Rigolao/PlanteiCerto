@@ -8,6 +8,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Toaster } from 'sonner';
 import { useTheme } from './contexts/ThemeContext';
+import { InstallPWABanner } from './components/ui/InstallPWABanner';
 
 export default function App() {
   const { trees } = useTrees();
@@ -28,6 +29,7 @@ export default function App() {
       </Route>
     </Routes>
     <Toaster position="bottom-right" richColors theme={theme as any} />
+    <InstallPWABanner />
     </>
   );
 }
