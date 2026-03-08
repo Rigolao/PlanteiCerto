@@ -67,6 +67,24 @@ export function useProjects() {
     },
   });
 
+  const updateProjectMutation = useMutation({
+    mutationFn: async ({ projectId, nome, descricao }: { projectId: string; nome: string; descricao: string }) => {
+      const { error } = await supabase
+        .from('projects')
+        .update({ nome, descricao })
+        .eq('id', projectId);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects', user?.id] });
+      toast.success('Projeto atualizado com sucesso!');
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar o projeto.');
+    },
+  });
+
   const updateMapCenterMutation = useMutation({
     mutationFn: async ({ projectId, lat, lng, zoom }: { projectId: string; lat: number; lng: number; zoom: number }) => {
       const { error } = await supabase
@@ -102,6 +120,13 @@ export function useProjects() {
         await updateMapCenterMutation.mutateAsync({ projectId, lat, lng, zoom });
       } catch {
         // ignore
+      }
+    },
+    updateProject: async (projectId: string, nome: string, descricao: string) => {
+      try {
+        return await updateProjectMutation.mutateAsync({ projectId, nome, descricao });
+      } catch {
+        return false;
       }
     },
     refetch,

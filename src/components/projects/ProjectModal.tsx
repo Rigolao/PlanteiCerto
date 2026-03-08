@@ -1,24 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
+import type { Projeto } from '../../types/project';
 
-interface NewProjectModalProps {
+interface ProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (nome: string, descricao: string) => Promise<unknown>;
+  onSave: (nome: string, descricao: string) => Promise<unknown>;
+  projectToEdit?: Projeto | null;
 }
 
-export function NewProjectModal({ isOpen, onClose, onCreate }: NewProjectModalProps) {
+export function ProjectModal({ isOpen, onClose, onSave, projectToEdit }: ProjectModalProps) {
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (projectToEdit) {
+        setNome(projectToEdit.nome);
+        setDescricao(projectToEdit.descricao || '');
+      } else {
+        setNome('');
+        setDescricao('');
+      }
+    }
+  }, [isOpen, projectToEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim()) return;
     setLoading(true);
-    await onCreate(nome, descricao);
-    setNome('');
-    setDescricao('');
+    await onSave(nome, descricao);
     setLoading(false);
     onClose();
   };
@@ -26,7 +38,9 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: NewProjectModalPr
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-md">
       <div className="p-6">
-        <h2 className="text-primary text-xl font-bold mb-4 font-display">Novo Projeto</h2>
+        <h2 className="text-primary text-xl font-bold mb-4 font-display">
+          {projectToEdit ? 'Editar Projeto' : 'Novo Projeto'}
+        </h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
             type="text"
@@ -48,7 +62,7 @@ export function NewProjectModal({ isOpen, onClose, onCreate }: NewProjectModalPr
             disabled={loading}
             className="bg-primary text-primary-foreground font-bold py-3 rounded-lg border-none cursor-pointer hover:brightness-110 transition-all disabled:opacity-50"
           >
-            {loading ? 'Criando...' : 'Criar Projeto'}
+            {loading ? 'Salvando...' : (projectToEdit ? 'Salvar Alterações' : 'Criar Projeto')}
           </button>
         </form>
       </div>

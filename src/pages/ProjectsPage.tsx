@@ -11,7 +11,7 @@ import type { Projeto } from '../types/project';
 export function ProjectsPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { projects, loading: projectsLoading, createProject, deleteProject, updateMapCenter } = useProjects();
+  const { projects, loading: projectsLoading, createProject, updateProject, deleteProject, updateMapCenter } = useProjects();
   const { trees } = useTrees();
   const [openProject, setOpenProject] = useState<Projeto | null>(null);
 
@@ -58,6 +58,7 @@ export function ProjectsPage() {
         if (proj) setOpenProject(proj);
       }}
       onCreateProject={createProject}
+      onEditProject={updateProject}
       onDeleteProject={deleteProject}
     />
   );

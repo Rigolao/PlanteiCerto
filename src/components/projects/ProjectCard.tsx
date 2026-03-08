@@ -4,10 +4,11 @@ interface ProjectCardProps {
   project: Projeto;
   pointCount: number;
   onOpen: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
-export function ProjectCard({ project, pointCount, onOpen, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, pointCount, onOpen, onEdit, onDelete }: ProjectCardProps) {
   const data = new Date(project.created_at).toLocaleDateString('pt-BR');
 
   return (
@@ -20,11 +21,22 @@ export function ProjectCard({ project, pointCount, onOpen, onDelete }: ProjectCa
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
           </svg>
         </div>
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="w-8 h-8 flex items-center justify-center rounded-lg bg-transparent border-none cursor-pointer text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-          title="Excluir projeto"
-        >
+        <div className="flex items-center gap-1">
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-transparent border-none cursor-pointer text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+            title="Editar projeto"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-transparent border-none cursor-pointer text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+            title="Excluir projeto"
+          >
           {/* Trash icon */}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
@@ -33,7 +45,8 @@ export function ProjectCard({ project, pointCount, onOpen, onDelete }: ProjectCa
             <path d="M14 11v6"></path>
             <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
           </svg>
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* Info */}
