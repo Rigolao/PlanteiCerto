@@ -64,6 +64,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (nome: string, email: string, password: string) => {
+    // Verificar se o e-mail já está cadastrado antes de tentar criar a conta.
+    // Isso evita o envio desnecessário de e-mails e erros de rate limit.
+    try {
+      const checkRes = await supabase.functions.invoke('check-email-exists', {
+        body: { email },
+      });
+
+      if (!checkRes.error && checkRes.data?.exists) {
+        return { error: 'Este e-mail já está cadastrado. Tente fazer login.' };
+      }
+    } catch {
+      // Se a verificação falhar, prosseguir com o cadastro normalmente
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -72,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) return { error: error.message };
 
     // Supabase returns an empty identities array when the user already exists
+    // (fallback para quando confirmação de e-mail está desabilitada)
     if (data?.user?.identities && data.user.identities.length === 0) {
       return { error: 'Este e-mail já está cadastrado. Tente fazer login.' };
     }
