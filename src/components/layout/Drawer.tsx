@@ -17,7 +17,6 @@ interface DrawerProps {
 const filters: { key: FiltroAtributo; label: string }[] = [
   { key: 'todos', label: '≡ Todas as Árvores' },
   { key: 'nativas', label: '🇧🇷 Nativas do Brasil' },
-  { key: 'paisagismo', label: '🏙️ Bom p/ Paisagismo' },
   { key: 'sem_espinhos', label: '🌿 Sem Espinhos' },
 ];
 

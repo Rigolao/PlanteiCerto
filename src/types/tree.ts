@@ -1,116 +1,34 @@
-export interface Taxonomia {
-  nomeComum: string;
-  outrosNomes: string[];
-  nomeBotanico: string;
-  sinonimosBotanicos: string[];
-  nativa: boolean;
-  origem: string[];
-}
-
-export interface Ecologia {
-  exigenciaLuz: string;
-  toleranciaSeca: string;
-  toleranciaFrio: string;
-  toleranciaAlagamento: string;
-  umidadeSolo: string;
-  tipoSubstrato: string[];
-  profundidadeSolo: string;
-  potencialInvasor: boolean;
-}
-
-export interface MorfologiaDistribuicao {
-  min: number;
-  max: number;
-  unidade: string;
-}
-
-export interface MorfologiaAltura {
-  media: MorfologiaDistribuicao;
-  maxima: MorfologiaDistribuicao;
-}
-
-export interface MorfologiaCrescimento {
-  velocidade: string;
-  taxaEstimada: string;
-}
-
-export interface MorfologiaCopa {
-  formato: string[];
-  densidade: string | null;
-}
-
-export interface MorfologiaTronco {
-  multiplosCaules: boolean;
-  caracteristica: string;
-}
-
-export interface MorfologiaRaizes {
-  agressividade: string;
-  tipo: string;
-}
-
-export interface Morfologia {
-  habito: string;
-  altura: MorfologiaAltura;
-  crescimento: MorfologiaCrescimento;
-  copa: MorfologiaCopa;
-  tronco: MorfologiaTronco;
-  raizes: MorfologiaRaizes;
-}
-
-export interface FenologiaFolhagem {
-  tipo: string;
-  formato: string;
-  textura: string[];
-}
-
-export interface FenologiaFloracao {
-  cor: string;
-  periodo: string[];
-  valorOrnamental: string;
-  inflorescencia: string;
-}
-
-export interface FenologiaFrutificacao {
-  tipo: string;
-  cor: string[];
-  dispersao: string;
-}
-
-export interface Fenologia {
-  folhagem: FenologiaFolhagem;
-  floracao: FenologiaFloracao;
-  frutificacao: FenologiaFrutificacao;
-}
-
-export interface UsoUrbanismoRecomendacoes {
-  aves: boolean;
-  abelhas: boolean | null;
-}
-
-export interface UsoUrbanismoRiscos {
-  espinhos: boolean;
-  toxicidade: boolean | null;
-  quedaFrutos: boolean;
-  quebraGalhos: boolean | null;
-}
-
-export interface UsoUrbanismo {
-  recomendadoPaisagismo: boolean;
-  manutencao: string;
-  atracaoFauna: UsoUrbanismoRecomendacoes;
-  riscos: UsoUrbanismoRiscos;
-}
-
 export interface Arvore {
   id: number;
-  imagem: string;
-  descricao: string;
-  taxonomia: Taxonomia;
-  ecologia: Ecologia;
-  morfologia: Morfologia;
-  fenologia: Fenologia;
-  usoUrbanismo: UsoUrbanismo;
+  foto: string | null;
+  nome_cientifico: string;
+  nome_popular: string;
+  origem: 'Nativa BR' | 'Exótica';
+  decidua_perenifolia: 'Perenifólia' | 'Decídua' | 'Semidecídua';
+  epoca_floracao: string | null;
+  epoca_frutificacao: string | null;
+  altura_adulta_max_m: number | null;
+  porte_altura_classe: 'Grande' | 'Médio' | 'Pequeno' | null;
+  diametro_copa_adulto_max_m: number | null;
+  copa_classe: 'Grande' | 'Média' | 'Pequena' | null;
+  dap_adulto_max_cm: number | null;
+  altura_primeira_bifurcacao_m: string | null;
+  forma_copa: string | null;
+  faixa_serv_min_m_recomendada: number | null;
+  berco_area_min_m2_recomendada: number | null;
+  volume_solo_min_m3_recomendado: number | null;
+  compat_fiacao: 'N' | 'A' | 'C' | null;
+  potencial_dano_calcada_1a5: number | null;
+  tolerancia_sol_pleno: boolean | null;
+  tolerancia_meia_sombra: boolean | null;
+  tolerancia_sombra: boolean | null;
+  tolerancia_seca_1a5: number | null;
+  tolerancia_encharcamento_1a5: number | null;
+  tolerancia_poluicao_atmosferica_1a5: number | null;
+  tolerancia_compactacao_solo_1a5: number | null;
+  tolerancia_ventos_fortes_1a5: number | null;
+  potencial_sujeira_1a5: number | null;
+  presenca_espinhos: boolean | null;
 }
 
-export type FiltroAtributo = 'todos' | 'nativas' | 'paisagismo' | 'sem_espinhos';
+export type FiltroAtributo = 'todos' | 'nativas' | 'sem_espinhos';

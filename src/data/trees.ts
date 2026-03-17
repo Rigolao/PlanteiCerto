@@ -3,314 +3,130 @@ import type { Arvore } from '../types/tree';
 export const staticTrees: Arvore[] = [
   {
     id: 1,
-    imagem: "https://images.unsplash.com/photo-1440342359743-84fcb8c21f21?auto=format&fit=crop&q=80&w=800",
-    descricao: "Símbolo nacional, o Ipê-amarelo oferece uma floração espetacular no inverno. Excelente para absorver o CO₂ do ar graças à sua madeira resistente, mas precisa de calçadas largas para crescer bem.",
-    taxonomia: {
-      nomeComum: "Ipê-amarelo",
-      outrosNomes: ["Ipê-amarelo-cascudo", "Ipê-da-serra", "Pau-d'arco-amarelo", "Ipê-amarelo-do-brejo"],
-      nomeBotanico: "Handroanthus spp.",
-      sinonimosBotanicos: ["Tabebuia alba", "Tabebuia chrysotricha", "Tabebuia serratifolia", "Tabebuia umbellata"],
-      nativa: true,
-      origem: ["Mata Atlântica", "Cerrado", "Amazônia"]
-    },
-    ecologia: {
-      exigenciaLuz: "Heliófita",
-      toleranciaSeca: "Variavel (xerófita em algumas espécies)",
-      toleranciaFrio: "Alta (especialmente H. albus)",
-      toleranciaAlagamento: "Alta para H. umbellatus (higrófito)",
-      umidadeSolo: "Adaptável (seco a úmido)",
-      tipoSubstrato: ["Encostas", "Solos pantanosos", "Solos argilosos"],
-      profundidadeSolo: "Profundos",
-      potencialInvasor: false
-    },
-    morfologia: {
-      habito: "Árvore",
-      altura: {
-        media: { min: 4, max: 15, unidade: "m" },
-        maxima: { min: 20, max: 30, unidade: "m" }
-      },
-      crescimento: {
-        velocidade: "Moderada a lenta",
-        taxaEstimada: "2.5m a 3.5m em 2 anos"
-      },
-      copa: {
-        formato: ["Arredondada", "Cônica", "Elíptica vertical"],
-        densidade: null
-      },
-      tronco: {
-        multiplosCaules: true,
-        caracteristica: "Tortuoso/Bifurcado"
-      },
-      raizes: {
-        agressividade: "Baixa",
-        tipo: "Não agressiva"
-      }
-    },
-    fenologia: {
-      folhagem: {
-        tipo: "Decídua",
-        formato: "Composta palmada (5 folíolos)",
-        textura: ["Coriácea", "Subcoriácea", "Pubescente"]
-      },
-      floracao: {
-        cor: "Amarela",
-        periodo: ["Julho", "Agosto", "Setembro", "Outubro", "Novembro"],
-        valorOrnamental: "Extremo",
-        inflorescencia: "Panículas terminais"
-      },
-      frutificacao: {
-        tipo: "Cápsulas alongadas",
-        cor: ["Ocrácea", "Marrom-escura"],
-        dispersao: "Anemocórica (vento)"
-      }
-    },
-    usoUrbanismo: {
-      recomendadoPaisagismo: true,
-      manutencao: "Baixa (sem podas frequentes)",
-      atracaoFauna: {
-        aves: false,
-        abelhas: null
-      },
-      riscos: {
-        espinhos: false,
-        toxicidade: null,
-        quedaFrutos: false,
-        quebraGalhos: null
-      }
-    }
+    foto: 'https://images.unsplash.com/photo-1440342359743-84fcb8c21f21?auto=format&fit=crop&q=80&w=800',
+    nome_cientifico: 'Licania tomentosa',
+    nome_popular: 'Oiti',
+    origem: 'Nativa BR',
+    decidua_perenifolia: 'Perenifólia',
+    epoca_floracao: 'Set-Nov',
+    epoca_frutificacao: 'Dez-Mar',
+    altura_adulta_max_m: 15,
+    porte_altura_classe: 'Grande',
+    diametro_copa_adulto_max_m: 12,
+    copa_classe: 'Grande',
+    dap_adulto_max_cm: 80,
+    altura_primeira_bifurcacao_m: '2,5 - 3,5',
+    forma_copa: 'Arredondada/Espalhada',
+    faixa_serv_min_m_recomendada: 1.80,
+    berco_area_min_m2_recomendada: 2.00,
+    volume_solo_min_m3_recomendado: 4.00,
+    compat_fiacao: 'N',
+    potencial_dano_calcada_1a5: 4,
+    tolerancia_sol_pleno: true,
+    tolerancia_meia_sombra: true,
+    tolerancia_sombra: false,
+    tolerancia_seca_1a5: 5,
+    tolerancia_encharcamento_1a5: 2,
+    tolerancia_poluicao_atmosferica_1a5: 4,
+    tolerancia_compactacao_solo_1a5: 3,
+    tolerancia_ventos_fortes_1a5: 4,
+    potencial_sujeira_1a5: 4,
+    presenca_espinhos: false,
   },
   {
     id: 2,
-    imagem: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800",
-    descricao: "A árvore mais popular no urbanismo pelas suas raízes profundas que não destroem as calçadas e pela sua copa densa que proporciona uma sombra excepcional.",
-    taxonomia: {
-      nomeComum: "Oiti",
-      outrosNomes: [],
-      nomeBotanico: "Licania tomentosa",
-      sinonimosBotanicos: [],
-      nativa: true,
-      origem: ["Mata Atlântica"]
-    },
-    ecologia: {
-      exigenciaLuz: "Não informado",
-      toleranciaSeca: "Não informado",
-      toleranciaFrio: "Não informado",
-      toleranciaAlagamento: "Não informado",
-      umidadeSolo: "Não informado",
-      tipoSubstrato: [],
-      profundidadeSolo: "Não informado",
-      potencialInvasor: false
-    },
-    morfologia: {
-      habito: "Árvore",
-      altura: {
-        media: { min: 10, max: 15, unidade: "m" },
-        maxima: { min: 15, max: 20, unidade: "m" }
-      },
-      crescimento: {
-        velocidade: "Moderada",
-        taxaEstimada: "Não informado"
-      },
-      copa: {
-        formato: ["Arredondada"],
-        densidade: "Alta"
-      },
-      tronco: {
-        multiplosCaules: false,
-        caracteristica: "Reto"
-      },
-      raizes: {
-        agressividade: "Profunda",
-        tipo: "Segura para calçadas"
-      }
-    },
-    fenologia: {
-      folhagem: {
-        tipo: "Perenifólia",
-        formato: "Simples",
-        textura: []
-      },
-      floracao: {
-        cor: "Branco-amarelada",
-        periodo: [],
-        valorOrnamental: "Baixo",
-        inflorescencia: "Panículas"
-      },
-      frutificacao: {
-        tipo: "Drupa",
-        cor: ["Amarelo", "Marrom"],
-        dispersao: "Zoocórica"
-      }
-    },
-    usoUrbanismo: {
-      recomendadoPaisagismo: true,
-      manutencao: "Média",
-      atracaoFauna: {
-        aves: true,
-        abelhas: null
-      },
-      riscos: {
-        espinhos: false,
-        toxicidade: false,
-        quedaFrutos: true,
-        quebraGalhos: false
-      }
-    }
+    foto: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800',
+    nome_cientifico: 'Lagerstroemia indica',
+    nome_popular: 'Resedá',
+    origem: 'Exótica',
+    decidua_perenifolia: 'Decídua',
+    epoca_floracao: 'Verão',
+    epoca_frutificacao: null,
+    altura_adulta_max_m: 8,
+    porte_altura_classe: 'Médio',
+    diametro_copa_adulto_max_m: 5,
+    copa_classe: 'Pequena',
+    dap_adulto_max_cm: 30,
+    altura_primeira_bifurcacao_m: '1,8 - 2,5',
+    forma_copa: 'Arredondada/Globosa',
+    faixa_serv_min_m_recomendada: 0.80,
+    berco_area_min_m2_recomendada: 1.00,
+    volume_solo_min_m3_recomendado: 1.50,
+    compat_fiacao: 'A',
+    potencial_dano_calcada_1a5: 1,
+    tolerancia_sol_pleno: true,
+    tolerancia_meia_sombra: true,
+    tolerancia_sombra: false,
+    tolerancia_seca_1a5: 5,
+    tolerancia_encharcamento_1a5: 3,
+    tolerancia_poluicao_atmosferica_1a5: 4,
+    tolerancia_compactacao_solo_1a5: 4,
+    tolerancia_ventos_fortes_1a5: 3,
+    potencial_sujeira_1a5: 1,
+    presenca_espinhos: false,
   },
   {
     id: 3,
-    imagem: "https://upload.wikimedia.org/wikipedia/commons/a/ac/Quaresmeirasbicolores.jpg?auto=format&fit=crop&q=80&w=800",
-    descricao: "Árvore de porte médio com florescimento vibrante. Ideal para fiação elétrica e calçadas estreitas, além de embelezar o ambiente urbano.",
-    taxonomia: {
-      nomeComum: "Quaresmeira",
-      outrosNomes: [],
-      nomeBotanico: "Tibouchina granulosa",
-      sinonimosBotanicos: [],
-      nativa: true,
-      origem: ["Mata Atlântica"]
-    },
-    ecologia: {
-      exigenciaLuz: "Heliófita",
-      toleranciaSeca: "Média",
-      toleranciaFrio: "Média",
-      toleranciaAlagamento: "Baixa",
-      umidadeSolo: "Úmido",
-      tipoSubstrato: [],
-      profundidadeSolo: "Média",
-      potencialInvasor: false
-    },
-    morfologia: {
-      habito: "Árvore",
-      altura: {
-        media: { min: 8, max: 12, unidade: "m" },
-        maxima: { min: 12, max: 15, unidade: "m" }
-      },
-      crescimento: {
-        velocidade: "Rápida",
-        taxaEstimada: "Não informado"
-      },
-      copa: {
-        formato: ["Arredondada"],
-        densidade: "Média"
-      },
-      tronco: {
-        multiplosCaules: false,
-        caracteristica: "Texturizado"
-      },
-      raizes: {
-        agressividade: "Baixa",
-        tipo: "Fina e ramificada"
-      }
-    },
-    fenologia: {
-      folhagem: {
-        tipo: "Perenifólia",
-        formato: "Simples",
-        textura: ["Aspera"]
-      },
-      floracao: {
-        cor: "Roxa/Rosa",
-        periodo: ["Dezembro", "Janeiro", "Fevereiro", "Março", "Abril"],
-        valorOrnamental: "Alto",
-        inflorescencia: "Panículas"
-      },
-      frutificacao: {
-        tipo: "Cápsula",
-        cor: ["Marrom"],
-        dispersao: "Anemocórica"
-      }
-    },
-    usoUrbanismo: {
-      recomendadoPaisagismo: true,
-      manutencao: "Baixa",
-      atracaoFauna: {
-        aves: false,
-        abelhas: true
-      },
-      riscos: {
-        espinhos: false,
-        toxicidade: false,
-        quedaFrutos: false,
-        quebraGalhos: false
-      }
-    }
+    foto: 'https://upload.wikimedia.org/wikipedia/commons/a/ac/Quaresmeirasbicolores.jpg',
+    nome_cientifico: 'Bauhinia forficata',
+    nome_popular: 'Pata-de-Vaca',
+    origem: 'Nativa BR',
+    decidua_perenifolia: 'Semidecídua',
+    epoca_floracao: 'Ago-Nov',
+    epoca_frutificacao: 'Dez-Mar',
+    altura_adulta_max_m: 10,
+    porte_altura_classe: 'Médio',
+    diametro_copa_adulto_max_m: 7,
+    copa_classe: 'Média',
+    dap_adulto_max_cm: 40,
+    altura_primeira_bifurcacao_m: '1,8 - 2,5',
+    forma_copa: 'Arredondada/Irregular',
+    faixa_serv_min_m_recomendada: 1.00,
+    berco_area_min_m2_recomendada: 1.50,
+    volume_solo_min_m3_recomendado: 2.50,
+    compat_fiacao: 'C',
+    potencial_dano_calcada_1a5: 3,
+    tolerancia_sol_pleno: true,
+    tolerancia_meia_sombra: true,
+    tolerancia_sombra: false,
+    tolerancia_seca_1a5: 4,
+    tolerancia_encharcamento_1a5: 2,
+    tolerancia_poluicao_atmosferica_1a5: 3,
+    tolerancia_compactacao_solo_1a5: 3,
+    tolerancia_ventos_fortes_1a5: 3,
+    potencial_sujeira_1a5: 3,
+    presenca_espinhos: true,
   },
   {
     id: 4,
-    imagem: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&q=80&w=800",
-    descricao: "Uma das maiores árvores para uso em cidades. Porém, por ser enorme e ter raízes fortes, é indicada apenas para praças, parques e grandes canteiros.",
-    taxonomia: {
-      nomeComum: "Sibipiruna",
-      outrosNomes: [],
-      nomeBotanico: "Caesalpinia pluviosa",
-      sinonimosBotanicos: [],
-      nativa: true,
-      origem: ["Mata Atlântica", "Pantanal"]
-    },
-    ecologia: {
-      exigenciaLuz: "Heliófita",
-      toleranciaSeca: "Alta",
-      toleranciaFrio: "Média",
-      toleranciaAlagamento: "Baixa",
-      umidadeSolo: "Moderada",
-      tipoSubstrato: [],
-      profundidadeSolo: "Profunda",
-      potencialInvasor: false
-    },
-    morfologia: {
-      habito: "Árvore",
-      altura: {
-        media: { min: 18, max: 25, unidade: "m" },
-        maxima: { min: 25, max: 30, unidade: "m" }
-      },
-      crescimento: {
-        velocidade: "Rápida",
-        taxaEstimada: "Não informado"
-      },
-      copa: {
-        formato: ["Aparassolada"],
-        densidade: "Média"
-      },
-      tronco: {
-        multiplosCaules: false,
-        caracteristica: "Casca desprendendo"
-      },
-      raizes: {
-        agressividade: "Alta",
-        tipo: "Superficial e forte"
-      }
-    },
-    fenologia: {
-      folhagem: {
-        tipo: "Semidecídua",
-        formato: "Bipinada",
-        textura: []
-      },
-      floracao: {
-        cor: "Amarela",
-        periodo: ["Agosto", "Setembro", "Outubro", "Novembro"],
-        valorOrnamental: "Alto",
-        inflorescencia: "Cachos"
-      },
-      frutificacao: {
-        tipo: "Vagem",
-        cor: ["Marrom"],
-        dispersao: "Autocórica"
-      }
-    },
-    usoUrbanismo: {
-      recomendadoPaisagismo: true,
-      manutencao: "Alta (podas e limpeza)",
-      atracaoFauna: {
-        aves: true,
-        abelhas: true
-      },
-      riscos: {
-        espinhos: false,
-        toxicidade: false,
-        quedaFrutos: true,
-        quebraGalhos: true
-      }
-    }
-  }
+    foto: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&q=80&w=800',
+    nome_cientifico: 'Sapindus saponaria',
+    nome_popular: 'Escumilha',
+    origem: 'Nativa BR',
+    decidua_perenifolia: 'Decídua',
+    epoca_floracao: 'Set-Nov',
+    epoca_frutificacao: 'Dez-Mar',
+    altura_adulta_max_m: 12,
+    porte_altura_classe: 'Médio',
+    diametro_copa_adulto_max_m: 8,
+    copa_classe: 'Média',
+    dap_adulto_max_cm: 50,
+    altura_primeira_bifurcacao_m: '2,0 - 3,0',
+    forma_copa: 'Arredondada/Globosa',
+    faixa_serv_min_m_recomendada: 1.20,
+    berco_area_min_m2_recomendada: 1.50,
+    volume_solo_min_m3_recomendado: 3.00,
+    compat_fiacao: 'C',
+    potencial_dano_calcada_1a5: 2,
+    tolerancia_sol_pleno: true,
+    tolerancia_meia_sombra: true,
+    tolerancia_sombra: false,
+    tolerancia_seca_1a5: 5,
+    tolerancia_encharcamento_1a5: 3,
+    tolerancia_poluicao_atmosferica_1a5: 4,
+    tolerancia_compactacao_solo_1a5: 4,
+    tolerancia_ventos_fortes_1a5: 4,
+    potencial_sujeira_1a5: 2,
+    presenca_espinhos: false,
+  },
 ];

@@ -12,22 +12,28 @@ interface PointItemProps {
 
 export function PointItem({ ponto, arvore, onEdit, onRemove, isSelected, onClick }: PointItemProps) {
   return (
-    <li 
+    <li
       onClick={onClick}
       className={`flex items-center gap-3 rounded-xl p-3 ring-1 ring-inset shadow-sm transition-all group cursor-pointer ${
         isSelected ? 'ring-blue-500 bg-blue-50/50 dark:bg-blue-900/10' : 'ring-border bg-card hover:ring-primary/30'
       }`}
     >
-      {arvore && (
-        <img
-          src={arvore.imagem}
-          alt={arvore.taxonomia.nomeComum}
-          className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-        />
-      )}
+      {arvore ? (
+        arvore.foto ? (
+          <img
+            src={arvore.foto}
+            alt={arvore.nome_popular}
+            className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+            <span className="text-lg">🌳</span>
+          </div>
+        )
+      ) : null}
       <div className="flex-1 min-w-0">
         <span className="font-bold text-foreground text-sm block group-hover:text-primary transition-colors">
-          {arvore?.taxonomia.nomeComum || 'Árvore desconhecida'}
+          {arvore?.nome_popular || 'Árvore desconhecida'}
         </span>
         <span className="text-muted-foreground text-[11px] block truncate">
           {ponto.observacao || 'Sem observações'}

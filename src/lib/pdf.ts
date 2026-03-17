@@ -204,16 +204,16 @@ export async function generateProjectPDF(
     doc.line(m, y + rowH, m + contentW, y + rowH);
 
     // Foto (assíncrona converte pra canvas cover quadrado)
-    if (tree.imagem) {
+    if (tree.foto) {
       try {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
-        img.src = tree.imagem;
+        img.src = tree.foto;
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
         });
-        
+
         const canvas = document.createElement('canvas');
         canvas.width = 150;
         canvas.height = 150;
@@ -224,17 +224,17 @@ export async function generateProjectPDF(
            const h = img.height * scale;
            const dx = (150 - w) / 2;
            const dy = (150 - h) / 2;
-           
+
            ctx.drawImage(img, dx, dy, w, h);
            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-           
+
            // Apply a simple rounded border logic by just drawing it
            doc.addImage(dataUrl, 'JPEG', cols.foto + 1, y + 3, 16, 16);
            setDraw(doc, COLORS.border);
            doc.roundedRect(cols.foto + 1, y + 3, 16, 16, 1, 1, 'D');
         }
       } catch (err) {
-         console.warn("PDF Image load failed for:", tree.imagem);
+         console.warn("PDF Image load failed for:", tree.foto);
       }
     }
 
@@ -245,13 +245,13 @@ export async function generateProjectPDF(
     setText(doc, COLORS.text);
     doc.setFont(undefined as any, 'bold');
     doc.setFontSize(9);
-    const splitName = doc.splitTextToSize(tree.taxonomia.nomeComum, 45);
+    const splitName = doc.splitTextToSize(tree.nome_popular, 45);
     doc.text(splitName, cols.nome, textBaseY);
-    
+
     setText(doc, COLORS.muted);
     doc.setFont(undefined as any, 'italic');
     doc.setFontSize(7.5);
-    const splitSci = doc.splitTextToSize(tree.taxonomia.nomeBotanico, 43);
+    const splitSci = doc.splitTextToSize(tree.nome_cientifico, 43);
     doc.text(splitSci, cols.cientifico, textBaseY);
 
     // Qtd
@@ -266,10 +266,10 @@ export async function generateProjectPDF(
     
     // Nativa
     setText(doc, COLORS.text);
-    doc.text(tree.taxonomia.nativa ? 'Sim' : 'Não', cols.nativa, textY);
+    doc.text(tree.origem === 'Nativa BR' ? 'Sim' : 'Não', cols.nativa, textY);
 
     // Floracao
-    const floracaoStr = tree.fenologia?.floracao?.periodo?.join(', ') || 'Desconhecida';
+    const floracaoStr = tree.epoca_floracao ?? 'Desconhecida';
     const splitFlor = doc.splitTextToSize(floracaoStr, 38);
     doc.text(splitFlor, cols.floracao, textBaseY);
 

@@ -41,10 +41,10 @@ export function TreeMarker({ ponto, arvore, onClick }: TreeMarkerProps) {
     );
   }
 
-  const icon = createTreeIcon(arvore.taxonomia.nomeComum, ponto.id);
+  const icon = createTreeIcon(arvore.nome_popular, ponto.id);
   const tooltipText = ponto.observacao
-    ? `${arvore.taxonomia.nomeComum} - ${ponto.observacao}`
-    : arvore.taxonomia.nomeComum;
+    ? `${arvore.nome_popular} - ${ponto.observacao}`
+    : arvore.nome_popular;
 
   return (
     <Marker

@@ -55,8 +55,8 @@ export function TreeSelectionDialog({
     const term = busca.toLowerCase();
     return trees.filter(
       (t) =>
-        t.taxonomia.nomeComum.toLowerCase().includes(term) ||
-        t.taxonomia.nomeBotanico.toLowerCase().includes(term)
+        t.nome_popular.toLowerCase().includes(term) ||
+        t.nome_cientifico.toLowerCase().includes(term)
     );
   }, [trees, busca]);
 
@@ -147,13 +147,19 @@ export function TreeSelectionDialog({
                           : 'border-border hover:border-primary/40'
                       }`}
                     >
-                      <img
-                        src={tree.imagem}
-                        alt={tree.taxonomia.nomeComum}
-                        className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      {tree.foto ? (
+                        <img
+                          src={tree.foto}
+                          alt={tree.nome_popular}
+                          className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-24 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                          <span className="text-3xl">🌳</span>
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent flex flex-col justify-end p-2">
-                        <span className="text-white text-xs font-semibold leading-tight line-clamp-2">{tree.taxonomia.nomeComum}</span>
+                        <span className="text-white text-xs font-semibold leading-tight line-clamp-2">{tree.nome_popular}</span>
                       </div>
                       {isSelected && (
                         <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center border-2 border-white shadow-sm">
@@ -172,10 +178,16 @@ export function TreeSelectionDialog({
           {/* Árvore selecionada — preview */}
           {selectedTree && (
             <div className="mx-5 mb-3 flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl">
-              <img src={selectedTree.imagem} alt={selectedTree.taxonomia.nomeComum} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+              {selectedTree.foto ? (
+                <img src={selectedTree.foto} alt={selectedTree.nome_popular} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center flex-shrink-0">
+                  <span className="text-lg">🌳</span>
+                </div>
+              )}
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground leading-none mb-0.5">{selectedTree.taxonomia.nomeComum}</p>
-                <p className="text-xs text-muted-foreground italic truncate">{selectedTree.taxonomia.nomeBotanico}</p>
+                <p className="text-sm font-semibold text-foreground leading-none mb-0.5">{selectedTree.nome_popular}</p>
+                <p className="text-xs text-muted-foreground italic truncate">{selectedTree.nome_cientifico}</p>
               </div>
               <div className="ml-auto flex-shrink-0 text-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
