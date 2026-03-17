@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@fontsource-variable/geist";
 
 @theme {
   /* ===== Core Colors (Light Mode) ===== */
@@ -39,9 +40,9 @@
   --color-ods-11: #FD9D24;
 
   /* ===== Typography ===== */
-  --font-display: 'Playfair Display', serif;
-  --font-body: 'DM Sans', sans-serif;
-  --font-sans: 'DM Sans', sans-serif;
+  --font-display: 'Geist Variable', 'Geist', sans-serif;
+  --font-body: 'Geist Variable', 'Geist', sans-serif;
+  --font-sans: 'Geist Variable', 'Geist', sans-serif;
 }
 
 /* ===== Dark Mode ===== */
