@@ -11,12 +11,13 @@ interface AuthModalProps {
 type AuthMode = 'login' | 'register' | 'confirm' | 'forgot-password' | 'forgot-password-success';
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
 
   const resetForm = () => {
     setNome('');
@@ -84,6 +85,16 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoadingGoogle(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast.error('Erro ao entrar com Google. Tente novamente.');
+      setLoadingGoogle(false);
+    }
+    // Se sucesso, o Supabase fará redirect e a página recarregará automaticamente
+  };
+
   // Telas Especiais (Confirmação e Sucesso de Reset)
   if (mode === 'confirm' || mode === 'forgot-password-success') {
     const isReset = mode === 'forgot-password-success';
@@ -119,6 +130,39 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           {mode === 'register' && 'Criar Conta'}
           {mode === 'forgot-password' && 'Recuperar Senha'}
         </h2>
+
+        {/* Social Login — only on login and register */}
+        {(mode === 'login' || mode === 'register') && (
+          <div className="flex flex-col gap-3 mb-2">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loadingGoogle || loading}
+              className="flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl border border-border bg-card text-foreground font-semibold text-sm hover:bg-muted transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {loadingGoogle ? (
+                <span className="w-5 h-5 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M47.5 24.5c0-1.6-.1-3.2-.4-4.7H24v9h13.2c-.6 3-2.3 5.6-4.9 7.3v6h7.9c4.6-4.3 7.3-10.6 7.3-17.6z" fill="#4285F4"/>
+                  <path d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.9-6c-2.1 1.4-4.8 2.3-8 2.3-6.1 0-11.3-4.1-13.2-9.7H2.7v6.2C6.7 43.1 14.8 48 24 48z" fill="#34A853"/>
+                  <path d="M10.8 28.8A14.8 14.8 0 0 1 10 24c0-1.7.3-3.3.8-4.8v-6.2H2.7A23.9 23.9 0 0 0 0 24c0 3.9.9 7.6 2.7 10.8l8.1-6z" fill="#FBBC05"/>
+                  <path d="M24 9.5c3.4 0 6.5 1.2 8.9 3.5l6.6-6.6C35.9 2.5 30.5 0 24 0 14.8 0 6.7 4.9 2.7 13.2l8.1 6.2C12.7 13.6 17.9 9.5 24 9.5z" fill="#EA4335"/>
+                </svg>
+              )}
+              {loadingGoogle ? 'Redirecionando...' : 'Continuar com Google'}
+            </button>
+          </div>
+        )}
+
+        {/* Separator */}
+        {(mode === 'login' || mode === 'register') && (
+          <div className="flex items-center gap-3 my-2">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs text-muted-foreground font-medium">ou</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {mode === 'register' && (

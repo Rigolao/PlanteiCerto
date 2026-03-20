@@ -3,4 +3,5 @@ export interface UserProfile {
   nome: string;
   email: string;
   avatar_url?: string;
+  providers?: string[];
 }

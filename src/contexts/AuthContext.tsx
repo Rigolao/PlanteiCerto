@@ -9,6 +9,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (nome: string, email: string, password: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   updatePassword: (password: string) => Promise<{ error: string | null }>;
@@ -33,9 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         setUser({
           id: session.user.id,
-          nome: session.user.user_metadata?.nome || session.user.email?.split('@')[0] || 'Usuário',
+          nome: session.user.user_metadata?.full_name || session.user.user_metadata?.nome || session.user.email?.split('@')[0] || 'Usuário',
           email: session.user.email || '',
-          avatar_url: session.user.user_metadata?.avatar_url,
+          avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+          providers: session.user.identities?.map(i => i.provider) ?? [],
         });
       }
       setLoading(false);
@@ -46,9 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         setUser({
           id: session.user.id,
-          nome: session.user.user_metadata?.nome || session.user.email?.split('@')[0] || 'Usuário',
+          nome: session.user.user_metadata?.full_name || session.user.user_metadata?.nome || session.user.email?.split('@')[0] || 'Usuário',
           email: session.user.email || '',
-          avatar_url: session.user.user_metadata?.avatar_url,
+          avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+          providers: session.user.identities?.map(i => i.provider) ?? [],
         });
       } else {
         setUser(null);
@@ -60,6 +63,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error: error?.message || null };
+  };
+
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
     return { error: error?.message || null };
   };
 
@@ -152,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, resetPassword, updatePassword, updateProfile }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut, resetPassword, updatePassword, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
