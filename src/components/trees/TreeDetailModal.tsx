@@ -67,7 +67,7 @@ export function TreeDetailModal({ arvore, isOpen, onClose }: TreeDetailModalProp
 
         <h3 className="text-foreground font-bold text-lg mb-4 font-display">Características Botânicas</h3>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-purple-50/50 p-4 rounded-lg border border-purple-100">
             <h4 className="font-semibold text-purple-900 mb-2">Morfologia</h4>
             <ul className="text-sm text-purple-800 space-y-1">

@@ -89,11 +89,10 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
           <button
             key={f.key}
             onClick={() => setFiltroAtivo(f.key)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${
-              filtroAtivo === f.key
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${filtroAtivo === f.key
                 ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                 : 'bg-card text-foreground border-border hover:border-primary/40'
-            }`}
+              }`}
           >
             {f.icon} {f.label}
           </button>
