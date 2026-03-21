@@ -1,12 +1,15 @@
 import { useAuth } from '../../contexts/AuthContext';
+import { useProfile } from '../../hooks/useProfile';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthModal } from '../auth/AuthModal';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { useTheme } from '../../contexts/ThemeContext';
+import { Shield } from 'lucide-react';
 
 export function Header() {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useProfile();
   const { theme, setTheme } = useTheme();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
@@ -79,6 +82,15 @@ export function Header() {
                   <img src={user.avatar_url} alt="Avatar" className="w-6 h-6 rounded-full object-cover" />
                 ) : null}
                 Meu Perfil
+              </button>
+            )}
+            {user && isAdmin && (
+              <button
+                onClick={() => navigate('/admin/arvores')}
+                className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <Shield size={16} />
+                Admin
               </button>
             )}
             {user ? (
@@ -189,6 +201,19 @@ export function Header() {
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                   Meu Perfil
+                </button>
+              )}
+
+              {user && isAdmin && (
+                <button
+                  onClick={() => {
+                    navigate('/admin/arvores');
+                    setDrawerOpen(false);
+                  }}
+                  className="flex items-center gap-4 px-4 py-3 rounded-xl text-base font-semibold transition-all text-muted-foreground hover:bg-muted bg-transparent border-none cursor-pointer text-left"
+                >
+                  <Shield size={20} />
+                  Painel Admin
                 </button>
               )}
             </nav>

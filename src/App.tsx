@@ -6,7 +6,11 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RecommendationPage } from './pages/RecommendationPage';
+import { AdminTreesPage } from './pages/AdminTreesPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { AdminRoute } from './components/auth/AdminRoute';
+import { AdminLayout } from './components/layout/AdminLayout';
 import { Toaster } from 'sonner';
 import { useTheme } from './contexts/ThemeContext';
 import { InstallPWABanner } from './components/ui/InstallPWABanner';
@@ -27,6 +31,14 @@ export default function App() {
           <Route path="/projetos" element={<ProjectsPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
+        </Route>
+      </Route>
+
+      {/* Admin Routes */}
+      <Route element={<AdminRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route path="/admin/arvores" element={<AdminTreesPage />} />
+          <Route path="/admin/equipe" element={<AdminUsersPage />} />
         </Route>
       </Route>
     </Routes>
