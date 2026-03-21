@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
       padding: 0;
       line-height: 1.6;
     }
+
     .container {
       max-width: 600px;
       margin: 40px auto;
@@ -21,11 +23,13 @@
       box-shadow: 0 4px 6px rgba(34, 100, 55, 0.05);
       border: 1px solid #e2e8e4;
     }
+
     .header {
       background-color: #226437;
       padding: 32px 24px;
       text-align: center;
     }
+
     .logo {
       color: #ffffff;
       font-size: 28px;
@@ -33,11 +37,13 @@
       margin: 0;
       letter-spacing: -0.5px;
     }
+
     .content {
       padding: 40px 32px;
       text-align: center;
       color: #334155;
     }
+
     .title {
       font-size: 22px;
       font-weight: 700;
@@ -45,11 +51,13 @@
       margin-top: 0;
       margin-bottom: 16px;
     }
+
     .text {
       font-size: 16px;
       color: #475569;
       margin-bottom: 32px;
     }
+
     .button {
       display: inline-block;
       background-color: #22c55e;
@@ -61,6 +69,7 @@
       border-radius: 8px;
       margin-bottom: 32px;
     }
+
     .footer {
       background-color: #f8faf9;
       padding: 24px;
@@ -71,6 +80,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="header">
@@ -78,8 +88,9 @@
     </div>
     <div class="content">
       <h2 class="title">Atualização de Cadastro 🔄</h2>
-      <p class="text">Olá, {{ .Data.nome }}! Você solicitou a alteração do seu e-mail de acesso na plataforma PlanteiCerto. Por favor, confirme a mudança clicando no botão abaixo.</p>
-      
+      <p class="text">Olá, {{ .Data.nome }}! Você solicitou a alteração do seu e-mail de acesso na plataforma
+        PlanteiCerto. Por favor, confirme a mudança clicando no botão abaixo.</p>
+
       <!-- O Link Mágico Injetado pelo Supabase -->
       <a href="{{ .ConfirmationURL }}" class="button">Confirmar Novo E-mail</a>
     </div>
@@ -89,4 +100,5 @@
     </div>
   </div>
 </body>
+
 </html>
