@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Arvore, FiltroAtributo } from '../types/tree';
+import type { Arvore } from '../types/tree';
 import { useTrees } from '../hooks/useTrees';
 import { TreeGrid } from '../components/trees/TreeGrid';
 import { TreeDetailModal } from '../components/trees/TreeDetailModal';
@@ -12,21 +12,26 @@ interface TreesPageProps {
 
 const SKELETON_COUNT = 6;
 
-const filters: { key: FiltroAtributo; label: string; icon: string }[] = [
-  { key: 'todos', label: 'Todas', icon: '≡' },
-  { key: 'nativas', label: 'Nativas do Brasil', icon: '🇧🇷' },
-  { key: 'sem_espinhos', label: 'Sem Espinhos', icon: '🌿' },
-];
-
 export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   const navigate = useNavigate();
   const { trees: fetchedTrees, loading } = useTrees();
-  // Usa as árvores do hook interno; as externas são fallback até carregar
   const trees = fetchedTrees.length > 0 ? fetchedTrees : externalTrees;
 
   const [selectedTree, setSelectedTree] = useState<Arvore | null>(null);
   const [termoBusca, setTermoBusca] = useState('');
-  const [filtroAtivo, setFiltroAtivo] = useState<FiltroAtributo>('todos');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  
+  const [advancedFilters, setAdvancedFilters] = useState({
+    porte: '',
+    copa: '',
+    folhagem: '',
+    nativas: false,
+    sem_espinhos: false,
+    compat_fiacao: false,
+    calcada_segura: false,
+  });
+
+  const activeAdvancedCount = Object.values(advancedFilters).filter(v => v !== '' && v !== false).length;
 
   const filtered = useMemo(() => {
     let result = trees;
@@ -38,13 +43,31 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
           a.nome_cientifico.toLowerCase().includes(lower)
       );
     }
-    if (filtroAtivo === 'nativas') {
+    
+    if (advancedFilters.nativas) {
       result = result.filter(a => a.origem === 'Nativa BR');
-    } else if (filtroAtivo === 'sem_espinhos') {
+    }
+    if (advancedFilters.sem_espinhos) {
       result = result.filter(a => a.presenca_espinhos === false);
     }
+    if (advancedFilters.porte) {
+      result = result.filter(a => a.porte_altura_classe === advancedFilters.porte);
+    }
+    if (advancedFilters.copa) {
+      result = result.filter(a => a.copa_classe === advancedFilters.copa);
+    }
+    if (advancedFilters.folhagem) {
+      result = result.filter(a => a.decidua_perenifolia === advancedFilters.folhagem);
+    }
+    if (advancedFilters.compat_fiacao) {
+      result = result.filter(a => a.compat_fiacao === 'C');
+    }
+    if (advancedFilters.calcada_segura) {
+      result = result.filter(a => (a.potencial_dano_calcada_1a5 ?? 5) <= 2);
+    }
+
     return result;
-  }, [trees, termoBusca, filtroAtivo]);
+  }, [trees, termoBusca, advancedFilters]);
 
   return (
     <>
@@ -69,35 +92,157 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
         Encontrar Árvore Ideal
       </button>
 
-      {/* Search */}
-      <div className="mb-4">
-        <div className="relative max-w-sm">
+      {/* Search and Advanced Toggle */}
+      <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+        <div className="relative w-full sm:max-w-md">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">🔍</span>
           <input
             type="text"
             value={termoBusca}
             onChange={e => setTermoBusca(e.target.value)}
             placeholder="Buscar por nome ou espécie..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
           />
         </div>
+
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className={`flex-shrink-0 flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all cursor-pointer w-full sm:w-auto ${
+            showAdvanced || activeAdvancedCount > 0
+              ? 'bg-primary/10 text-primary border-primary shadow-sm'
+              : 'bg-card text-foreground border-border hover:border-primary/40'
+          }`}
+        >
+          Filtros Avançados
+          {activeAdvancedCount > 0 && (
+            <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              {activeAdvancedCount}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-2 mb-8 flex-wrap">
-        {filters.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setFiltroAtivo(f.key)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer border ${filtroAtivo === f.key
-                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                : 'bg-card text-foreground border-border hover:border-primary/40'
-              }`}
-          >
-            {f.icon} {f.label}
-          </button>
-        ))}
-      </div>
+
+
+      {/* Advanced Filters Panel */}
+      {showAdvanced && (
+        <div className="bg-card border border-border rounded-2xl p-5 mb-8 animate-in fade-in slide-in-from-top-2 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-foreground font-display text-lg">Critérios Específicos</h3>
+            {activeAdvancedCount > 0 && (
+              <button
+                onClick={() => setAdvancedFilters({ porte: '', copa: '', folhagem: '', nativas: false, sem_espinhos: false, compat_fiacao: false, calcada_segura: false })}
+                className="text-sm font-semibold text-primary/80 hover:text-primary cursor-pointer border-none bg-transparent p-0 underline underline-offset-4"
+              >
+                Limpar Todos ({activeAdvancedCount})
+              </button>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            {/* Porte */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-foreground">Porte da Árvore</label>
+              <select
+                value={advancedFilters.porte}
+                onChange={e => setAdvancedFilters(prev => ({ ...prev, porte: e.target.value }))}
+                className="w-full p-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:border-primary cursor-pointer"
+              >
+                <option value="">Qualquer tamanho</option>
+                <option value="Grande">🌳 Grande (acima de 12m)</option>
+                <option value="Médio">🌲 Médio (6m a 12m)</option>
+                <option value="Pequeno">🌿 Pequeno (até 6m)</option>
+              </select>
+            </div>
+
+            {/* Copa */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-foreground">Tamanho da Copa</label>
+              <select
+                value={advancedFilters.copa}
+                onChange={e => setAdvancedFilters(prev => ({ ...prev, copa: e.target.value }))}
+                className="w-full p-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:border-primary cursor-pointer"
+              >
+                <option value="">Qualquer copa</option>
+                <option value="Grande">Grande</option>
+                <option value="Média">Média</option>
+                <option value="Pequena">Pequena</option>
+              </select>
+            </div>
+
+            {/* Folhagem */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-foreground">Tipo de Folhagem</label>
+              <select
+                value={advancedFilters.folhagem}
+                onChange={e => setAdvancedFilters(prev => ({ ...prev, folhagem: e.target.value }))}
+                className="w-full p-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:border-primary cursor-pointer"
+              >
+                <option value="">Todas</option>
+                <option value="Perenifólia">Perenifólia (Não perde folha)</option>
+                <option value="Decídua">Decídua (Perde folhas)</option>
+                <option value="Semidecídua">Semidecídua (Perde parcialmente)</option>
+              </select>
+            </div>
+            
+            {/* Nativas do Brasil */}
+            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${advancedFilters.nativas ? 'bg-primary/10 border-primary shadow-sm' : 'bg-background border-border hover:border-primary/40'}`}>
+              <input
+                type="checkbox"
+                checked={advancedFilters.nativas}
+                onChange={e => setAdvancedFilters(prev => ({ ...prev, nativas: e.target.checked }))}
+                className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">🇧🇷 Nativas do Brasil</span>
+                <span className="text-xs text-muted-foreground">Árvores de origem nacional</span>
+              </div>
+            </label>
+
+            {/* Sem Espinhos */}
+            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${advancedFilters.sem_espinhos ? 'bg-primary/10 border-primary shadow-sm' : 'bg-background border-border hover:border-primary/40'}`}>
+              <input
+                type="checkbox"
+                checked={advancedFilters.sem_espinhos}
+                onChange={e => setAdvancedFilters(prev => ({ ...prev, sem_espinhos: e.target.checked }))}
+                className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">🌿 Sem Espinhos</span>
+                <span className="text-xs text-muted-foreground">Totalmente livres de espinhos</span>
+              </div>
+            </label>
+            
+            {/* Fiação */}
+            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${advancedFilters.compat_fiacao ? 'bg-primary/10 border-primary shadow-sm' : 'bg-background border-border hover:border-primary/40'}`}>
+              <input
+                type="checkbox"
+                checked={advancedFilters.compat_fiacao}
+                onChange={e => setAdvancedFilters(prev => ({ ...prev, compat_fiacao: e.target.checked }))}
+                className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">⚡ Compatível p/ Fiação</span>
+                <span className="text-xs text-muted-foreground">Árvores que não encostam nos fios</span>
+              </div>
+            </label>
+
+            {/* Calçada Segura */}
+            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${advancedFilters.calcada_segura ? 'bg-primary/10 border-primary shadow-sm' : 'bg-background border-border hover:border-primary/40'}`}>
+              <input
+                type="checkbox"
+                checked={advancedFilters.calcada_segura}
+                onChange={e => setAdvancedFilters(prev => ({ ...prev, calcada_segura: e.target.checked }))}
+                className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">🚶 Calçadas Seguras</span>
+                <span className="text-xs text-muted-foreground">Baixo risco de destruição (Dano 1 ou 2)</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      )}
 
       {/* Grid */}
       {loading ? (
