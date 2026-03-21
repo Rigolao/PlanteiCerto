@@ -5,6 +5,7 @@ import { TreesPage } from './pages/TreesPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { RecommendationPage } from './pages/RecommendationPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Toaster } from 'sonner';
 import { useTheme } from './contexts/ThemeContext';
@@ -19,7 +20,8 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<TreesPage trees={trees} />} />
-        
+        <Route path="/recomendacao" element={<RecommendationPage />} />
+
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/projetos" element={<ProjectsPage />} />

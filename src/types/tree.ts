@@ -29,6 +29,11 @@ export interface Arvore {
   tolerancia_ventos_fortes_1a5: number | null;
   potencial_sujeira_1a5: number | null;
   presenca_espinhos: boolean | null;
+  presenca_subst_irritantes: boolean | null;
+  atracao_fauna_1a5: number | null;
+  tolerancia_poda_1a5: number | null;
+  potencial_sombra_1a5: number | null;
+  contribuicao_biodiversidade_1a5: number | null;
 }
 
 export type FiltroAtributo = 'todos' | 'nativas' | 'sem_espinhos';
