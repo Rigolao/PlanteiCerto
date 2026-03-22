@@ -79,11 +79,74 @@ export async function generateProjectPDF(
     doc.text(desc, m + 6, y + 16);
   }
   
-  const stats = `${points.length} arvores mapeadas | Ribeirão Preto, SP`;
+  const locRaw = `${points.length} árvores mapeadas | Coordenadas: ${project.centro_lat.toFixed(4)}, ${project.centro_lng.toFixed(4)}`;
   setText(doc, COLORS.muted);
-  doc.text(stats, m + 6, y + 24);
+  doc.text(locRaw, m + 6, y + 24);
 
-  y += 36;
+  y += 34;
+
+  // ─── Resumo Ambiental (Dashboard Stats) ──────────────────────────────────
+  let nativasCount = 0;
+  let areaCopa = 0;
+  const especiesUnicas = new Set<number>();
+  points.forEach(p => {
+    const t = trees.find(x => x.id === p.tree_id);
+    if (!t) return;
+    especiesUnicas.add(t.id);
+    if (t.origem === 'Nativa BR') nativasCount++;
+    if (t.diametro_copa_adulto_max_m) {
+      areaCopa += Math.PI * Math.pow(t.diametro_copa_adulto_max_m / 2, 2);
+    }
+  });
+  const nativasPct = points.length > 0 ? Math.round((nativasCount / points.length) * 100) : 0;
+
+  setText(doc, COLORS.text);
+  doc.setFontSize(11);
+  doc.setFont(undefined as any, 'bold');
+  doc.text('Estatísticas e Impacto Ambiental', m, y);
+  
+  y += 6;
+  
+  // Caixas de estatísticas
+  const statBoxW = (contentW - 10) / 3;
+  
+  // Box 1: Diversidade
+  setFill(doc, [248, 250, 248]);
+  setDraw(doc, COLORS.border);
+  doc.roundedRect(m, y, statBoxW, 16, 2, 2, 'FD');
+  setText(doc, COLORS.muted);
+  doc.setFontSize(7);
+  doc.setFont(undefined as any, 'bold');
+  doc.text('DIVERSIDADE', m + 4, y + 6);
+  setText(doc, COLORS.primary);
+  doc.setFontSize(12);
+  doc.text(`${especiesUnicas.size} Espécies`, m + 4, y + 12);
+
+  // Box 2: Copas
+  setFill(doc, [248, 250, 248]);
+  setDraw(doc, COLORS.border);
+  doc.roundedRect(m + statBoxW + 5, y, statBoxW, 16, 2, 2, 'FD');
+  setText(doc, COLORS.muted);
+  doc.setFontSize(7);
+  doc.setFont(undefined as any, 'bold');
+  doc.text('COBERTURA DE COPA', m + statBoxW + 9, y + 6);
+  setText(doc, COLORS.primary);
+  doc.setFontSize(12);
+  doc.text(`${Math.round(areaCopa || 0)} m²`, m + statBoxW + 9, y + 12);
+
+  // Box 3: Nativas
+  setFill(doc, [248, 250, 248]);
+  setDraw(doc, COLORS.border);
+  doc.roundedRect(m + (statBoxW * 2) + 10, y, statBoxW, 16, 2, 2, 'FD');
+  setText(doc, COLORS.muted);
+  doc.setFontSize(7);
+  doc.setFont(undefined as any, 'bold');
+  doc.text('ORIGEM (NATIVAS)', m + (statBoxW * 2) + 14, y + 6);
+  setText(doc, COLORS.primary);
+  doc.setFontSize(12);
+  doc.text(`${nativasPct}% Nativas`, m + (statBoxW * 2) + 14, y + 12);
+
+  y += 24;
 
   // ─── Mapa com Bordas Arredondadas ─────────────────────────────────────────
   try {
@@ -93,22 +156,42 @@ export async function generateProjectPDF(
       logging: false,
       backgroundColor: null,
       ignoreElements: (el) => {
-        // Ignora botões de zoom, atribuições e barra de busca do mapa na foto
-        return el.classList.contains('leaflet-control-container') || el.classList.contains('absolute');
+        try {
+          if (!el) return false;
+          if (el.classList && typeof el.classList.contains === 'function') {
+            return el.classList.contains('leaflet-control-container') || 
+                   el.classList.contains('leaflet-control') ||
+                   el.classList.contains('absolute');
+          }
+          return false;
+        } catch (e) {
+          return false;
+        }
       }
     });
     const imgData = canvas.toDataURL('image/jpeg', 0.85);
-    const imgW = contentW;
-    const imgH = Math.min((canvas.height / canvas.width) * imgW, 95);
+    
+    // Calcula Aspect Ratio seguro (Sem esmagar imagem)
+    const aspectRatio = canvas.height / canvas.width;
+    let renderW = contentW;
+    let renderH = renderW * aspectRatio;
+
+    // Se o mapa for muito alto (Ex: Tela de celular em pé)
+    if (renderH > 90) {
+      renderH = 90;
+      renderW = renderH / aspectRatio;
+    }
+
+    // Centralizar no Eixo X caso a largura tenha encolhido
+    const xPos = m + (contentW - renderW) / 2;
 
     setDraw(doc, COLORS.border);
     doc.setLineWidth(0.3);
-    doc.roundedRect(m, y, imgW, imgH, 2, 2, 'D');
-    doc.addImage(imgData, 'JPEG', m, y, imgW, imgH);
-    y += imgH + 12;
+    doc.roundedRect(xPos, y, renderW, renderH, 2, 2, 'D');
+    doc.addImage(imgData, 'JPEG', xPos, y, renderW, renderH);
+    y += renderH + 12;
   } catch (err) {
     console.warn('Falha ao capturar mapa:', err);
-    // Placeholder se o mapa falhar (CORS ou erro de renderização)
     setDraw(doc, COLORS.border);
     setFill(doc, [250, 250, 250]);
     doc.roundedRect(m, y, contentW, 40, 2, 2, 'FD');
@@ -118,35 +201,21 @@ export async function generateProjectPDF(
     y += 48;
   }
 
-  // ─── Lista Unificada de Espécies (Agrupamento) ────────────────────────────────────────────────────
+  // ─── Lista de Árvores de Plantio ────────────────────────────────────────────────────
   setText(doc, COLORS.text);
   doc.setFontSize(14);
   doc.setFont(undefined as any, 'bold');
-  doc.text('Espécies Selecionadas (Plantio Unificado)', m, y);
+  doc.text('Lista de Plantio e Coordenadas', m, y);
   
   y += 8;
 
-  // Agrupar Pontos por Árvore
-  const speciesMap = new Map<number, { tree: Arvore, count: number }>();
-  points.forEach((point) => {
-    const tree = trees.find(t => t.id === point.tree_id);
-    if (!tree) return;
-    if (!speciesMap.has(tree.id)) {
-      speciesMap.set(tree.id, { tree, count: 0 });
-    }
-    speciesMap.get(tree.id)!.count++;
-  });
-  
-  const groupedSpecies = Array.from(speciesMap.values()).sort((a,b) => b.count - a.count);
-
   // Cabeçalho da Tabela
   const cols = {
-    foto: m,
-    nome: m + 20,
-    cientifico: m + 70,
-    qtd: m + 118,
-    nativa: m + 138,
-    floracao: m + 155,
+    nome: m,            // 16
+    nativa: m + 65,     // 81
+    coordenadas: m + 90,// 106
+    altura: m + 135,    // 151
+    copa: m + 160,      // 176
   };
 
   setFill(doc, [250, 250, 250]);
@@ -156,23 +225,24 @@ export async function generateProjectPDF(
   doc.line(m, y + 8, m + contentW, y + 8);
 
   setText(doc, COLORS.muted);
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setFont(undefined as any, 'bold');
   const headerY = y + 5;
-  doc.text('FOTO DO PORTE', cols.foto + 2, headerY);
   doc.text('ESPÉCIE', cols.nome, headerY);
-  doc.text('NOME CIENTÍFICO', cols.cientifico, headerY);
-  doc.text('QUANTIDADE', cols.qtd, headerY);
-  doc.text('NATIVA BR?', cols.nativa, headerY);
-  doc.text('MESES DE FLORAÇÃO', cols.floracao, headerY);
+  doc.text('ORIGEM', cols.nativa, headerY);
+  doc.text('LAT(Y) / LNG(X)', cols.coordenadas, headerY);
+  doc.text('ALTURA MÁX', cols.altura, headerY);
+  doc.text('COPA MÁX', cols.copa, headerY);
   
   y += 8;
 
   // Linhas da Tabela
-  const rowH = 28; // enough space for multi-line text + photo
+  const rowH = 15;
   
-  for (const item of groupedSpecies) {
-    const { tree, count } = item;
+  for (let i = 0; i < points.length; i++) {
+    const point = points[i];
+    const tree = trees.find(t => t.id === point.tree_id);
+    if (!tree) continue;
 
     if (y + rowH > pageH - 25) {
       addFooter(doc, pageW, pageH);
@@ -187,15 +257,14 @@ export async function generateProjectPDF(
       doc.line(m, y + 8, m + contentW, y + 8);
 
       setText(doc, COLORS.muted);
-      doc.setFontSize(7);
+      doc.setFontSize(6.5);
       doc.setFont(undefined as any, 'bold');
       const hdrY = y + 5;
-      doc.text('FOTO DO PORTE', cols.foto + 2, hdrY);
       doc.text('ESPÉCIE', cols.nome, hdrY);
-      doc.text('NOME CIENTÍFICO', cols.cientifico, hdrY);
-      doc.text('QUANTIDADE', cols.qtd, hdrY);
-      doc.text('NATIVA BR?', cols.nativa, hdrY);
-      doc.text('MESES DE FLORAÇÃO', cols.floracao, hdrY);
+      doc.text('ORIGEM', cols.nativa, hdrY);
+      doc.text('LAT(Y) / LNG(X)', cols.coordenadas, hdrY);
+      doc.text('ALTURA MÁX', cols.altura, hdrY);
+      doc.text('COPA MÁX', cols.copa, hdrY);
 
       y += 8;
     }
@@ -203,75 +272,51 @@ export async function generateProjectPDF(
     setDraw(doc, [245, 245, 245]);
     doc.line(m, y + rowH, m + contentW, y + rowH);
 
-    // Foto (assíncrona converte pra canvas cover quadrado)
-    if (tree.foto) {
-      try {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.src = tree.foto;
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-        });
+    // Alinhamento Y Centralizado para todos os blocos de texto
+    const textBaseY = y + 6.5;
 
-        const canvas = document.createElement('canvas');
-        canvas.width = 150;
-        canvas.height = 150;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-           const scale = Math.max(150 / img.width, 150 / img.height);
-           const w = img.width * scale;
-           const h = img.height * scale;
-           const dx = (150 - w) / 2;
-           const dy = (150 - h) / 2;
-
-           ctx.drawImage(img, dx, dy, w, h);
-           const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-
-           // Apply a simple rounded border logic by just drawing it
-           doc.addImage(dataUrl, 'JPEG', cols.foto + 1, y + 3, 16, 16);
-           setDraw(doc, COLORS.border);
-           doc.roundedRect(cols.foto + 1, y + 3, 16, 16, 1, 1, 'D');
-        }
-      } catch (err) {
-         console.warn("PDF Image load failed for:", tree.foto);
-      }
-    }
-
-    const textY = y + 13; // Middle vertical alignment roughly
-    const textBaseY = y + 10;
-
-    // Nomes
+    // Coluna 1: Nome Popular e Cientifico
     setText(doc, COLORS.text);
     doc.setFont(undefined as any, 'bold');
-    doc.setFontSize(9);
-    const splitName = doc.splitTextToSize(tree.nome_popular, 45);
+    doc.setFontSize(8);
+    const splitName = doc.splitTextToSize(tree.nome_popular, 62);
     doc.text(splitName, cols.nome, textBaseY);
 
     setText(doc, COLORS.muted);
     doc.setFont(undefined as any, 'italic');
-    doc.setFontSize(7.5);
-    const splitSci = doc.splitTextToSize(tree.nome_cientifico, 43);
-    doc.text(splitSci, cols.cientifico, textBaseY);
+    doc.setFontSize(6.5);
+    const splitSci = doc.splitTextToSize(tree.nome_cientifico, 62);
+    // Para simplificar e reduzir altura vertical no rowH curto, colocar logo na linha abaixo.
+    doc.text(splitSci, cols.nome, textBaseY + 3.5);
 
-    // Qtd
-    setText(doc, COLORS.primary);
-    doc.setFontSize(12);
-    doc.setFont(undefined as any, 'bold');
-    doc.text(`${count} UN`, cols.qtd, textY);
-
-    // Info Addicionais
-    doc.setFontSize(9);
-    doc.setFont(undefined as any, 'normal');
-    
-    // Nativa
+    // Coluna 2: Nativa
     setText(doc, COLORS.text);
-    doc.text(tree.origem === 'Nativa BR' ? 'Sim' : 'Não', cols.nativa, textY);
+    doc.setFont(undefined as any, 'normal');
+    doc.setFontSize(7);
+    const isNativa = tree.origem === 'Nativa BR';
+    if (isNativa) {
+        setText(doc, COLORS.primary);
+        doc.setFont(undefined as any, 'bold');
+        doc.text('Brasil', cols.nativa, textBaseY + 1.5);
+    } else {
+        doc.text('Exótica', cols.nativa, textBaseY + 1.5);
+    }
 
-    // Floracao
-    const floracaoStr = tree.epoca_floracao ?? 'Desconhecida';
-    const splitFlor = doc.splitTextToSize(floracaoStr, 38);
-    doc.text(splitFlor, cols.floracao, textBaseY);
+    // Coluna 3: Coordenadas
+    setText(doc, COLORS.text);
+    doc.setFont(undefined as any, 'normal');
+    doc.setFontSize(7);
+    const coordStr1 = `Lat: ${point.lat.toFixed(6)}`;
+    const coordStr2 = `Lng: ${point.lng.toFixed(6)}`;
+    doc.text(coordStr1, cols.coordenadas, textBaseY);
+    doc.text(coordStr2, cols.coordenadas, textBaseY + 3.5);
+
+    // Colunas de Porte
+    doc.setFontSize(7);
+    const adultoStr = `${tree.altura_adulta_max_m ? tree.altura_adulta_max_m + 'm' : '—'}`;
+    const copaStr = `${tree.diametro_copa_adulto_max_m ? tree.diametro_copa_adulto_max_m + 'm' : '—'}`;
+    doc.text(adultoStr, cols.altura, textBaseY + 2);
+    doc.text(copaStr, cols.copa, textBaseY + 2);
 
     y += rowH;
   }

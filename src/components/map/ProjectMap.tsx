@@ -41,9 +41,10 @@ interface ProjectMapProps {
   onUpdateMapCenter: (projectId: string, lat: number, lng: number, zoom: number) => Promise<void>;
   selectedPointId?: string | null;
   onSelectPoint?: (id: string | null) => void;
+  disableClustering?: boolean;
 }
 
-export function ProjectMap({ project, points, pendingPoints, trees, onAddPendingPoint, onUpdateMapCenter, selectedPointId, onSelectPoint }: ProjectMapProps) {
+export function ProjectMap({ project, points, pendingPoints, trees, onAddPendingPoint, onUpdateMapCenter, selectedPointId, onSelectPoint, disableClustering }: ProjectMapProps) {
   
   const handleMapClick = useCallback((latlng: LatLng) => {
     onAddPendingPoint(latlng.lat, latlng.lng);
@@ -99,34 +100,46 @@ export function ProjectMap({ project, points, pendingPoints, trees, onAddPending
           `}</style>
         )}
 
-        {useMemo(() => (
-          <MarkerClusterGroup
-            chunkedLoading
-            maxClusterRadius={50}
-          >
-            {points.map(p => (
-              <TreeMarker
-                key={p.id}
-                ponto={p}
-                arvore={trees.find(a => a.id === p.tree_id)}
-                onClick={() => onSelectPoint?.(p.id)}
-              />
-            ))}
-
-            {pendingPoints.map(p => {
-              // Mock a Ponto and Arvore for TreeMarker so we get a greyed out or temporary pin
-              const tempPonto: Ponto = { ...p, project_id: project.id, tree_id: 0, observacao: 'Pendente' };
-              return (
+        {useMemo(() => {
+          const markers = (
+            <>
+              {points.map(p => (
                 <TreeMarker
                   key={p.id}
-                  ponto={tempPonto}
-                  arvore={undefined}
+                  ponto={p}
+                  arvore={trees.find(a => a.id === p.tree_id)}
                   onClick={() => onSelectPoint?.(p.id)}
                 />
-              );
-            })}
-          </MarkerClusterGroup>
-        ), [points, pendingPoints, trees, project.id, onSelectPoint])}
+              ))}
+
+              {pendingPoints.map(p => {
+                // Mock a Ponto and Arvore for TreeMarker so we get a greyed out or temporary pin
+                const tempPonto: Ponto = { ...p, project_id: project.id, tree_id: 0, observacao: 'Pendente' };
+                return (
+                  <TreeMarker
+                    key={p.id}
+                    ponto={tempPonto}
+                    arvore={undefined}
+                    onClick={() => onSelectPoint?.(p.id)}
+                  />
+                );
+              })}
+            </>
+          );
+
+          if (disableClustering) {
+            return markers;
+          }
+
+          return (
+            <MarkerClusterGroup
+              chunkedLoading
+              maxClusterRadius={50}
+            >
+              {markers}
+            </MarkerClusterGroup>
+          );
+        }, [points, pendingPoints, trees, project.id, onSelectPoint, disableClustering])}
 
       {/* Auto fit bounds based on verified points */}
       <MapBoundsFitter points={points} />

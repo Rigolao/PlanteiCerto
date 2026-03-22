@@ -6,6 +6,8 @@ import { PointsList } from './PointsList';
 import { ProjectMap } from '../map/ProjectMap';
 import { generateProjectPDF } from '../../lib/pdf';
 import { TreeSelectionDialog } from './TreeSelectionDialog';
+import { ProjectStatsModal } from './ProjectStatsModal';
+import { BarChart3 } from 'lucide-react';
 
 interface ProjectEditorProps {
   project: Projeto;
@@ -25,6 +27,7 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
   // Dialog States
   const [pointToLink, setPointToLink] = useState<PontoPendente | null>(null);
   const [pointToEdit, setPointToEdit] = useState<Ponto | null>(null);
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
 
   // Selection state
   const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
@@ -33,8 +36,8 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
     if (!mapRef.current) return;
     setGeneratingPdf(true);
     try {
-      // Delay para garantir que o mapa terminou de renderizar os tiles
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Delay para garantir que o mapa terminou de renderizar os tiles e desativar os clusters
+      await new Promise(resolve => setTimeout(resolve, 1600));
       await generateProjectPDF(project, points, trees, mapRef.current);
     } catch (err) {
       console.error('Erro ao gerar PDF:', err);
@@ -110,33 +113,44 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
               </button>
               <h2 className="text-foreground text-2xl sm:text-3xl font-bold font-display leading-tight">{project.nome}</h2>
             </div>
-            
-            <button
-              onClick={handleGeneratePDF}
-              disabled={generatingPdf || pendingPoints.length > 0}
-              className="flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-full border-none cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all text-sm disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none w-full sm:w-auto shadow-sm"
-              title={pendingPoints.length > 0 ? "Salve os pontos pendentes primeiro." : ""}
-            >
-              {generatingPdf ? (
-                <>
-                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 4.93L16.24 7.76M7.76 16.24L4.93 19.07M19.07 19.07L16.24 16.24M7.76 7.76L4.93 4.93" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  <span>Gerando...</span>
-                </>
-              ) : (
-                <>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                  </svg>
-                  <span>Baixar Relatório PDF</span>
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+              <button
+                onClick={() => setIsStatsOpen(true)}
+                className="flex flex-1 sm:flex-none items-center justify-center gap-2 bg-card text-foreground font-semibold px-4 py-3 rounded-full border border-border cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all text-sm shadow-sm"
+              >
+                <BarChart3 className="w-5 h-5 text-primary" />
+                <span className="hidden sm:inline">Estatísticas</span>
+                <span className="inline sm:hidden">Stats</span>
+              </button>
+
+              <button
+                onClick={handleGeneratePDF}
+                disabled={generatingPdf || pendingPoints.length > 0}
+                className="flex flex-1 sm:flex-none items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-full border-none cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all text-sm disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none shadow-sm"
+                title={pendingPoints.length > 0 ? "Salve os pontos pendentes primeiro." : ""}
+              >
+                {generatingPdf ? (
+                  <>
+                    <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 4.93L16.24 7.76M7.76 16.24L4.93 19.07M19.07 19.07L16.24 16.24M7.76 7.76L4.93 4.93" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    <span>Gerando...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                      <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span className="hidden sm:inline">Baixar Relatório PDF</span>
+                    <span className="inline sm:hidden">Relatório</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -175,6 +189,7 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
               onSelectPoint={setSelectedPointId}
               onAddPendingPoint={handleAddPendingPoint}
               onUpdateMapCenter={onUpdateMapCenter}
+              disableClustering={generatingPdf}
             />
           </div>
 
@@ -188,6 +203,13 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
         initialObservacao={pointToEdit?.observacao}
         onSelect={handleLinkOrUpdateTree}
         onClose={handleCloseDialog}
+      />
+
+      <ProjectStatsModal
+        isOpen={isStatsOpen}
+        onClose={() => setIsStatsOpen(false)}
+        points={points}
+        trees={trees}
       />
     </>
   );
