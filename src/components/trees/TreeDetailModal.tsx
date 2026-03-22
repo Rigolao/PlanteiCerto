@@ -6,6 +6,8 @@ interface TreeDetailModalProps {
   arvore: Arvore | null;
   isOpen: boolean;
   onClose: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 function compatFiacaoLabel(v: 'N' | 'A' | 'C' | null): string {
@@ -15,7 +17,7 @@ function compatFiacaoLabel(v: 'N' | 'A' | 'C' | null): string {
   return '—';
 }
 
-export function TreeDetailModal({ arvore, isOpen, onClose }: TreeDetailModalProps) {
+export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleFavorite }: TreeDetailModalProps) {
   const lastArvore = useRef<Arvore | null>(null);
   if (arvore) lastArvore.current = arvore;
 
@@ -24,11 +26,40 @@ export function TreeDetailModal({ arvore, isOpen, onClose }: TreeDetailModalProp
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <img
-        src={displayArvore.foto ?? ''}
-        alt={displayArvore.nome_popular}
-        className="w-full h-64 object-cover rounded-t-2xl"
-      />
+      <div className="relative">
+        <img
+          src={displayArvore.foto ?? ''}
+          alt={displayArvore.nome_popular}
+          className="w-full h-64 object-cover rounded-t-2xl"
+        />
+        {/* Favorite Button */}
+        {onToggleFavorite && (
+          <button
+            onClick={onToggleFavorite}
+            className={`absolute top-3 right-14 w-8 h-8 rounded-full flex items-center justify-center border-none cursor-pointer transition-all duration-200 ${
+              isFavorite
+                ? 'bg-red-500 text-white shadow-lg'
+                : 'bg-black/50 text-white hover:bg-black/70'
+            }`}
+            title={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+            style={isFavorite ? { animation: 'favorite-pulse 0.3s ease-out' } : undefined}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill={isFavorite ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
+        )}
+      </div>
       <div className="p-6 md:p-8">
         <h2 className="text-primary text-2xl font-bold mb-0.5 font-display">{displayArvore.nome_popular}</h2>
         <p className="text-muted-foreground italic mb-5">{displayArvore.nome_cientifico}</p>

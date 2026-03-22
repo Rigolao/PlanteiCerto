@@ -3,15 +3,17 @@ import type { Arvore } from '../../types/tree';
 interface TreeCardProps {
   arvore: Arvore;
   onClick: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (e: React.MouseEvent) => void;
 }
 
-export function TreeCard({ arvore, onClick }: TreeCardProps) {
+export function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite }: TreeCardProps) {
   return (
     <article
       onClick={onClick}
       className="bg-card rounded-2xl ring-1 ring-border overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:ring-primary/20 hover:-translate-y-1"
     >
-      <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
         {arvore.foto ? (
           <img
             src={arvore.foto}
@@ -23,6 +25,37 @@ export function TreeCard({ arvore, onClick }: TreeCardProps) {
             <span className="text-4xl">🌳</span>
             <span className="text-xs text-muted-foreground font-medium">Sem imagem</span>
           </div>
+        )}
+
+        {/* Favorite Button */}
+        {onToggleFavorite && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(e);
+            }}
+            className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer transition-all duration-200 ${
+              isFavorite
+                ? 'bg-red-500 text-white shadow-lg scale-100'
+                : 'bg-black/30 text-white/90 hover:bg-black/50 backdrop-blur-sm'
+            }`}
+            title={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+            style={isFavorite ? { animation: 'favorite-pulse 0.3s ease-out' } : undefined}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill={isFavorite ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
         )}
       </div>
       <div className="p-5 pb-4">

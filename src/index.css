@@ -262,6 +262,19 @@ h4 {
   animation-name: slide-in-from-right;
 }
 
+/* ===== Favorite Pulse Animation ===== */
+@keyframes favorite-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* ===== Custom Marker Cluster overrides ===== */
 .marker-cluster {
   background: none !important;

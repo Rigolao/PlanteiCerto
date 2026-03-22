@@ -61,7 +61,7 @@ export function Modal({ isOpen, onClose, children, maxWidth = 'max-w-2xl', cente
         {/* Botão fechar */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/20 text-white hover:bg-black/40 cursor-pointer border-none z-10 text-lg transition-colors"
+          className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 cursor-pointer border-none z-10 text-lg transition-colors"
         >
           ×
         </button>

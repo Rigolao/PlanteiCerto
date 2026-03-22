@@ -174,6 +174,7 @@ export function Header() {
                 Início (Árvores)
               </button>
 
+
               {user && (
                 <button
                   onClick={() => navigate('/projetos')}

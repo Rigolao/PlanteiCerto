@@ -1,10 +1,14 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Arvore } from '../types/tree';
 import { useTrees } from '../hooks/useTrees';
+import { useFavorites } from '../hooks/useFavorites';
+import { useAuth } from '../contexts/AuthContext';
 import { TreeGrid } from '../components/trees/TreeGrid';
 import { TreeDetailModal } from '../components/trees/TreeDetailModal';
 import { TreeCardSkeleton } from '../components/ui/Skeleton';
+import { AuthModal } from '../components/auth/AuthModal';
+import { toast } from 'sonner';
 
 interface TreesPageProps {
   trees: Arvore[];
@@ -14,13 +18,19 @@ const SKELETON_COUNT = 6;
 
 export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { trees: fetchedTrees, loading } = useTrees();
+  const { user } = useAuth();
+  const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
   const trees = fetchedTrees.length > 0 ? fetchedTrees : externalTrees;
 
   const [selectedTree, setSelectedTree] = useState<Arvore | null>(null);
   const [termoBusca, setTermoBusca] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  const showFavoritesOnly = searchParams.get('favoritos') === 'true';
+
   const [advancedFilters, setAdvancedFilters] = useState({
     porte: '',
     copa: '',
@@ -66,8 +76,31 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
       result = result.filter(a => (a.potencial_dano_calcada_1a5 ?? 5) <= 2);
     }
 
+    // Favorites filter
+    if (showFavoritesOnly && user) {
+      result = result.filter(a => favoriteIds.has(a.id));
+    }
+
     return result;
-  }, [trees, termoBusca, advancedFilters]);
+  }, [trees, termoBusca, advancedFilters, showFavoritesOnly, user, favoriteIds]);
+
+  const handleToggleFavorite = (treeId: number) => {
+    if (!user) {
+      setAuthModalOpen(true);
+      toast.info('Faça login para favoritar árvores.');
+      return;
+    }
+    toggleFavorite(treeId);
+  };
+
+  const toggleFavoritesFilter = () => {
+    if (showFavoritesOnly) {
+      searchParams.delete('favoritos');
+    } else {
+      searchParams.set('favoritos', 'true');
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
 
   return (
     <>
@@ -92,7 +125,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
         Encontrar Árvore Ideal
       </button>
 
-      {/* Search and Advanced Toggle */}
+      {/* Search, Favorites Toggle, and Advanced Toggle */}
       <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
         <div className="relative w-full sm:max-w-md">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">🔍</span>
@@ -104,6 +137,41 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
           />
         </div>
+
+        {user && (
+          <button
+            onClick={toggleFavoritesFilter}
+            className={`flex-shrink-0 flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all cursor-pointer w-full sm:w-auto ${
+              showFavoritesOnly
+                ? 'bg-red-500/10 text-red-600 border-red-500/40 shadow-sm dark:text-red-400 dark:border-red-400/40'
+                : 'bg-card text-foreground border-border hover:border-red-300'
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill={showFavoritesOnly ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            Favoritos
+            {favoriteIds.size > 0 && (
+              <span className={`text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center ${
+                showFavoritesOnly
+                  ? 'bg-red-500 text-white'
+                  : 'bg-muted text-muted-foreground'
+              }`}>
+                {favoriteIds.size}
+              </span>
+            )}
+          </button>
+        )}
 
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
@@ -252,7 +320,12 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
           ))}
         </div>
       ) : (
-        <TreeGrid trees={filtered} onSelectTree={setSelectedTree} />
+        <TreeGrid
+          trees={filtered}
+          onSelectTree={setSelectedTree}
+          favoriteIds={favoriteIds}
+          onToggleFavorite={handleToggleFavorite}
+        />
       )}
 
       {/* Detail Modal */}
@@ -260,7 +333,12 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
         arvore={selectedTree}
         isOpen={!!selectedTree}
         onClose={() => setSelectedTree(null)}
+        isFavorite={selectedTree ? isFavorite(selectedTree.id) : false}
+        onToggleFavorite={selectedTree ? () => handleToggleFavorite(selectedTree.id) : undefined}
       />
+
+      {/* Auth Modal for unauthenticated favorite clicks */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </>
   );
 }
