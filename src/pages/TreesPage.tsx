@@ -28,6 +28,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   const [termoBusca, setTermoBusca] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [ordenacao, setOrdenacao] = useState('');
 
   const showFavoritesOnly = searchParams.get('favoritos') === 'true';
 
@@ -81,8 +82,24 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
       result = result.filter(a => favoriteIds.has(a.id));
     }
 
-    return result;
-  }, [trees, termoBusca, advancedFilters, showFavoritesOnly, user, favoriteIds]);
+    // Sorting
+    const sorted = [...result];
+    if (ordenacao === 'nome_az') {
+      sorted.sort((a, b) => a.nome_popular.localeCompare(b.nome_popular, 'pt-BR'));
+    } else if (ordenacao === 'nome_za') {
+      sorted.sort((a, b) => b.nome_popular.localeCompare(a.nome_popular, 'pt-BR'));
+    } else if (ordenacao === 'maior_porte') {
+      const ordem: Record<string, number> = { 'Grande': 0, 'Médio': 1, 'Pequeno': 2 };
+      sorted.sort((a, b) => (ordem[a.porte_altura_classe ?? ''] ?? 3) - (ordem[b.porte_altura_classe ?? ''] ?? 3));
+    } else if (ordenacao === 'menor_porte') {
+      const ordem: Record<string, number> = { 'Pequeno': 0, 'Médio': 1, 'Grande': 2 };
+      sorted.sort((a, b) => (ordem[a.porte_altura_classe ?? ''] ?? 3) - (ordem[b.porte_altura_classe ?? ''] ?? 3));
+    } else if (ordenacao === 'mais_sombra') {
+      sorted.sort((a, b) => (b.potencial_sombra_1a5 ?? 0) - (a.potencial_sombra_1a5 ?? 0));
+    }
+
+    return sorted;
+  }, [trees, termoBusca, advancedFilters, showFavoritesOnly, user, favoriteIds, ordenacao]);
 
   const handleToggleFavorite = (treeId: number) => {
     if (!user) {
@@ -125,9 +142,9 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
         Encontrar Árvore Ideal
       </button>
 
-      {/* Search, Favorites Toggle, and Advanced Toggle */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
-        <div className="relative w-full sm:max-w-md">
+      {/* Search, Sort, Favorites Toggle, and Advanced Toggle */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 mb-4 flex-wrap">
+        <div className="relative w-full sm:max-w-xs">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">🔍</span>
           <input
             type="text"
@@ -136,6 +153,31 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
             placeholder="Buscar por nome ou espécie..."
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
           />
+        </div>
+
+        {/* Ordenação */}
+        <div className="relative flex-shrink-0 w-full sm:w-auto">
+          <select
+            value={ordenacao}
+            onChange={e => setOrdenacao(e.target.value)}
+            className={`w-full sm:w-auto pl-3 pr-8 py-2.5 rounded-xl border text-sm font-medium bg-card cursor-pointer focus:outline-none focus:border-primary transition-all appearance-none ${
+              ordenacao
+                ? 'border-primary text-primary bg-primary/5'
+                : 'border-border text-foreground hover:border-primary/40'
+            }`}
+          >
+            <option value="">Ordenar por...</option>
+            <option value="nome_az">Nome (A → Z)</option>
+            <option value="nome_za">Nome (Z → A)</option>
+            <option value="maior_porte">Maior porte primeiro</option>
+            <option value="menor_porte">Menor porte primeiro</option>
+            <option value="mais_sombra">Mais sombra primeiro</option>
+          </select>
+          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>
+            </svg>
+          </span>
         </div>
 
         {user && (
