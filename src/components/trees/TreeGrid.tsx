@@ -7,9 +7,11 @@ interface TreeGridProps {
   onSelectTree: (arvore: Arvore) => void;
   favoriteIds?: Set<number>;
   onToggleFavorite?: (treeId: number) => void;
+  compareIds?: Set<number>;
+  onToggleCompare?: (treeId: number) => void;
 }
 
-export function TreeGrid({ trees, onSelectTree, favoriteIds, onToggleFavorite }: TreeGridProps) {
+export function TreeGrid({ trees, onSelectTree, favoriteIds, onToggleFavorite, compareIds, onToggleCompare }: TreeGridProps) {
   if (trees.length === 0) {
     return <EmptyState message="Nenhuma árvore encontrada com estes critérios." />;
   }
@@ -23,6 +25,8 @@ export function TreeGrid({ trees, onSelectTree, favoriteIds, onToggleFavorite }:
           onClick={() => onSelectTree(arvore)}
           isFavorite={favoriteIds?.has(arvore.id)}
           onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(arvore.id) : undefined}
+          isComparing={compareIds?.has(arvore.id)}
+          onToggleCompare={onToggleCompare ? () => onToggleCompare(arvore.id) : undefined}
         />
       ))}
     </div>
