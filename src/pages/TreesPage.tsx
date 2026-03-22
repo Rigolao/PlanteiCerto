@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Arvore } from '../types/tree';
 import { useTrees } from '../hooks/useTrees';
@@ -15,6 +15,7 @@ interface TreesPageProps {
 }
 
 const SKELETON_COUNT = 6;
+const ITEMS_PER_PAGE = 12;
 
 export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [ordenacao, setOrdenacao] = useState('');
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   const showFavoritesOnly = searchParams.get('favoritos') === 'true';
 
@@ -100,6 +102,14 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
 
     return sorted;
   }, [trees, termoBusca, advancedFilters, showFavoritesOnly, user, favoriteIds, ordenacao]);
+
+  // Reset visible count whenever filters or sorting change
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [termoBusca, advancedFilters, showFavoritesOnly, ordenacao]);
+
+  const filteredVisible = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
 
   const handleToggleFavorite = (treeId: number) => {
     if (!user) {
@@ -362,13 +372,44 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
           ))}
         </div>
       ) : (
-        <TreeGrid
-          trees={filtered}
-          onSelectTree={setSelectedTree}
-          favoriteIds={favoriteIds}
-          onToggleFavorite={handleToggleFavorite}
-        />
+        <>
+          {/* Results count */}
+          {filtered.length > 0 && (
+            <p className="text-sm text-muted-foreground mb-4">
+              Mostrando <strong className="text-foreground">{Math.min(visibleCount, filtered.length)}</strong> de <strong className="text-foreground">{filtered.length}</strong> árvore{filtered.length !== 1 ? 's' : ''}
+            </p>
+          )}
+
+          <TreeGrid
+            trees={filteredVisible}
+            onSelectTree={setSelectedTree}
+            favoriteIds={favoriteIds}
+            onToggleFavorite={handleToggleFavorite}
+          />
+
+          {/* Load More */}
+          {hasMore && (
+            <div className="flex flex-col items-center gap-2 mt-10">
+              <button
+                onClick={() => setVisibleCount(c => c + ITEMS_PER_PAGE)}
+                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14M5 12l7 7 7-7"/>
+                </svg>
+                Carregar mais
+                <span className="text-muted-foreground font-normal">
+                  (+{Math.min(ITEMS_PER_PAGE, filtered.length - visibleCount)})
+                </span>
+              </button>
+              <p className="text-xs text-muted-foreground">
+                {filtered.length - visibleCount} árvore{filtered.length - visibleCount !== 1 ? 's' : ''} restante{filtered.length - visibleCount !== 1 ? 's' : ''}
+              </p>
+            </div>
+          )}
+        </>
       )}
+
 
       {/* Detail Modal */}
       <TreeDetailModal
