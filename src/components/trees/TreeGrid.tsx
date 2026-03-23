@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Arvore } from '../../types/tree';
 import { TreeCard } from './TreeCard';
 import { EmptyState } from '../ui/EmptyState';
@@ -9,11 +10,12 @@ interface TreeGridProps {
   onToggleFavorite?: (treeId: number) => void;
   compareIds?: Set<number>;
   onToggleCompare?: (treeId: number) => void;
+  emptyState?: ReactNode;
 }
 
-export function TreeGrid({ trees, onSelectTree, favoriteIds, onToggleFavorite, compareIds, onToggleCompare }: TreeGridProps) {
+export function TreeGrid({ trees, onSelectTree, favoriteIds, onToggleFavorite, compareIds, onToggleCompare, emptyState }: TreeGridProps) {
   if (trees.length === 0) {
-    return <EmptyState message="Nenhuma árvore encontrada com estes critérios." />;
+    return emptyState ? <>{emptyState}</> : <EmptyState message="Nenhuma árvore encontrada com estes critérios." />;
   }
 
   return (
