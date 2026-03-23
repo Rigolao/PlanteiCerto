@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Trees, FolderOpen } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { SearchInput } from '../ui/SearchInput';
 import { FilterButton } from '../ui/FilterButton';
@@ -16,8 +17,8 @@ interface DrawerProps {
 
 const filters: { key: FiltroAtributo; label: string }[] = [
   { key: 'todos', label: '≡ Todas as Árvores' },
-  { key: 'nativas', label: '🇧🇷 Nativas do Brasil' },
-  { key: 'sem_espinhos', label: '🌿 Sem Espinhos' },
+  { key: 'nativas', label: 'Nativas do Brasil' },
+  { key: 'sem_espinhos', label: 'Sem Espinhos' },
 ];
 
 export function Drawer({ isOpen, onClose, termoBusca, setTermoBusca, filtroAtivo, setFiltroAtivo, currentTab }: DrawerProps) {
@@ -41,7 +42,17 @@ export function Drawer({ isOpen, onClose, termoBusca, setTermoBusca, filtroAtivo
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-primary-foreground/20">
-        <span className="text-primary-foreground text-lg font-bold font-display">🌱 Menu</span>
+        <span className="text-primary-foreground text-lg font-bold font-serif flex items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 32 32" fill="none" className="shrink-0">
+            <rect width="32" height="32" rx="7" fill="currentColor" className="text-primary" />
+            <path d="M16 26V14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M16 14C16 14 11 11 8 6C12 4 16 9 16 14Z" fill="white" opacity="0.9"/>
+            <path d="M16 14C16 14 21 11 24 6C20 4 16 9 16 14Z" fill="white" opacity="0.7"/>
+            <path d="M16 19C16 19 10 16 8 11C12 9 16 14 16 19Z" fill="white" opacity="0.6"/>
+            <path d="M16 19C16 19 22 16 24 11C20 9 16 14 16 19Z" fill="white" opacity="0.5"/>
+          </svg>
+          Menu
+        </span>
         <button
           onClick={onClose}
           className="text-primary-foreground text-2xl bg-transparent border-none cursor-pointer hover:text-primary-foreground/70"
@@ -58,7 +69,7 @@ export function Drawer({ isOpen, onClose, termoBusca, setTermoBusca, filtroAtivo
             isArvores ? 'bg-primary-foreground text-primary' : 'bg-transparent text-primary-foreground hover:bg-primary-foreground/15'
           }`}
         >
-          🌳 Árvores
+          <Trees size={16} className="inline-block" /> Árvores
         </button>
         {user && (
           <button
@@ -67,7 +78,7 @@ export function Drawer({ isOpen, onClose, termoBusca, setTermoBusca, filtroAtivo
               isProjetos ? 'bg-primary-foreground text-primary' : 'bg-transparent text-primary-foreground hover:bg-primary-foreground/15'
             }`}
           >
-            📁 Meus Projetos
+            <FolderOpen size={16} className="inline-block" /> Meus Projetos
           </button>
         )}
       </div>

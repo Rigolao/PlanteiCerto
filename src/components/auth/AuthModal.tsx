@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Mail } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -101,7 +102,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     return (
       <Modal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-md" centered>
         <div className="p-8 text-center">
-          <div className="text-6xl mb-6">{isReset ? '✉️' : '📧'}</div>
+          <Mail size={48} className="text-muted-foreground mb-6" />
           <h2 className="text-primary text-2xl font-bold mb-3 font-display">
             {isReset ? 'E-mail enviado' : 'Confirme seu e-mail'}
           </h2>

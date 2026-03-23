@@ -50,15 +50,22 @@ export function Header() {
             onClick={() => navigate('/')}
             className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0"
           >
-            <span className="text-2xl leading-none">🌱</span>
-            <span className="text-foreground text-lg font-bold tracking-tight">PlanteiCerto</span>
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" className="shrink-0">
+              <rect width="32" height="32" rx="7" fill="currentColor" className="text-primary" />
+              <path d="M16 26V14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M16 14C16 14 11 11 8 6C12 4 16 9 16 14Z" fill="white" opacity="0.9"/>
+              <path d="M16 14C16 14 21 11 24 6C20 4 16 9 16 14Z" fill="white" opacity="0.7"/>
+              <path d="M16 19C16 19 10 16 8 11C12 9 16 14 16 19Z" fill="white" opacity="0.6"/>
+              <path d="M16 19C16 19 22 16 24 11C20 9 16 14 16 19Z" fill="white" opacity="0.5"/>
+            </svg>
+            <span className="font-serif font-bold text-foreground">PlanteiCerto</span>
           </button>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <button
               onClick={() => navigate('/')}
-              className={`bg-transparent border-none cursor-pointer text-sm font-medium transition-colors ${isArvores ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              className={`bg-transparent border-none cursor-pointer text-sm transition-colors ${isArvores ? 'text-primary font-semibold border-b-2 border-primary pb-0.5' : 'text-muted-foreground hover:text-foreground font-medium'
                 }`}
             >
               Árvores
@@ -66,7 +73,7 @@ export function Header() {
             {user && (
               <button
                 onClick={() => navigate('/projetos')}
-                className={`bg-transparent border-none cursor-pointer text-sm font-medium transition-colors ${isProjetos ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                className={`bg-transparent border-none cursor-pointer text-sm transition-colors ${isProjetos ? 'text-primary font-semibold border-b-2 border-primary pb-0.5' : 'text-muted-foreground hover:text-foreground font-medium'
                   }`}
               >
                 Meus Projetos
@@ -75,7 +82,7 @@ export function Header() {
             {user && (
               <button
                 onClick={() => navigate('/perfil')}
-                className={`flex items-center gap-2 bg-transparent border-none cursor-pointer text-sm font-medium transition-colors ${isPerfil ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                className={`flex items-center gap-2 bg-transparent border-none cursor-pointer text-sm transition-colors ${isPerfil ? 'text-primary font-semibold border-b-2 border-primary pb-0.5' : 'text-muted-foreground hover:text-foreground font-medium'
                   }`}
               >
                 {user.avatar_url ? (
@@ -148,8 +155,15 @@ export function Header() {
           <div className="absolute top-0 right-0 bottom-0 w-[280px] bg-background shadow-2xl flex flex-col p-6 animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between mb-10">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">🌱</span>
-                <span className="font-bold text-lg">Menu</span>
+                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" className="shrink-0">
+                  <rect width="32" height="32" rx="7" fill="currentColor" className="text-primary" />
+                  <path d="M16 26V14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M16 14C16 14 11 11 8 6C12 4 16 9 16 14Z" fill="white" opacity="0.9"/>
+                  <path d="M16 14C16 14 21 11 24 6C20 4 16 9 16 14Z" fill="white" opacity="0.7"/>
+                  <path d="M16 19C16 19 10 16 8 11C12 9 16 14 16 19Z" fill="white" opacity="0.6"/>
+                  <path d="M16 19C16 19 22 16 24 11C20 9 16 14 16 19Z" fill="white" opacity="0.5"/>
+                </svg>
+                <span className="font-serif font-bold text-lg text-foreground">PlanteiCerto</span>
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}

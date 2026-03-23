@@ -1,9 +1,10 @@
 @import "tailwindcss";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/lora";
 
 @theme {
   /* ===== Core Colors (Light Mode) ===== */
-  --color-background: hsl(80 20% 97%);
+  --color-background: hsl(35 25% 97%);
   --color-foreground: hsl(150 10% 15%);
 
   --color-card: hsl(0 0% 100%);
@@ -18,8 +19,8 @@
   --color-secondary: hsl(80 20% 93%);
   --color-secondary-foreground: hsl(150 10% 15%);
 
-  --color-muted: hsl(80 10% 94%);
-  --color-muted-foreground: hsl(150 5% 45%);
+  --color-muted: hsl(35 20% 95%);
+  --color-muted-foreground: hsl(35 15% 52%);
 
   --color-accent: hsl(142 30% 92%);
   --color-accent-foreground: hsl(142 44% 22%);
@@ -27,7 +28,7 @@
   --color-destructive: hsl(0 72% 51%);
   --color-destructive-foreground: hsl(0 0% 100%);
 
-  --color-border: hsl(80 10% 90%);
+  --color-border: hsl(35 15% 88%);
   --color-input: hsl(80 10% 90%);
   --color-ring: hsl(142 44% 28%);
 
@@ -43,6 +44,7 @@
   --font-display: 'Geist Variable', 'Geist', sans-serif;
   --font-body: 'Geist Variable', 'Geist', sans-serif;
   --font-sans: 'Geist Variable', 'Geist', sans-serif;
+  --font-lora: 'Lora Variable', 'Lora', 'Georgia', serif;
 }
 
 /* ===== Dark Mode ===== */
@@ -96,12 +98,16 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display);
+  font-family: var(--font-lora);
 }
 
 /* ===== Utility Classes ===== */
 .font-display {
-  font-family: var(--font-display);
+  font-family: var(--font-lora);
+}
+
+.font-serif {
+  font-family: var(--font-lora);
 }
 
 .font-body {

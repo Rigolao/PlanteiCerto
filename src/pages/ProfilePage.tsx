@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { Mail, Info } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -141,7 +142,7 @@ export function ProfilePage() {
                   )}
                   {hasEmailIdentity && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-xs font-semibold text-foreground">
-                      📧 E-mail
+                      <Mail size={14} /> E-mail
                     </span>
                   )}
                 </div>
@@ -215,7 +216,7 @@ export function ProfilePage() {
           </form>
         ) : (
           <div className="flex items-start gap-3 p-4 rounded-xl bg-muted border border-border">
-            <span className="text-xl mt-0.5">ℹ️</span>
+            <Info size={20} className="mt-0.5 text-muted-foreground shrink-0" />
             <p className="text-sm text-muted-foreground leading-relaxed">
               Sua conta usa o <strong>Google</strong> como método de login. Para alterar sua senha, acesse as configurações da sua conta Google.
             </p>

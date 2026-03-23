@@ -1,3 +1,4 @@
+import { Ruler, Globe, Leaf, AlertTriangle, CheckCircle, Home } from 'lucide-react';
 import type { Arvore } from '../../types/tree';
 
 interface TreeCardProps {
@@ -25,9 +26,15 @@ export function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComp
             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center gap-2">
-            <span className="text-4xl">🌳</span>
-            <span className="text-xs text-muted-foreground font-medium">Sem imagem</span>
+          <div className="aspect-[4/3] bg-gradient-to-br from-[#d4e6d5] to-[#a0c4a2] flex items-center justify-center w-full h-full">
+            <svg width="64" height="64" viewBox="0 0 48 48" fill="none" className="opacity-40">
+              <path d="M24 44V20" stroke="#1a4d2c" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="#226437"/>
+              <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="#2d7a40"/>
+              <path d="M24 28C24 28 17 24 13 17C17 14 24 19 24 28Z" fill="#1a5c30"/>
+              <path d="M24 28C24 28 31 24 35 17C31 14 24 19 24 28Z" fill="#226437"/>
+              <ellipse cx="24" cy="43" rx="5" ry="2" fill="#1a4d2c" opacity="0.2"/>
+            </svg>
           </div>
         )}
 
@@ -39,8 +46,8 @@ export function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComp
               onToggleCompare(e);
             }}
             className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold backdrop-blur-sm transition-all duration-200 cursor-pointer ${
-              isComparing 
-                ? 'bg-primary text-white border-primary shadow-lg' 
+              isComparing
+                ? 'bg-primary text-white border-primary shadow-lg'
                 : 'bg-black/50 text-white border-white/20 hover:bg-black/70'
             }`}
             title={isComparing ? 'Remover da comparação' : 'Adicionar à comparação'}
@@ -91,33 +98,30 @@ export function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComp
         )}
       </div>
       <div className="p-5 pb-4">
-        <h2 className="text-primary text-lg font-bold mb-0.5 font-display">{arvore.nome_popular}</h2>
+        <div className="flex items-start justify-between gap-2 mb-0.5">
+          <h2 className="text-primary text-lg font-bold font-display">{arvore.nome_popular}</h2>
+          <span className="shrink-0 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1 mt-0.5">
+            {arvore.origem === 'Nativa BR' ? <Home size={9} /> : <Globe size={9} />}
+            {arvore.origem === 'Nativa BR' ? 'Nativa' : 'Exótica'}
+          </span>
+        </div>
         <p className="text-muted-foreground text-sm italic mb-4 truncate">{arvore.nome_cientifico}</p>
 
         <div className="flex flex-col gap-2 text-sm">
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="text-primary">📏</span> Altura
+              <Ruler size={12} className="text-muted-foreground" /> Altura
             </span>
-            <span className="font-semibold text-foreground">
+            <span className="bg-[#e8ede9] text-[#2c4a2e] rounded-full px-2 py-0.5 text-xs font-medium">
               {arvore.altura_adulta_max_m ? `${arvore.altura_adulta_max_m}m` : '—'} ({arvore.porte_altura_classe ?? 'N/A'})
             </span>
           </div>
 
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="text-primary">🌍</span> Origem
+              <Leaf size={12} className="text-muted-foreground" /> Folhagem
             </span>
-            <span className="font-semibold text-foreground">
-              {arvore.origem === 'Nativa BR' ? '🇧🇷 Nativa' : '🌏 Exótica'}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="text-primary">🌿</span> Folhagem
-            </span>
-            <span className="font-semibold text-foreground text-xs">
+            <span className="bg-[#f0e8df] text-[#6b4226] rounded-full px-2 py-0.5 text-xs font-medium">
               {arvore.decidua_perenifolia ?? '—'}
             </span>
           </div>
@@ -125,9 +129,9 @@ export function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComp
           {arvore.presenca_espinhos !== null && (
             <div className="flex justify-between items-center">
               <span className="flex items-center gap-1.5 text-muted-foreground">
-                <span className="text-primary">{arvore.presenca_espinhos ? '🔪' : '✨'}</span> Espinhos
+                {arvore.presenca_espinhos ? <AlertTriangle size={12} /> : <CheckCircle size={12} />} Espinhos
               </span>
-              <span className="font-semibold text-foreground">
+              <span className="bg-[#f0e8df] text-[#6b4226] rounded-full px-2 py-0.5 text-xs font-medium">
                 {arvore.presenca_espinhos ? 'Sim' : 'Não'}
               </span>
             </div>

@@ -1,3 +1,5 @@
+import { Ruler, Leaf, Heart, Target, Flower2, SlidersHorizontal } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { Question } from '../../data/questionnaire';
 
 interface QuestionCardProps {
@@ -6,27 +8,27 @@ interface QuestionCardProps {
   onSelect: (value: string) => void;
 }
 
-const groupColors: Record<number, { badge: string; border: string }> = {
-  1: { badge: 'bg-purple-100 text-purple-800', border: 'border-purple-200' },
-  2: { badge: 'bg-green-100 text-green-800', border: 'border-green-200' },
-  3: { badge: 'bg-yellow-100 text-yellow-800', border: 'border-yellow-200' },
-  4: { badge: 'bg-blue-100 text-blue-800', border: 'border-blue-200' },
-  5: { badge: 'bg-teal-100 text-teal-800', border: 'border-teal-200' },
-  6: { badge: 'bg-orange-100 text-orange-800', border: 'border-orange-200' },
+const groupIcons: Record<string, LucideIcon> = {
+  'Espaço e Interferências': Ruler,
+  'Condições Ecológicas': Leaf,
+  'Preferências': Heart,
+  'Contexto e Objetivos': Target,
+  'Preferências Botânicas': Flower2,
+  'Outros Fatores': SlidersHorizontal,
 };
 
 export function QuestionCard({ question, selectedValue, onSelect }: QuestionCardProps) {
-  const colors = groupColors[question.group] ?? groupColors[1];
+  const GroupIcon = groupIcons[question.groupLabel] ?? Leaf;
   const selectedValues = selectedValue ? selectedValue.split(',').filter(Boolean) : [];
 
   return (
     <div className="space-y-5">
       {/* Group badge */}
-      <div className="flex items-center gap-2">
-        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${colors.badge}`}>
-          {question.type === 'eliminatorio' ? 'Eliminatório' : 'Classificatório'}
+      <div className="flex items-center gap-1.5">
+        <GroupIcon size={13} className="text-primary" />
+        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+          {question.groupLabel}
         </span>
-        <span className="text-xs text-muted-foreground">{question.groupLabel}</span>
       </div>
 
       {/* Question text */}
@@ -50,12 +52,12 @@ export function QuestionCard({ question, selectedValue, onSelect }: QuestionCard
               key={opt.value}
               onClick={() => onSelect(opt.value)}
               disabled={isMaxReached}
-              className={`w-full text-left px-4 py-3.5 rounded-xl border-2 text-sm font-medium transition-all cursor-pointer ${
+              className={`w-full text-left px-4 py-3.5 rounded-xl text-sm transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-primary/10 border-primary text-foreground ring-1 ring-primary/20'
+                  ? 'border border-[#a8c5a9] bg-[#e8ede9] text-[#1c2e1e] font-medium'
                   : isMaxReached
-                  ? 'bg-card border-border text-muted-foreground opacity-40 cursor-not-allowed'
-                  : 'bg-card border-border text-foreground hover:border-primary/30'
+                  ? 'border border-border bg-muted/50 text-muted-foreground opacity-40 cursor-not-allowed'
+                  : 'border border-border bg-muted/50 text-foreground/80 hover:border-primary/30'
               }`}
             >
               <span className="flex items-center gap-3">

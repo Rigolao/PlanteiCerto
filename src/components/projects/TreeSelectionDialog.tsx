@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { TreePine } from 'lucide-react';
 import type { Arvore } from '../../types/tree';
 
 interface TreeSelectionDialogProps {
@@ -155,7 +156,7 @@ export function TreeSelectionDialog({
                         />
                       ) : (
                         <div className="w-full h-24 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                          <span className="text-3xl">🌳</span>
+                          <TreePine size={28} className="text-muted-foreground" />
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent flex flex-col justify-end p-2">
@@ -182,7 +183,7 @@ export function TreeSelectionDialog({
                 <img src={selectedTree.foto} alt={selectedTree.nome_popular} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
               ) : (
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center flex-shrink-0">
-                  <span className="text-lg">🌳</span>
+                  <TreePine size={18} className="text-muted-foreground" />
                 </div>
               )}
               <div className="min-w-0">

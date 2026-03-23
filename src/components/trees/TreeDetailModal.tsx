@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { Arvore } from '../../types/tree';
 import { Modal } from '../ui/Modal';
+import { Sprout, ShieldCheck, CalendarDays, Building2 } from 'lucide-react';
 
 interface TreeDetailModalProps {
   arvore: Arvore | null;
@@ -17,12 +18,44 @@ function compatFiacaoLabel(v: 'N' | 'A' | 'C' | null): string {
   return '—';
 }
 
+function BarIndicator({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-[11px] text-foreground/80">{label}</span>
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div
+            key={i}
+            className={`w-2.5 h-2.5 rounded-sm ${
+              i <= value ? 'bg-primary' : 'bg-border'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleFavorite }: TreeDetailModalProps) {
   const lastArvore = useRef<Arvore | null>(null);
   if (arvore) lastArvore.current = arvore;
 
   const displayArvore = lastArvore.current;
   if (!displayArvore) return null;
+
+  const toleranceFields: { label: string; value: number | null }[] = [
+    { label: 'Seca', value: displayArvore.tolerancia_seca_1a5 },
+    { label: 'Encharcamento', value: displayArvore.tolerancia_encharcamento_1a5 },
+    { label: 'Poluição Atmosférica', value: displayArvore.tolerancia_poluicao_atmosferica_1a5 },
+    { label: 'Compactação do Solo', value: displayArvore.tolerancia_compactacao_solo_1a5 },
+    { label: 'Ventos Fortes', value: displayArvore.tolerancia_ventos_fortes_1a5 },
+    { label: 'Potencial Sujeira', value: displayArvore.potencial_sujeira_1a5 },
+    { label: 'Potencial Dano Calçada', value: displayArvore.potencial_dano_calcada_1a5 },
+    { label: 'Atração de Fauna', value: displayArvore.atracao_fauna_1a5 },
+    { label: 'Potencial Sombra', value: displayArvore.potencial_sombra_1a5 },
+    { label: 'Contribuição Biodiversidade', value: displayArvore.contribuicao_biodiversidade_1a5 },
+    { label: 'Tolerância à Poda', value: displayArvore.tolerancia_poda_1a5 },
+  ];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -60,88 +93,147 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
           </button>
         )}
       </div>
-      <div className="p-6 md:p-8">
-        <h2 className="text-primary text-2xl font-bold mb-0.5 font-display">{displayArvore.nome_popular}</h2>
-        <p className="text-muted-foreground italic mb-5">{displayArvore.nome_cientifico}</p>
+      <div className="p-4 md:p-6">
+        <h2 className="text-primary text-xl font-bold mb-0.5 font-display">{displayArvore.nome_popular}</h2>
+        <p className="text-muted-foreground italic text-sm mb-3">{displayArvore.nome_cientifico}</p>
 
-        {/* Info Cards */}
-        <div className="bg-background rounded-xl p-5 mb-6 space-y-3 border border-border">
-          <div className="flex items-center gap-3">
-            <svg className="flex-shrink-0 text-primary" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="20" x2="12" y2="4"></line>
-              <polyline points="6 10 12 4 18 10"></polyline>
-            </svg>
-            <p className="text-sm text-foreground">
-              <strong>Altura Máxima:</strong> {displayArvore.altura_adulta_max_m ? `${displayArvore.altura_adulta_max_m}m` : '—'} ({displayArvore.porte_altura_classe ?? '—'})
-            </p>
+        {/* Morfologia */}
+        <div className="py-3 px-3.5 border-b border-border last:border-b-0">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Sprout size={13} className="text-primary" />
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+              Morfologia
+            </span>
           </div>
-          <div className="flex items-center gap-3">
-            <svg className="flex-shrink-0 text-primary" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-            <p className="text-sm text-foreground">
-              <strong>Diâmetro da Copa:</strong> {displayArvore.diametro_copa_adulto_max_m ? `${displayArvore.diametro_copa_adulto_max_m}m` : '—'} ({displayArvore.copa_classe ?? '—'})
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <svg className="flex-shrink-0 text-primary" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="12" x2="20" y2="12"></line>
-              <polyline points="10 6 4 12 10 18"></polyline>
-              <polyline points="14 6 20 12 14 18"></polyline>
-            </svg>
-            <p className="text-sm text-foreground">
-              <strong>Origem:</strong> {displayArvore.origem}
-            </p>
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="bg-muted rounded-md px-2 py-1.5">
+              <div className="text-[9px] text-muted-foreground">Altura adulta</div>
+              <div className="text-xs font-semibold text-foreground">{displayArvore.altura_adulta_max_m ? `${displayArvore.altura_adulta_max_m}m` : '—'}</div>
+            </div>
+            <div className="bg-muted rounded-md px-2 py-1.5">
+              <div className="text-[9px] text-muted-foreground">Copa</div>
+              <div className="text-xs font-semibold text-foreground">{displayArvore.diametro_copa_adulto_max_m ? `${displayArvore.diametro_copa_adulto_max_m}m` : '—'} ({displayArvore.copa_classe ?? '—'})</div>
+            </div>
+            <div className="bg-muted rounded-md px-2 py-1.5">
+              <div className="text-[9px] text-muted-foreground">Porte</div>
+              <div className="text-xs font-semibold text-foreground">{displayArvore.porte_altura_classe ?? '—'}</div>
+            </div>
+            <div className="bg-muted rounded-md px-2 py-1.5">
+              <div className="text-[9px] text-muted-foreground">Forma da Copa</div>
+              <div className="text-xs font-semibold text-foreground">{displayArvore.forma_copa ?? '—'}</div>
+            </div>
+            <div className="bg-muted rounded-md px-2 py-1.5">
+              <div className="text-[9px] text-muted-foreground">DAP (Diâmetro)</div>
+              <div className="text-xs font-semibold text-foreground">{displayArvore.dap_adulto_max_cm ? `${displayArvore.dap_adulto_max_cm}cm` : '—'}</div>
+            </div>
+            <div className="bg-muted rounded-md px-2 py-1.5">
+              <div className="text-[9px] text-muted-foreground">1ª Bifurcação</div>
+              <div className="text-xs font-semibold text-foreground">{displayArvore.altura_primeira_bifurcacao_m ?? '—'}</div>
+            </div>
           </div>
         </div>
 
-        <h3 className="text-foreground font-bold text-lg mb-4 font-display">Características Botânicas</h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-purple-50/50 p-4 rounded-lg border border-purple-100">
-            <h4 className="font-semibold text-purple-900 mb-2">Morfologia</h4>
-            <ul className="text-sm text-purple-800 space-y-1">
-              <li><strong>Forma da Copa:</strong> {displayArvore.forma_copa ?? '—'}</li>
-              <li><strong>DAP (Diâmetro):</strong> {displayArvore.dap_adulto_max_cm ? `${displayArvore.dap_adulto_max_cm}cm` : '—'}</li>
-              <li><strong>Altura da 1ª Bifurcação:</strong> {displayArvore.altura_primeira_bifurcacao_m ?? '—'}</li>
-            </ul>
+        {/* Tolerâncias Ecológicas */}
+        <div className="py-3 px-3.5 border-b border-border last:border-b-0">
+          <div className="flex items-center gap-1.5 mb-2">
+            <ShieldCheck size={13} className="text-primary" />
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+              Tolerâncias Ecológicas
+            </span>
           </div>
-
-          <div className="bg-green-50/50 p-4 rounded-lg border border-green-100">
-            <h4 className="font-semibold text-green-900 mb-2">Tolerâncias Ecológicas (1-5 escala)</h4>
-            <ul className="text-sm text-green-800 space-y-1">
-              <li><strong>Sol Pleno:</strong> {displayArvore.tolerancia_sol_pleno ? '✓' : '✗'}</li>
-              <li><strong>Meia Sombra:</strong> {displayArvore.tolerancia_meia_sombra ? '✓' : '✗'}</li>
-              <li><strong>Sombra:</strong> {displayArvore.tolerancia_sombra ? '✓' : '✗'}</li>
-              <li><strong>Seca:</strong> {displayArvore.tolerancia_seca_1a5 ?? '—'}/5</li>
-              <li><strong>Encharcamento:</strong> {displayArvore.tolerancia_encharcamento_1a5 ?? '—'}/5</li>
-              <li><strong>Poluição Atmosférica:</strong> {displayArvore.tolerancia_poluicao_atmosferica_1a5 ?? '—'}/5</li>
-              <li><strong>Compactação do Solo:</strong> {displayArvore.tolerancia_compactacao_solo_1a5 ?? '—'}/5</li>
-              <li><strong>Ventos Fortes:</strong> {displayArvore.tolerancia_ventos_fortes_1a5 ?? '—'}/5</li>
-            </ul>
+          <div className="space-y-1.5 mb-2">
+            {displayArvore.tolerancia_sol_pleno != null && (
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-foreground/80">Sol Pleno</span>
+                <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                  {displayArvore.tolerancia_sol_pleno ? 'Sim' : 'Não'}
+                </span>
+              </div>
+            )}
+            {displayArvore.tolerancia_meia_sombra != null && (
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-foreground/80">Meia Sombra</span>
+                <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                  {displayArvore.tolerancia_meia_sombra ? 'Sim' : 'Não'}
+                </span>
+              </div>
+            )}
+            {displayArvore.tolerancia_sombra != null && (
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-foreground/80">Sombra</span>
+                <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                  {displayArvore.tolerancia_sombra ? 'Sim' : 'Não'}
+                </span>
+              </div>
+            )}
           </div>
-
-          <div className="bg-yellow-50/50 p-4 rounded-lg border border-yellow-100">
-            <h4 className="font-semibold text-yellow-900 mb-2">Fenologia</h4>
-            <ul className="text-sm text-yellow-800 space-y-1">
-              <li><strong>Folhagem:</strong> {displayArvore.decidua_perenifolia ?? '—'}</li>
-              <li><strong>Floração:</strong> {displayArvore.epoca_floracao ?? '—'}</li>
-              <li><strong>Frutificação:</strong> {displayArvore.epoca_frutificacao ?? '—'}</li>
-            </ul>
+          <div className="space-y-1.5">
+            {toleranceFields.map(({ label, value }) =>
+              value != null ? <BarIndicator key={label} label={label} value={value} /> : null
+            )}
           </div>
+        </div>
 
-          <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
-            <h4 className="font-semibold text-blue-900 mb-2">Urbanismo & Manutenção</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li><strong>Compatibilidade c/ Fiação:</strong> {compatFiacaoLabel(displayArvore.compat_fiacao)}</li>
-              <li><strong>Potencial Dano à Calçada (1-5):</strong> {displayArvore.potencial_dano_calcada_1a5 ?? '—'}</li>
-              <li><strong>Faixa de Serviço Mín. Recomendada:</strong> {displayArvore.faixa_serv_min_m_recomendada ? `${displayArvore.faixa_serv_min_m_recomendada}m` : '—'}</li>
-              <li><strong>Berço Mín. Recomendado:</strong> {displayArvore.berco_area_min_m2_recomendada ? `${displayArvore.berco_area_min_m2_recomendada}m²` : '—'}</li>
-              <li><strong>Volume de Solo Mín. Recomendado:</strong> {displayArvore.volume_solo_min_m3_recomendado ? `${displayArvore.volume_solo_min_m3_recomendado}m³` : '—'}</li>
-              <li><strong>Presença de Espinhos:</strong> {displayArvore.presenca_espinhos ? 'Sim' : 'Não'}</li>
-              <li><strong>Potencial Sujeira (1-5):</strong> {displayArvore.potencial_sujeira_1a5 ?? '—'}</li>
-            </ul>
+        {/* Fenologia */}
+        <div className="py-3 px-3.5 border-b border-border last:border-b-0">
+          <div className="flex items-center gap-1.5 mb-2">
+            <CalendarDays size={13} className="text-primary" />
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+              Fenologia
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+              {displayArvore.decidua_perenifolia ?? '—'}
+            </span>
+            {displayArvore.epoca_floracao && (
+              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                Floração: {displayArvore.epoca_floracao}
+              </span>
+            )}
+            {displayArvore.epoca_frutificacao && (
+              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                Frutificação: {displayArvore.epoca_frutificacao}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Urbanismo & Manutenção */}
+        <div className="py-3 px-3.5 border-b border-border last:border-b-0">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Building2 size={13} className="text-primary" />
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+              Urbanismo & Manutenção
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+              Fiação: {compatFiacaoLabel(displayArvore.compat_fiacao)}
+            </span>
+            {displayArvore.faixa_serv_min_m_recomendada != null && (
+              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                Faixa Serviço Mín: {displayArvore.faixa_serv_min_m_recomendada}m
+              </span>
+            )}
+            {displayArvore.berco_area_min_m2_recomendada != null && (
+              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                Berço Mín: {displayArvore.berco_area_min_m2_recomendada}m²
+              </span>
+            )}
+            {displayArvore.volume_solo_min_m3_recomendado != null && (
+              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                Vol. Solo Mín: {displayArvore.volume_solo_min_m3_recomendado}m³
+              </span>
+            )}
+            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+              Espinhos: {displayArvore.presenca_espinhos ? 'Sim' : 'Não'}
+            </span>
+            {displayArvore.presenca_subst_irritantes != null && (
+              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                Subst. Irritantes: {displayArvore.presenca_subst_irritantes ? 'Sim' : 'Não'}
+              </span>
+            )}
           </div>
         </div>
 

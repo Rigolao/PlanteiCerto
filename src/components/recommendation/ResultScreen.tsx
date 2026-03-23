@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { RecommendedTree, CriteriaSummary, ScoreCriterion } from '../../types/recommendation';
 import type { Arvore } from '../../types/tree';
 import { TreeDetailModal } from '../trees/TreeDetailModal';
+import { TreePine } from 'lucide-react';
 
 interface ResultScreenProps {
   trees: RecommendedTree[];
@@ -64,7 +65,7 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
           </div>
         )}
         <div className="text-center py-16">
-          <div className="text-6xl mb-5">🌿</div>
+          <div className="mb-5 flex justify-center"><TreePine size={48} className="text-muted-foreground" /></div>
           <h2 className="text-2xl font-bold text-foreground mb-3 font-display">
             Nenhuma espécie compatível encontrada
           </h2>
@@ -155,8 +156,12 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl bg-accent/50">
-                  🌳
+                <div className="w-full h-full flex items-center justify-center bg-accent/50 text-primary">
+                  <svg width="32" height="32" viewBox="0 0 48 48" fill="none" className="opacity-40">
+                    <path d="M24 44V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="currentColor" opacity="0.6"/>
+                    <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="currentColor" opacity="0.4"/>
+                  </svg>
                 </div>
               )}
               {/* Score badge */}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pencil, Trash2, ChevronLeft, ChevronRight, TreePine } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useTreeUsageCount } from '../../hooks/useAdminTrees';
 import type { Arvore } from '../../types/tree';
@@ -27,7 +27,7 @@ function DeleteConfirmDialog({
   const message = isLoading
     ? 'Verificando uso nos projetos...'
     : count > 0
-      ? `⚠️ Esta árvore está sendo usada em ${count} ${count === 1 ? 'ponto de projeto' : 'pontos de projetos'} de usuários. Ao excluir, esses pontos ficarão sem árvore associada. Esta ação não pode ser desfeita.`
+      ? `Atenção: Esta árvore está sendo usada em ${count} ${count === 1 ? 'ponto de projeto' : 'pontos de projetos'} de usuários. Ao excluir, esses pontos ficarão sem árvore associada. Esta ação não pode ser desfeita.`
       : 'Esta árvore não está sendo usada em nenhum projeto. A exclusão é permanente.';
 
   return (
@@ -101,8 +101,8 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete }: TreeData
                       className="w-10 h-10 rounded-lg object-cover"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg">
-                      🌳
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                      <TreePine size={20} className="text-muted-foreground" />
                     </div>
                   )}
                 </td>

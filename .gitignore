@@ -30,3 +30,6 @@ dist-ssr
 # Claude Code
 CLAUDE.md
 .mcp.json
+
+# Superpowers brainstorm sessions
+.superpowers/

@@ -13,7 +13,7 @@ function createTreeIcon(name: string, pointId: string) {
   return L.divIcon({
     className: `marker-arvore-wrapper marker-ponto-${pointId}`,
     html: `<div class="marker-pin">
-      <div class="marker-pin-head">🌳 ${name}</div>
+      <div class="marker-pin-head">${name}</div>
       <div class="marker-pin-tail"></div>
     </div>`,
     iconSize: [120, 50],
@@ -27,7 +27,7 @@ export function TreeMarker({ ponto, arvore, onClick }: TreeMarkerProps) {
     const pendingIcon = L.divIcon({
       className: `marker-arvore-wrapper marker-ponto-${ponto.id}`, // Usa o mesmo wrapper transparente
       html: `<div class="marker-pin" style="background: none; border: none; box-shadow: none;">
-        <div class="marker-pin-head" style="background-color: #f59e0b; color: white; border-color: #d97706;">⚠️ Pendente</div>
+        <div class="marker-pin-head" style="background-color: #f59e0b; color: white; border-color: #d97706;">Pendente</div>
         <div class="marker-pin-tail" style="border-top-color: #f59e0b; border-bottom: none; border-left: 8px solid transparent; border-right: 8px solid transparent;"></div>
       </div>`,
       iconSize: [120, 50],

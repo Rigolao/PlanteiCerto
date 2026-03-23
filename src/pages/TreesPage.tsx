@@ -12,6 +12,7 @@ import { AuthModal } from '../components/auth/AuthModal';
 import { EmptyStateFilters } from '../components/ui/EmptyStateFilters';
 import type { ActiveFilter } from '../components/ui/EmptyStateFilters';
 import { toast } from 'sonner';
+import { Home, Shield, Zap, PersonStanding, Star, Search } from 'lucide-react';
 
 interface TreesPageProps {
   trees: Arvore[];
@@ -59,12 +60,13 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
     if (advancedFilters.porte) filters.push({ label: `Porte: ${advancedFilters.porte}`, onRemove: () => setAdvancedFilters(p => ({ ...p, porte: '' })) });
     if (advancedFilters.copa) filters.push({ label: `Copa: ${advancedFilters.copa}`, onRemove: () => setAdvancedFilters(p => ({ ...p, copa: '' })) });
     if (advancedFilters.folhagem) filters.push({ label: `Folhagem: ${advancedFilters.folhagem}`, onRemove: () => setAdvancedFilters(p => ({ ...p, folhagem: '' })) });
-    if (advancedFilters.nativas) filters.push({ label: '🇧🇷 Nativas do Brasil', onRemove: () => setAdvancedFilters(p => ({ ...p, nativas: false })) });
-    if (advancedFilters.sem_espinhos) filters.push({ label: '🌿 Sem Espinhos', onRemove: () => setAdvancedFilters(p => ({ ...p, sem_espinhos: false })) });
-    if (advancedFilters.compat_fiacao) filters.push({ label: '⚡ Compatível p/ Fiação', onRemove: () => setAdvancedFilters(p => ({ ...p, compat_fiacao: false })) });
-    if (advancedFilters.calcada_segura) filters.push({ label: '🚶 Calçadas Seguras', onRemove: () => setAdvancedFilters(p => ({ ...p, calcada_segura: false })) });
+    if (advancedFilters.nativas) filters.push({ label: 'Nativas do Brasil', icon: Home, onRemove: () => setAdvancedFilters(p => ({ ...p, nativas: false })) });
+    if (advancedFilters.sem_espinhos) filters.push({ label: 'Sem Espinhos', icon: Shield, onRemove: () => setAdvancedFilters(p => ({ ...p, sem_espinhos: false })) });
+    if (advancedFilters.compat_fiacao) filters.push({ label: 'Compat. Fiação', icon: Zap, onRemove: () => setAdvancedFilters(p => ({ ...p, compat_fiacao: false })) });
+    if (advancedFilters.calcada_segura) filters.push({ label: 'Calçadas Seguras', icon: PersonStanding, onRemove: () => setAdvancedFilters(p => ({ ...p, calcada_segura: false })) });
     if (showFavoritesOnly) filters.push({
-      label: '⭐ Apenas favoritos',
+      label: 'Apenas favoritos',
+      icon: Star,
       onRemove: () => setSearchParams(prev => { const next = new URLSearchParams(prev); next.delete('favoritos'); return next; }),
     });
     return filters;
@@ -202,7 +204,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
       {/* Search, Sort, Favorites Toggle, and Advanced Toggle */}
       <div className="flex flex-col sm:flex-row items-center gap-3 mb-4 flex-wrap">
         <div className="relative w-full sm:max-w-xs">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">🔍</span>
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             value={termoBusca}
@@ -316,9 +318,9 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
                 className="w-full p-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:border-primary cursor-pointer"
               >
                 <option value="">Qualquer tamanho</option>
-                <option value="Grande">🌳 Grande (acima de 12m)</option>
-                <option value="Médio">🌲 Médio (6m a 12m)</option>
-                <option value="Pequeno">🌿 Pequeno (até 6m)</option>
+                <option value="Grande">Grande (acima de 12m)</option>
+                <option value="Médio">Médio (6m a 12m)</option>
+                <option value="Pequeno">Pequeno (até 6m)</option>
               </select>
             </div>
 
@@ -361,7 +363,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
                 className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
               />
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">🇧🇷 Nativas do Brasil</span>
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5"><Home size={14} /> Nativas do Brasil</span>
                 <span className="text-xs text-muted-foreground">Árvores de origem nacional</span>
               </div>
             </label>
@@ -375,7 +377,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
                 className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
               />
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">🌿 Sem Espinhos</span>
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5"><Shield size={14} /> Sem Espinhos</span>
                 <span className="text-xs text-muted-foreground">Totalmente livres de espinhos</span>
               </div>
             </label>
@@ -389,7 +391,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
                 className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
               />
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">⚡ Compatível p/ Fiação</span>
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5"><Zap size={14} /> Compatível p/ Fiação</span>
                 <span className="text-xs text-muted-foreground">Árvores que não encostam nos fios</span>
               </div>
             </label>
@@ -403,7 +405,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
                 className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
               />
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">🚶 Calçadas Seguras</span>
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5"><PersonStanding size={14} /> Calçadas Seguras</span>
                 <span className="text-xs text-muted-foreground">Baixo risco de destruição (Dano 1 ou 2)</span>
               </div>
             </label>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Arvore } from '../../types/tree';
 import { Modal } from '../ui/Modal';
-import { Droplets, Wind, MoveHorizontal } from 'lucide-react';
+import { Droplets, Wind, MoveHorizontal, Ruler, Leaf, Sun, Building2, Home } from 'lucide-react';
 
 interface CompareModalProps {
   trees: Arvore[];
@@ -43,49 +43,53 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-5xl">
-      <div className="p-6 md:p-8">
-        <div className="mb-6 pb-4 border-b">
-          <h2 className="text-2xl font-bold text-foreground font-display flex items-center gap-2">
-            <MoveHorizontal className="text-primary w-6 h-6" />
+      <div className="p-4 md:p-6">
+        <div className="mb-4 pb-3 border-b">
+          <h2 className="text-lg font-bold text-foreground font-display flex items-center gap-2">
+            <MoveHorizontal className="text-primary w-5 h-5" />
             Comparação Lado a Lado
           </h2>
-          <p className="text-muted-foreground text-sm">
-            Comparando {trees.length} espécie{trees.length > 1 ? 's' : ''} para ajudar na sua escolha.
+          <p className="text-muted-foreground text-xs">
+            Comparando {trees.length} espécie{trees.length > 1 ? 's' : ''}.
           </p>
         </div>
 
         {/* DESKTOP LAYOUT (Hidden on Mobile) */}
-        <div className="hidden md:block w-full overflow-x-auto pb-6">
-          <div className="grid gap-4 w-full" style={{ gridTemplateColumns: `repeat(${trees.length}, minmax(${trees.length === 1 ? '100%' : '260px'}, 1fr))` }}>
-            
+        <div className="hidden md:block w-full overflow-x-auto pb-4">
+          <div className="grid gap-3 w-full" style={{ gridTemplateColumns: `repeat(${trees.length}, minmax(${trees.length === 1 ? '100%' : '220px'}, 1fr))` }}>
+
             {/* Headers (Image & Name) */}
             {trees.map(tree => (
-              <div key={`header-${tree.id}`} className="flex flex-col gap-3">
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-muted border">
+              <div key={`header-${tree.id}`} className="flex flex-col gap-2">
+                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-muted border">
                   {tree.foto ? (
                     <img src={tree.foto} alt={tree.nome_popular} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-primary/5 text-primary">
-                      <span className="text-3xl mb-1">🌳</span>
+                      <svg width="32" height="32" viewBox="0 0 48 48" fill="none" className="opacity-40">
+                        <path d="M24 44V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="currentColor" opacity="0.6"/>
+                        <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="currentColor" opacity="0.4"/>
+                      </svg>
                       <span className="text-xs font-medium opacity-60">Sem foto</span>
                     </div>
                   )}
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-foreground font-display leading-tight">{tree.nome_popular}</h3>
-                  <p className="text-sm text-muted-foreground italic truncate">{tree.nome_cientifico}</p>
+                  <h3 className="font-bold text-sm text-foreground font-display leading-tight">{tree.nome_popular}</h3>
+                  <p className="text-xs text-muted-foreground italic truncate">{tree.nome_cientifico}</p>
                 </div>
               </div>
             ))}
 
             {/* Section: Porte e Dimensões */}
-            <div className="col-span-full mt-6 mb-2">
+            <div className="col-span-full mt-3 mb-1">
               <h4 className="font-bold text-primary uppercase text-xs tracking-wider flex items-center gap-1.5 opacity-80">
-                📏 Porte e Dimensões
+                <Ruler size={14} /> Porte e Dimensões
               </h4>
             </div>
             {trees.map(tree => (
-              <div key={`dim-${tree.id}`} className="bg-card border rounded-xl p-4 flex flex-col gap-3 text-sm shadow-sm">
+              <div key={`dim-${tree.id}`} className="bg-card border rounded-lg p-3 flex flex-col gap-2 text-sm">
                 <div>
                   <span className="text-muted-foreground block text-xs mb-0.5">Altura Máxima</span>
                   <span className="font-semibold text-foreground">{tree.altura_adulta_max_m ? `${tree.altura_adulta_max_m}m` : '—'}</span>
@@ -105,16 +109,16 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
             ))}
 
             {/* Section: Características */}
-            <div className="col-span-full mt-4 mb-2">
+            <div className="col-span-full mt-3 mb-1">
               <h4 className="font-bold text-primary uppercase text-xs tracking-wider flex items-center gap-1.5 opacity-80">
-                🌿 Características Botânicas
+                <Leaf size={14} /> Características Botânicas
               </h4>
             </div>
             {trees.map(tree => (
-              <div key={`char-${tree.id}`} className="bg-card border rounded-xl p-4 flex flex-col gap-3 text-sm shadow-sm space-y-1">
+              <div key={`char-${tree.id}`} className="bg-card border rounded-lg p-3 flex flex-col gap-2 text-sm space-y-1">
                 <div className="flex justify-between items-center border-b pb-1.5 border-border/50">
                   <span className="text-muted-foreground">Origem</span>
-                  <span className="font-semibold text-foreground">{tree.origem === 'Nativa BR' ? '🇧🇷 Nativa' : 'Exótica'}</span>
+                  <span className="font-semibold text-foreground">{tree.origem === 'Nativa BR' ? <span className="inline-flex items-center gap-1"><Home size={12} /> Nativa</span> : 'Exótica'}</span>
                 </div>
                 <div className="flex justify-between items-center border-b pb-1.5 border-border/50">
                   <span className="text-muted-foreground">Folhagem</span>
@@ -126,15 +130,15 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Espinhos</span>
-                  <span className="font-semibold text-foreground">{tree.presenca_espinhos ? 'Sim 🔪' : 'Não ✨'}</span>
+                  <span className="font-semibold text-foreground">{tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
                 </div>
               </div>
             ))}
 
             {/* Section: Tolerâncias */}
-            <div className="col-span-full mt-4 mb-2">
+            <div className="col-span-full mt-3 mb-1">
               <h4 className="font-bold text-primary uppercase text-xs tracking-wider flex items-center gap-1.5 opacity-80">
-                ☀️ Tolerâncias Climáticas
+                <Sun size={14} /> Tolerâncias Climáticas
               </h4>
             </div>
             {trees.map(tree => (
@@ -156,13 +160,13 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
             ))}
 
             {/* Section: Uso Urbano */}
-            <div className="col-span-full mt-4 mb-2">
+            <div className="col-span-full mt-3 mb-1">
               <h4 className="font-bold text-primary uppercase text-xs tracking-wider flex items-center gap-1.5 opacity-80">
-                🏢 Uso Urbano
+                <Building2 size={14} /> Uso Urbano
               </h4>
             </div>
             {trees.map(tree => (
-              <div key={`urb-${tree.id}`} className="bg-card border rounded-xl p-4 flex flex-col gap-3 text-sm shadow-sm">
+              <div key={`urb-${tree.id}`} className="bg-card border rounded-lg p-3 flex flex-col gap-2 text-sm">
                 <div>
                   <span className="text-muted-foreground block text-xs mb-0.5">Compatibilidade com Fiação</span>
                   <span className={`font-semibold inline-flex px-2 py-0.5 rounded-full text-xs ${
@@ -196,10 +200,10 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
           {/* Tabs Nav */}
           <div className="flex overflow-x-auto gap-2 pb-3 mb-5 snap-x border-b border-border/50 hide-scrollbar">
             {[
-              { id: 'dimensoes', label: '📏 Dimensões' },
-              { id: 'botanica', label: '🌿 Botânica' },
-              { id: 'tolerancias', label: '☀️ Tolerâncias' },
-              { id: 'urbano', label: '🏢 Uso Urbano' },
+              { id: 'dimensoes', label: 'Dimensões' },
+              { id: 'botanica', label: 'Botânica' },
+              { id: 'tolerancias', label: 'Tolerâncias' },
+              { id: 'urbano', label: 'Uso Urbano' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -222,7 +226,13 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
                 {/* Tree Identity */}
                 <div className="flex items-center gap-3">
                   <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-muted border flex items-center justify-center text-xl">
-                    {tree.foto ? <img src={tree.foto} alt={tree.nome_popular} className="w-full h-full object-cover" /> : '🌳'}
+                    {tree.foto ? <img src={tree.foto} alt={tree.nome_popular} className="w-full h-full object-cover" /> : (
+                      <svg width="24" height="24" viewBox="0 0 48 48" fill="none" className="opacity-40">
+                        <path d="M24 44V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="currentColor" opacity="0.6"/>
+                        <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="currentColor" opacity="0.4"/>
+                      </svg>
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold text-base text-foreground font-display leading-tight">{tree.nome_popular}</h3>
@@ -231,7 +241,7 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
                 </div>
 
                 {/* Tab Specific Attributes */}
-                <div className="bg-card border rounded-xl p-4 flex flex-col gap-3 text-sm shadow-sm relative pl-4 border-l-4" style={{ borderLeftColor: 'hsl(var(--primary))' }}>
+                <div className="bg-card border rounded-lg p-3 flex flex-col gap-2 text-sm relative pl-4 border-l-4" style={{ borderLeftColor: 'hsl(var(--primary))' }}>
                   
                   {activeTab === 'dimensoes' && (
                     <>
@@ -257,7 +267,7 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
                     <div className="space-y-1">
                       <div className="flex justify-between items-center border-b pb-1.5 border-border/50">
                         <span className="text-muted-foreground">Origem</span>
-                        <span className="font-semibold text-foreground">{tree.origem === 'Nativa BR' ? '🇧🇷 Nativa' : 'Exótica'}</span>
+                        <span className="font-semibold text-foreground">{tree.origem === 'Nativa BR' ? <span className="inline-flex items-center gap-1"><Home size={12} /> Nativa</span> : 'Exótica'}</span>
                       </div>
                       <div className="flex justify-between items-center border-b pb-1.5 border-border/50">
                         <span className="text-muted-foreground">Folhagem</span>
@@ -269,7 +279,7 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Espinhos</span>
-                        <span className="font-semibold text-foreground">{tree.presenca_espinhos ? 'Sim 🔪' : 'Não ✨'}</span>
+                        <span className="font-semibold text-foreground">{tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
                       </div>
                     </div>
                   )}
@@ -325,12 +335,12 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
         </div>
 
         {/* Footer / Fechar */}
-        <div className="mt-8 flex justify-end">
+        <div className="mt-4 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl bg-muted text-foreground font-semibold hover:bg-muted/80 transition-colors"
+            className="px-4 py-2 rounded-lg bg-muted text-foreground text-sm font-semibold hover:bg-muted/80 transition-colors"
           >
-            Fechar Comparação
+            Fechar
           </button>
         </div>
       </div>

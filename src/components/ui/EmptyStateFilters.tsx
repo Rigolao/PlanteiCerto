@@ -1,6 +1,10 @@
+import type { LucideIcon } from 'lucide-react';
+import { X } from 'lucide-react';
+
 export type ActiveFilter = {
   label: string;
   onRemove: () => void;
+  icon?: LucideIcon;
 };
 
 interface EmptyStateFiltersProps {
@@ -51,10 +55,11 @@ export function EmptyStateFilters({ filters, onClearAll }: EmptyStateFiltersProp
             type="button"
             aria-label={`Remover filtro: ${filter.label}`}
             onClick={filter.onRemove}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#e8ede9] border border-[#a8c5a9] text-[#2c4a2e] rounded-full text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer"
           >
+            {filter.icon && <filter.icon size={11} className="shrink-0" />}
             {filter.label}
-            <span className="text-primary/70 font-bold text-base leading-none">×</span>
+            <X size={10} />
           </button>
         ))}
       </div>
