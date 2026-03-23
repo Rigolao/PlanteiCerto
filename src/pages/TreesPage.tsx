@@ -9,6 +9,8 @@ import { TreeDetailModal } from '../components/trees/TreeDetailModal';
 import { CompareModal } from '../components/trees/CompareModal';
 import { TreeCardSkeleton } from '../components/ui/Skeleton';
 import { AuthModal } from '../components/auth/AuthModal';
+import { EmptyStateFilters } from '../components/ui/EmptyStateFilters';
+import type { ActiveFilter } from '../components/ui/EmptyStateFilters';
 import { toast } from 'sonner';
 
 interface TreesPageProps {
@@ -50,6 +52,30 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   });
 
   const activeAdvancedCount = Object.values(advancedFilters).filter(v => v !== '' && v !== false).length;
+
+  const activeFilters = useMemo<ActiveFilter[]>(() => {
+    const filters: ActiveFilter[] = [];
+    if (termoBusca) filters.push({ label: `Busca: "${termoBusca}"`, onRemove: () => setTermoBusca('') });
+    if (advancedFilters.porte) filters.push({ label: `Porte: ${advancedFilters.porte}`, onRemove: () => setAdvancedFilters(p => ({ ...p, porte: '' })) });
+    if (advancedFilters.copa) filters.push({ label: `Copa: ${advancedFilters.copa}`, onRemove: () => setAdvancedFilters(p => ({ ...p, copa: '' })) });
+    if (advancedFilters.folhagem) filters.push({ label: `Folhagem: ${advancedFilters.folhagem}`, onRemove: () => setAdvancedFilters(p => ({ ...p, folhagem: '' })) });
+    if (advancedFilters.nativas) filters.push({ label: '🇧🇷 Nativas do Brasil', onRemove: () => setAdvancedFilters(p => ({ ...p, nativas: false })) });
+    if (advancedFilters.sem_espinhos) filters.push({ label: '🌿 Sem Espinhos', onRemove: () => setAdvancedFilters(p => ({ ...p, sem_espinhos: false })) });
+    if (advancedFilters.compat_fiacao) filters.push({ label: '⚡ Compatível p/ Fiação', onRemove: () => setAdvancedFilters(p => ({ ...p, compat_fiacao: false })) });
+    if (advancedFilters.calcada_segura) filters.push({ label: '🚶 Calçadas Seguras', onRemove: () => setAdvancedFilters(p => ({ ...p, calcada_segura: false })) });
+    if (showFavoritesOnly) filters.push({
+      label: '⭐ Apenas favoritos',
+      onRemove: () => setSearchParams(prev => { const next = new URLSearchParams(prev); next.delete('favoritos'); return next; }),
+    });
+    return filters;
+  }, [termoBusca, advancedFilters, showFavoritesOnly, setSearchParams]);
+
+  const clearAllFilters = () => {
+    setTermoBusca('');
+    setAdvancedFilters({ porte: '', copa: '', folhagem: '', nativas: false, sem_espinhos: false, compat_fiacao: false, calcada_segura: false });
+    searchParams.delete('favoritos');
+    setSearchParams(searchParams);
+  };
 
   const filtered = useMemo(() => {
     let result = trees;
@@ -408,6 +434,11 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
             onToggleFavorite={handleToggleFavorite}
             compareIds={compareIds}
             onToggleCompare={handleToggleCompare}
+            emptyState={
+              activeFilters.length > 0
+                ? <EmptyStateFilters filters={activeFilters} onClearAll={clearAllFilters} />
+                : undefined
+            }
           />
 
           {/* Load More */}
