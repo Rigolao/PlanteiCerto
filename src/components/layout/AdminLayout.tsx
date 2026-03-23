@@ -29,12 +29,22 @@ export function AdminLayout() {
     return () => { document.body.style.overflow = ''; };
   }, [sidebarOpen]);
 
-  const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
+  const Sidebar = ({ mobile = false, onClose }: { mobile?: boolean; onClose?: () => void }) => (
     <aside className={`${mobile ? 'w-full' : 'w-64'} flex flex-col bg-card border-r border-border h-full`}>
       {/* Logo */}
-      <div className="flex items-center gap-2 px-6 h-16 border-b border-border">
-        <span className="text-2xl leading-none">🌱</span>
-        <span className="text-foreground text-lg font-bold tracking-tight">Admin</span>
+      <div className="flex items-center justify-between px-6 h-16 border-b border-border">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl leading-none">🌱</span>
+          <span className="text-foreground text-lg font-bold tracking-tight">Admin</span>
+        </div>
+        {mobile && onClose && (
+          <button
+            onClick={onClose}
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors bg-transparent border-none cursor-pointer"
+          >
+            <X size={24} />
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -86,16 +96,8 @@ export function AdminLayout() {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="absolute top-0 left-0 bottom-0 w-[280px] bg-background shadow-2xl">
-            <div className="absolute top-4 right-4">
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors bg-transparent border-none cursor-pointer"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <Sidebar mobile />
+          <div className="absolute top-0 right-0 bottom-0 w-[280px] bg-background shadow-2xl animate-in slide-in-from-right duration-300">
+            <Sidebar mobile onClose={() => setSidebarOpen(false)} />
           </div>
         </div>
       )}
@@ -105,17 +107,17 @@ export function AdminLayout() {
         {/* Top bar (mobile) */}
         <header className="md:hidden sticky top-0 z-[1000] bg-background border-b border-border">
           <div className="flex items-center justify-between px-4 h-14">
+            <div className="w-10" /> {/* Spacer */}
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🌱</span>
+              <span className="font-bold text-base">Admin</span>
+            </div>
             <button
               onClick={() => setSidebarOpen(true)}
               className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-muted text-foreground transition-colors bg-transparent border-none cursor-pointer"
             >
               <Menu size={24} />
             </button>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🌱</span>
-              <span className="font-bold text-base">Admin</span>
-            </div>
-            <div className="w-10" /> {/* Spacer */}
           </div>
         </header>
 
