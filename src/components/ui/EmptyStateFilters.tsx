@@ -1,4 +1,4 @@
-type ActiveFilter = {
+export type ActiveFilter = {
   label: string;
   onRemove: () => void;
 };
@@ -19,6 +19,7 @@ export function EmptyStateFilters({ filters, onClearAll }: EmptyStateFiltersProp
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="text-muted-foreground opacity-40"
+        aria-hidden="true"
       >
         {/* Tronco */}
         <rect x="54" y="80" width="12" height="24" rx="4" fill="currentColor" />
@@ -44,9 +45,11 @@ export function EmptyStateFilters({ filters, onClearAll }: EmptyStateFiltersProp
 
       {/* Chips dos filtros ativos */}
       <div className="flex flex-wrap justify-center gap-2 max-w-lg">
-        {filters.map((filter, index) => (
+        {filters.map((filter) => (
           <button
-            key={index}
+            key={filter.label}
+            type="button"
+            aria-label={`Remover filtro: ${filter.label}`}
             onClick={filter.onRemove}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors cursor-pointer"
           >
@@ -58,6 +61,7 @@ export function EmptyStateFilters({ filters, onClearAll }: EmptyStateFiltersProp
 
       {/* Botão limpar tudo */}
       <button
+        type="button"
         onClick={onClearAll}
         className="text-sm font-semibold text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors cursor-pointer border-none bg-transparent"
       >
