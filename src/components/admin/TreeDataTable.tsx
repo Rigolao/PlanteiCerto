@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Pencil, Trash2, ChevronLeft, ChevronRight, TreePine } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useTreeUsageCount } from '../../hooks/useAdminTrees';
@@ -11,7 +11,8 @@ interface TreeDataTableProps {
   onDelete: (tree: Arvore) => void;
 }
 
-const ITEMS_PER_PAGE = 20;
+const PAGE_SIZE_OPTIONS = [5, 10, 15] as const;
+const DEFAULT_PAGE_SIZE = 5;
 
 function DeleteConfirmDialog({
   tree,
@@ -43,6 +44,7 @@ function DeleteConfirmDialog({
 
 export function TreeDataTable({ trees, searchQuery, onEdit, onDelete }: TreeDataTableProps) {
   const [page, setPage] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [treeToDelete, setTreeToDelete] = useState<Arvore | null>(null);
 
   const filtered = trees.filter((t) => {
@@ -54,12 +56,14 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete }: TreeData
     );
   });
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
 
-  if (page >= totalPages && totalPages > 0) {
-    setPage(0);
-  }
+  useEffect(() => {
+    if (page >= totalPages && totalPages > 0) {
+      setPage(0);
+    }
+  }, [page, totalPages]);
 
   const handleConfirmDelete = () => {
     if (treeToDelete) {
@@ -142,33 +146,53 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete }: TreeData
         </table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">
-            Mostrando {page * ITEMS_PER_PAGE + 1}–{Math.min((page + 1) * ITEMS_PER_PAGE, filtered.length)} de {filtered.length}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-              className="p-2 rounded-lg hover:bg-muted text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors bg-transparent border-none cursor-pointer"
+      {/* Pagination — always visible */}
+      <div className="flex items-center justify-between mt-4 flex-wrap gap-2">
+        <p className="text-sm text-muted-foreground">
+          Mostrando {page * itemsPerPage + 1}–{Math.min((page + 1) * itemsPerPage, filtered.length)} de {filtered.length}
+        </p>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="page-size" className="text-sm text-muted-foreground">
+              Por página:
+            </label>
+            <select
+              id="page-size"
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setPage(0);
+              }}
+              className="px-2 py-1 rounded-md border border-border text-sm bg-card text-foreground focus:outline-none focus:border-primary cursor-pointer"
             >
-              <ChevronLeft size={18} />
-            </button>
-            <span className="text-sm text-muted-foreground">
-              {page + 1} / {totalPages}
-            </span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={page >= totalPages - 1}
-              className="p-2 rounded-lg hover:bg-muted text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors bg-transparent border-none cursor-pointer"
-            >
-              <ChevronRight size={18} />
-            </button>
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="p-2 rounded-lg hover:bg-muted text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors bg-transparent border-none cursor-pointer"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <span className="text-sm text-muted-foreground">
+                {page + 1} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="p-2 rounded-lg hover:bg-muted text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors bg-transparent border-none cursor-pointer"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {treeToDelete && (
         <DeleteConfirmDialog

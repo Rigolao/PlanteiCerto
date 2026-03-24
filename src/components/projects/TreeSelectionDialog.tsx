@@ -24,13 +24,19 @@ export function TreeSelectionDialog({
   const [selectedTreeId, setSelectedTreeId] = useState<number | null>(null);
   const [visible, setVisible] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const lastIsOpen = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedTreeId(initialTreeId || null);
       setObservacao(initialObservacao || '');
       setBusca('');
+      setDropdownOpen(false);
+      setHighlightedIndex(-1);
       setVisible(true);
       requestAnimationFrame(() => requestAnimationFrame(() => setAnimating(true)));
     } else {
@@ -61,12 +67,65 @@ export function TreeSelectionDialog({
     );
   }, [trees, busca]);
 
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (highlightedIndex >= 0 && listboxRef.current) {
+      const item = listboxRef.current.children[highlightedIndex] as HTMLElement;
+      item?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [highlightedIndex]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (!inputRef.current?.parentElement?.contains(target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [dropdownOpen]);
+
   if (!visible) return null;
 
   const handleConfirm = () => {
     if (selectedTreeId) {
       onSelect(selectedTreeId, observacao);
       onClose();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!dropdownOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        setDropdownOpen(true);
+        e.preventDefault();
+      }
+      return;
+    }
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex((i) => Math.min(i + 1, filteredTrees.length - 1));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex((i) => Math.max(i - 1, 0));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < filteredTrees.length) {
+          setSelectedTreeId(filteredTrees[highlightedIndex].id);
+          setDropdownOpen(false);
+          setBusca('');
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setDropdownOpen(false);
+        break;
     }
   };
 
@@ -83,7 +142,7 @@ export function TreeSelectionDialog({
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="bg-card w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="bg-card w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
         style={{
           maxHeight: '90vh',
           opacity: animating ? 1 : 0,
@@ -108,77 +167,88 @@ export function TreeSelectionDialog({
           </button>
         </div>
 
-        {/* Body — scroll aqui */}
-        <div className="flex-1 overflow-y-auto">
-
-          {/* Busca */}
-          <div className="px-5 pt-4 pb-3">
+        {/* Body */}
+        <div className="px-5 pt-4 pb-5 flex flex-col gap-4">
+          {/* Combobox */}
+          <div className="relative">
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               <input
+                ref={inputRef}
                 type="text"
+                role="combobox"
+                aria-expanded={dropdownOpen}
+                aria-controls="tree-listbox"
+                aria-activedescendant={highlightedIndex >= 0 ? `tree-option-${filteredTrees[highlightedIndex]?.id}` : undefined}
                 placeholder="Buscar por nome ou espécie..."
                 value={busca}
-                onChange={(e) => setBusca(e.target.value)}
+                onChange={(e) => {
+                  setBusca(e.target.value);
+                  setDropdownOpen(true);
+                  setHighlightedIndex(-1);
+                }}
+                onFocus={() => setDropdownOpen(true)}
+                onKeyDown={handleKeyDown}
                 className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border text-sm text-foreground bg-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
-          </div>
 
-          {/* Grid de Árvores */}
-          <div className="px-5 pb-3">
-            {filteredTrees.length === 0 ? (
-              <div className="text-center text-muted-foreground py-10 text-sm">
-                Nenhuma árvore encontrada para "{busca}"
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {filteredTrees.map((tree) => {
-                  const isSelected = selectedTreeId === tree.id;
-                  return (
-                    <button
+            {/* Dropdown */}
+            {dropdownOpen && (
+              <ul
+                ref={listboxRef}
+                id="tree-listbox"
+                role="listbox"
+                className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto bg-card border border-border rounded-lg shadow-lg"
+              >
+                {filteredTrees.length === 0 ? (
+                  <li className="px-4 py-3 text-sm text-muted-foreground text-center">
+                    Nenhuma árvore encontrada
+                  </li>
+                ) : (
+                  filteredTrees.map((tree, index) => (
+                    <li
                       key={tree.id}
-                      onClick={() => setSelectedTreeId(isSelected ? null : tree.id)}
-                      className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all text-left group ${
-                        isSelected
-                          ? 'border-primary shadow-md ring-2 ring-primary/20'
-                          : 'border-border hover:border-primary/40'
-                      }`}
+                      id={`tree-option-${tree.id}`}
+                      role="option"
+                      aria-selected={selectedTreeId === tree.id}
+                      className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors ${
+                        index === highlightedIndex
+                          ? 'bg-primary/10'
+                          : 'hover:bg-muted/50'
+                      } ${selectedTreeId === tree.id ? 'bg-primary/5' : ''}`}
+                      onMouseEnter={() => setHighlightedIndex(index)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setSelectedTreeId(tree.id);
+                        setDropdownOpen(false);
+                        setBusca('');
+                      }}
                     >
                       {tree.foto ? (
-                        <img
-                          src={tree.foto}
-                          alt={tree.nome_popular}
-                          className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
+                        <img src={tree.foto} alt="" className="w-8 h-8 rounded-md object-cover flex-shrink-0" />
                       ) : (
-                        <div className="w-full h-24 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                          <TreePine size={28} className="text-muted-foreground" />
+                        <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                          <TreePine size={16} className="text-muted-foreground" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent flex flex-col justify-end p-2">
-                        <span className="text-white text-xs font-semibold leading-tight line-clamp-2">{tree.nome_popular}</span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{tree.nome_popular}</p>
+                        <p className="text-xs text-muted-foreground italic truncate">{tree.nome_cientifico}</p>
                       </div>
-                      {isSelected && (
-                        <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                    </li>
+                  ))
+                )}
+              </ul>
             )}
           </div>
 
-          {/* Árvore selecionada — preview */}
+          {/* Selected tree preview */}
           {selectedTree && (
-            <div className="mx-5 mb-3 flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl">
+            <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl">
               {selectedTree.foto ? (
                 <img src={selectedTree.foto} alt={selectedTree.nome_popular} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
               ) : (
@@ -186,20 +256,25 @@ export function TreeSelectionDialog({
                   <TreePine size={18} className="text-muted-foreground" />
                 </div>
               )}
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-foreground leading-none mb-0.5">{selectedTree.nome_popular}</p>
                 <p className="text-xs text-muted-foreground italic truncate">{selectedTree.nome_cientifico}</p>
               </div>
-              <div className="ml-auto flex-shrink-0 text-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
+              <button
+                onClick={() => setSelectedTreeId(null)}
+                className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none cursor-pointer flex-shrink-0"
+                title="Remover seleção"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
-              </div>
+              </button>
             </div>
           )}
 
           {/* Observação */}
-          <div className="px-5 pb-5">
+          <div>
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
               Observação <span className="normal-case font-normal">(opcional)</span>
             </label>

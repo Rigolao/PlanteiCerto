@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Arvore } from '../types/tree';
 import { useTrees } from '../hooks/useTrees';
@@ -19,7 +19,7 @@ interface TreesPageProps {
 }
 
 const SKELETON_COUNT = 6;
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 6;
 
 export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   const navigate = useNavigate();
@@ -35,6 +35,8 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [ordenacao, setOrdenacao] = useState('');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const filteredLengthRef = useRef(0);
 
   // Compare State
   const [compareIds, setCompareIds] = useState<Set<number>>(new Set());
@@ -142,7 +144,32 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   }, [termoBusca, advancedFilters, showFavoritesOnly, ordenacao]);
 
   const filteredVisible = filtered.slice(0, visibleCount);
-  const hasMore = visibleCount < filtered.length;
+  filteredLengthRef.current = filtered.length;
+
+  // Cleanup observer on unmount
+  useEffect(() => {
+    return () => observerRef.current?.disconnect();
+  }, []);
+
+  // Callback ref: connects IntersectionObserver when sentinel mounts
+  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+    observerRef.current?.disconnect();
+
+    if (!node) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) =>
+            c < filteredLengthRef.current ? c + ITEMS_PER_PAGE : c
+          );
+        }
+      },
+      { rootMargin: '200px', threshold: 0 }
+    );
+
+    observerRef.current.observe(node);
+  }, []);
 
   const handleToggleFavorite = (treeId: number) => {
     if (!user) {
@@ -443,26 +470,8 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
             }
           />
 
-          {/* Load More */}
-          {hasMore && (
-            <div className="flex flex-col items-center gap-2 mt-10">
-              <button
-                onClick={() => setVisibleCount(c => c + ITEMS_PER_PAGE)}
-                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14M5 12l7 7 7-7"/>
-                </svg>
-                Carregar mais
-                <span className="text-muted-foreground font-normal">
-                  (+{Math.min(ITEMS_PER_PAGE, filtered.length - visibleCount)})
-                </span>
-              </button>
-              <p className="text-xs text-muted-foreground">
-                {filtered.length - visibleCount} árvore{filtered.length - visibleCount !== 1 ? 's' : ''} restante{filtered.length - visibleCount !== 1 ? 's' : ''}
-              </p>
-            </div>
-          )}
+          {/* Infinite scroll sentinel */}
+          <div ref={sentinelRef} className="h-1" />
         </>
       )}
 
