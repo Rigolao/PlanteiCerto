@@ -60,11 +60,24 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="relative">
-        <img
-          src={displayArvore.foto ?? ''}
-          alt={displayArvore.nome_popular}
-          className="w-full h-64 object-cover rounded-t-2xl"
-        />
+        {displayArvore.foto ? (
+          <img
+            src={displayArvore.foto}
+            alt={displayArvore.nome_popular}
+            className="w-full h-64 object-cover rounded-t-2xl"
+          />
+        ) : (
+          <div className="w-full h-64 bg-gradient-to-br from-[#d4e6d5] to-[#a0c4a2] flex items-center justify-center rounded-t-2xl">
+            <svg width="80" height="80" viewBox="0 0 48 48" fill="none" className="opacity-40">
+              <path d="M24 44V20" stroke="#1a4d2c" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="#226437"/>
+              <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="#2d7a40"/>
+              <path d="M24 28C24 28 17 24 13 17C17 14 24 19 24 28Z" fill="#1a5c30"/>
+              <path d="M24 28C24 28 31 24 35 17C31 14 24 19 24 28Z" fill="#226437"/>
+              <ellipse cx="24" cy="43" rx="5" ry="2" fill="#1a4d2c" opacity="0.2"/>
+            </svg>
+          </div>
+        )}
         {/* Favorite Button */}
         {onToggleFavorite && (
           <button
