@@ -99,7 +99,7 @@ export function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComp
       </div>
       <div className="p-5 pb-4">
         <div className="flex items-start justify-between gap-2 mb-0.5">
-          <h2 className="text-primary text-lg font-bold font-display">{arvore.nome_popular}</h2>
+          <h2 className="text-primary text-lg font-bold font-display break-words line-clamp-2">{arvore.nome_popular}</h2>
           <span className="shrink-0 bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1 mt-0.5">
             {arvore.origem === 'Nativa BR' ? <Home size={9} /> : <Globe size={9} />}
             {arvore.origem === 'Nativa BR' ? 'Nativa' : 'Exótica'}

@@ -111,7 +111,8 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Nome Popular *</label>
               <input
-                {...register('nome_popular', { required: 'Nome popular é obrigatório' })}
+                maxLength={150}
+                {...register('nome_popular', { required: 'Nome popular é obrigatório', maxLength: { value: 150, message: 'Máximo de 150 caracteres' } })}
                 className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               />
               {errors.nome_popular && <span className="text-xs text-destructive mt-1">{errors.nome_popular.message}</span>}
@@ -120,7 +121,8 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Nome Científico *</label>
               <input
-                {...register('nome_cientifico', { required: 'Nome científico é obrigatório' })}
+                maxLength={150}
+                {...register('nome_cientifico', { required: 'Nome científico é obrigatório', maxLength: { value: 150, message: 'Máximo de 150 caracteres' } })}
                 className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               />
               {errors.nome_cientifico && <span className="text-xs text-destructive mt-1">{errors.nome_cientifico.message}</span>}
@@ -210,6 +212,7 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Forma da Copa</label>
               <input
+                maxLength={100}
                 {...register('forma_copa')}
                 className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               />
@@ -261,6 +264,7 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Época de Floração</label>
               <input
+                maxLength={100}
                 {...register('epoca_floracao')}
                 placeholder="Ex: Set-Nov"
                 className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
@@ -269,6 +273,7 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Época de Frutificação</label>
               <input
+                maxLength={100}
                 {...register('epoca_frutificacao')}
                 placeholder="Ex: Jan-Mar"
                 className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"

@@ -33,7 +33,7 @@ export function PointItem({ ponto, arvore, onEdit, onRemove, isSelected, onClick
         )
       ) : null}
       <div className="flex-1 min-w-0">
-        <span className="font-bold text-foreground text-sm block group-hover:text-primary transition-colors">
+        <span className="font-bold text-foreground text-sm block group-hover:text-primary transition-colors truncate">
           {arvore?.nome_popular || 'Árvore desconhecida'}
         </span>
         <span className="text-muted-foreground text-[11px] block truncate">

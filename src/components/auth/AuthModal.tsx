@@ -174,6 +174,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 value={nome}
                 onChange={e => setNome(e.target.value)}
                 placeholder="Ex: João Silva"
+                maxLength={80}
                 className="px-4 py-3 rounded-xl border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
               />
             </div>

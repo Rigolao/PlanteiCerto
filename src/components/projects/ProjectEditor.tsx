@@ -111,7 +111,7 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
                 </svg>
                 <span className="text-xs font-bold uppercase tracking-wider">Voltar</span>
               </button>
-              <h2 className="text-foreground text-2xl sm:text-3xl font-bold font-display leading-tight">{project.nome}</h2>
+              <h2 className="text-foreground text-2xl sm:text-3xl font-bold font-display leading-tight break-words line-clamp-2">{project.nome}</h2>
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0">
               <button

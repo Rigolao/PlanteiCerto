@@ -50,8 +50,8 @@ export function ProjectCard({ project, pointCount, onOpen, onEdit, onDelete }: P
       </div>
 
       {/* Info */}
-      <h3 className="text-foreground font-bold text-base mb-1">{project.nome}</h3>
-      <p className="text-muted-foreground text-sm mb-4">{project.descricao || 'Sem descrição'}</p>
+      <h3 className="text-foreground font-bold text-base mb-1 break-words line-clamp-2">{project.nome}</h3>
+      <p className="text-muted-foreground text-sm mb-4 break-words line-clamp-3">{project.descricao || 'Sem descrição'}</p>
 
       {/* Meta */}
       <div className="flex items-center gap-4 text-muted-foreground text-xs mb-5">

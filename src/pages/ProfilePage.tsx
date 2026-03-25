@@ -150,13 +150,15 @@ export function ProfilePage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-foreground">Nome de Usuário</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
+                  maxLength={80}
                   className="w-full px-4 py-2 rounded-xl border border-border bg-transparent text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                   required
                 />
+                <p className="text-xs text-muted-foreground text-right mt-1">{nome.length}/80</p>
               </div>
             </div>
           </div>

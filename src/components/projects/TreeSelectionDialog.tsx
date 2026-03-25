@@ -257,7 +257,7 @@ export function TreeSelectionDialog({
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground leading-none mb-0.5">{selectedTree.nome_popular}</p>
+                <p className="text-sm font-semibold text-foreground leading-none mb-0.5 truncate">{selectedTree.nome_popular}</p>
                 <p className="text-xs text-muted-foreground italic truncate">{selectedTree.nome_cientifico}</p>
               </div>
               <button
@@ -283,8 +283,10 @@ export function TreeSelectionDialog({
               value={observacao}
               onChange={(e) => setObservacao(e.target.value)}
               rows={2}
+              maxLength={300}
               className="w-full px-4 py-2.5 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring transition-all resize-none"
             />
+            <span className="block text-right text-xs text-muted-foreground mt-1">{observacao.length}/300</span>
           </div>
         </div>
 

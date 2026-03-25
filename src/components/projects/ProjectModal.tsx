@@ -42,21 +42,29 @@ export function ProjectModal({ isOpen, onClose, onSave, projectToEdit }: Project
           {projectToEdit ? 'Editar Projeto' : 'Novo Projeto'}
         </h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="text"
-            value={nome}
-            onChange={e => setNome(e.target.value)}
-            placeholder="Nome do projeto (ex: Arborização da Rua das Flores)"
-            required
-            className="px-4 py-3 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
-          />
-          <textarea
-            value={descricao}
-            onChange={e => setDescricao(e.target.value)}
-            placeholder="Descrição (opcional)"
-            rows={3}
-            className="px-4 py-3 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-none"
-          />
+          <div>
+            <input
+              type="text"
+              value={nome}
+              onChange={e => setNome(e.target.value)}
+              placeholder="Nome do projeto (ex: Arborização da Rua das Flores)"
+              required
+              maxLength={100}
+              className="w-full px-4 py-3 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+            />
+            <span className="block text-right text-xs text-muted-foreground mt-1">{nome.length}/100</span>
+          </div>
+          <div>
+            <textarea
+              value={descricao}
+              onChange={e => setDescricao(e.target.value)}
+              placeholder="Descrição (opcional)"
+              rows={3}
+              maxLength={500}
+              className="w-full px-4 py-3 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring resize-none"
+            />
+            <span className="block text-right text-xs text-muted-foreground mt-1">{descricao.length}/500</span>
+          </div>
           <button
             type="submit"
             disabled={loading}
