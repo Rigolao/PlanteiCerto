@@ -88,7 +88,7 @@ export function ProjectStatsModal({ isOpen, onClose, points, trees }: ProjectSta
             
             {/* Top Cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-4 flex flex-col gap-1">
+              <div className="bg-input-bg border rounded-2xl p-4 flex flex-col gap-1">
                 <span className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5"><TreeDeciduous className="w-3.5 h-3.5"/> Total</span>
                 <span className="text-3xl font-bold text-foreground font-display">{stats.total}</span>
                 <span className="text-xs text-muted-foreground line-clamp-1">Árvores mapeadas</span>
@@ -176,9 +176,9 @@ export function ProjectStatsModal({ isOpen, onClose, points, trees }: ProjectSta
         <div className="mt-8 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl border border-border bg-card text-foreground font-semibold hover:border-primary/30 transition-colors"
+            className="px-6 py-2.5 rounded-lg border border-border bg-card text-foreground font-semibold hover:border-primary/30 transition-colors"
           >
-            Fechar Dashboard
+            Fechar
           </button>
         </div>
       </div>

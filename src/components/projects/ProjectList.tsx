@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import type { Projeto } from '../../types/project';
-import { ProjectCard } from './ProjectCard';
+import { ProjectRow } from './ProjectRow';
 import { ProjectModal } from './ProjectModal';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
-import { EmptyState } from '../ui/EmptyState';
+import { Plus } from 'lucide-react';
 
 interface ProjectListProps {
   projects: Projeto[];
@@ -17,6 +17,9 @@ export function ProjectList({ projects, onOpenProject, onCreateProject, onEditPr
   const [modalOpen, setModalOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState<Projeto | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const maxPointCount = Math.max(10, ...projects.map(p => p.points?.[0]?.count ?? 0));
+  const totalTrees = projects.reduce((sum, p) => sum + (p.points?.[0]?.count ?? 0), 0);
 
   const handleOpenNewModal = () => {
     setProjectToEdit(null);
@@ -38,32 +41,45 @@ export function ProjectList({ projects, onOpenProject, onCreateProject, onEditPr
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-foreground font-display">Meus Projetos</h1>
-        <button
-          onClick={handleOpenNewModal}
-          className="bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-full border-none cursor-pointer hover:brightness-110 transition-all text-sm"
-        >
-          + Novo Projeto
-        </button>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground font-serif">Meus Projetos</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          {projects.length} projeto{projects.length !== 1 ? 's' : ''} · {totalTrees} árvore{totalTrees !== 1 ? 's' : ''} plantada{totalTrees !== 1 ? 's' : ''} no total
+        </p>
       </div>
 
-      {projects.length === 0 ? (
-        <EmptyState message='Você ainda não tem projetos. Clique em "+ Novo Projeto" para começar!' />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map(p => (
-            <ProjectCard
-              key={p.id}
-              project={p}
-              pointCount={p.points?.[0]?.count ?? 0}
-              onOpen={() => onOpenProject(p.id)}
-              onEdit={() => handleOpenEditModal(p)}
-              onDelete={() => setDeleteId(p.id)}
-            />
-          ))}
+      {/* Project Rows */}
+      <div className="flex flex-col gap-1.5">
+        {projects.map(p => (
+          <ProjectRow
+            key={p.id}
+            project={p}
+            pointCount={p.points?.[0]?.count ?? 0}
+            maxPointCount={maxPointCount}
+            onOpen={() => onOpenProject(p.id)}
+            onEdit={() => handleOpenEditModal(p)}
+            onDelete={() => setDeleteId(p.id)}
+          />
+        ))}
+
+        {/* New Project Button (dashed row) */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={handleOpenNewModal}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenNewModal(); } }}
+          className="flex items-center gap-4 p-4 border-[1.5px] border-dashed border-muted-foreground/30 rounded-xl cursor-pointer hover:border-primary/40 hover:bg-card transition-all duration-150"
+        >
+          <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+            <Plus size={18} className="text-muted-foreground" />
+          </div>
+          <div>
+            <div className="font-bold text-sm text-foreground/70">Novo projeto</div>
+            <div className="text-xs text-muted-foreground">Comece um novo plano de arborização</div>
+          </div>
         </div>
-      )}
+      </div>
 
       <ProjectModal
         isOpen={modalOpen}

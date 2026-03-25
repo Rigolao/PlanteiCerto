@@ -40,6 +40,11 @@
   --color-ods-13: #437D46;
   --color-ods-11: #FD9D24;
 
+  /* ===== Earthy Palette ===== */
+  --color-input-bg: hsl(35 25% 97%);
+  --color-border-subtle: hsl(35 15% 82%);
+  --color-separator: hsl(35 18% 93%);
+
   /* ===== Typography ===== */
   --font-display: 'Geist Variable', 'Geist', sans-serif;
   --font-body: 'Geist Variable', 'Geist', sans-serif;
@@ -68,6 +73,10 @@
   --color-border: hsl(150 10% 18%);
   --color-input: hsl(150 10% 18%);
   --color-ring: hsl(142 44% 45%);
+
+  --color-input-bg: hsl(150 10% 13%);
+  --color-border-subtle: hsl(150 10% 22%);
+  --color-separator: hsl(150 10% 14%);
 }
 
 /* ===== Base Styles ===== */
@@ -221,6 +230,25 @@ h4 {
   background: #c1c1c1;
   border-radius: 3px;
 }
+
+/* ===== Panel Scrollbar (thinner, subtle) ===== */
+.panel-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-foreground);
+}
+
 
 /* ===== Skeleton Shimmer Animation ===== */
 @keyframes skeleton-shimmer {

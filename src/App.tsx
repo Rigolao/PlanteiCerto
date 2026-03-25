@@ -42,7 +42,7 @@ export default function App() {
         </Route>
       </Route>
     </Routes>
-    <Toaster position="bottom-right" richColors theme={theme as any} />
+    <Toaster position="bottom-center" richColors theme={theme as any} />
     <InstallPWABanner />
     </>
   );

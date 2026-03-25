@@ -55,11 +55,11 @@ export function ProjectMap({ project, points, pendingPoints, trees, onAddPending
   }, [project.id, onUpdateMapCenter]);
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <MapContainer
         center={[project.centro_lat, project.centro_lng]}
         zoom={project.centro_zoom}
-        style={{ height: '450px', width: '100%' }}
+        style={{ height: '100%', width: '100%', minHeight: '300px' }}
       >
         {/* Barra Flutuante de Pesquisa de Endereço */}
         <MapSearchBox />

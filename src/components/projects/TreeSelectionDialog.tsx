@@ -192,7 +192,7 @@ export function TreeSelectionDialog({
                 }}
                 onFocus={() => setDropdownOpen(true)}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border text-sm text-foreground bg-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-input-bg border-[1.5px] border-border-subtle text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
 
@@ -248,7 +248,7 @@ export function TreeSelectionDialog({
 
           {/* Selected tree preview */}
           {selectedTree && (
-            <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl">
+            <div className="flex items-center gap-3 p-3 border-l-[3px] border-l-primary bg-card border border-border rounded-xl">
               {selectedTree.foto ? (
                 <img src={selectedTree.foto} alt={selectedTree.nome_popular} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
               ) : (
@@ -294,14 +294,14 @@ export function TreeSelectionDialog({
         <div className="px-5 py-4 border-t border-border flex gap-2.5 flex-shrink-0 bg-card">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground bg-background border border-border hover:bg-muted transition-colors cursor-pointer"
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground bg-transparent border border-border hover:bg-muted transition-colors cursor-pointer"
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirm}
             disabled={!selectedTreeId}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-primary text-primary-foreground border-none cursor-pointer hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-nature-dark text-white border-none cursor-pointer hover:bg-nature-dark/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Confirmar Seleção
           </button>

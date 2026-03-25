@@ -3,7 +3,7 @@ import { useProjects } from '../hooks/useProjects';
 import { useTrees } from '../hooks/useTrees';
 import { ProjectList } from '../components/projects/ProjectList';
 import { ProjectEditor } from '../components/projects/ProjectEditor';
-import { ProjectCardSkeleton } from '../components/ui/Skeleton';
+import { ProjectRowSkeleton } from '../components/ui/Skeleton';
 import type { Projeto } from '../types/project';
 
 export function ProjectsPage() {
@@ -25,13 +25,13 @@ export function ProjectsPage() {
   if (projectsLoading) {
     return (
       <div>
-        <div className="flex items-center justify-between mb-8">
-          <div className="h-8 w-40 bg-muted rounded-lg animate-pulse" />
-          <div className="h-10 w-36 bg-muted rounded-full animate-pulse" />
+        <div className="mb-6">
+          <div className="h-8 w-48 bg-muted rounded-lg animate-pulse" />
+          <div className="h-4 w-64 bg-muted rounded-lg animate-pulse mt-2" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <ProjectCardSkeleton key={i} />
+            <ProjectRowSkeleton key={i} />
           ))}
         </div>
       </div>
