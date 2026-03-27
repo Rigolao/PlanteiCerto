@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import type { Projeto, Ponto, PontoPendente } from '../../types/project';
 import type { Arvore } from '../../types/tree';
 import { useProjectPoints } from '../../hooks/useProjectPoints';
@@ -28,15 +28,6 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
   const [sheetSnap, setSheetSnap] = useState<string | number | null>('150px');
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const mql = window.matchMedia('(max-width: 1023px)');
-    setIsMobile(mql.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
-  }, []);
 
   const speciesCount = new Set(points.map(p => p.tree_id)).size;
   const isDisabled = points.length === 0;
@@ -199,8 +190,7 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
           <div className="absolute bottom-40 left-1/2 -translate-x-1/2 bg-nature-dark/80 text-white/90 text-xs px-4 py-2 rounded-lg backdrop-blur-sm z-[20] pointer-events-none">
             Toque para adicionar ponto
           </div>
-          {isMobile && (
-            <BottomSheet
+          <BottomSheet
               snapPoints={['150px', 0.5, 0.9]}
               activeSnapPoint={sheetSnap}
               onSnapPointChange={setSheetSnap}
@@ -218,7 +208,6 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
                 onLinkTree={(p) => setPointToLink(p)}
               />
             </BottomSheet>
-          )}
         </div>
       </div>
 
