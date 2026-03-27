@@ -18,15 +18,17 @@ export function BottomSheet({ children, snapPoints, activeSnapPoint, onSnapPoint
       dismissible={false}
       noBodyStyles
     >
-      <Drawer.Content
-        className="fixed bottom-0 left-0 right-0 z-40 bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] outline-none"
-        style={{ maxHeight: '90vh' }}
-      >
-        <div className="flex justify-center pt-2 pb-1">
-          <div className="w-9 h-1 rounded-full bg-border" />
-        </div>
-        {children}
-      </Drawer.Content>
+      <Drawer.Portal>
+        <Drawer.Content
+          className="fixed bottom-0 left-0 right-0 z-[1000] bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] outline-none"
+          style={{ maxHeight: '90dvh' }}
+        >
+          <div className="flex justify-center pt-2 pb-1">
+            <div className="w-9 h-1 rounded-full bg-border" />
+          </div>
+          {children}
+        </Drawer.Content>
+      </Drawer.Portal>
     </Drawer.Root>
   );
 }

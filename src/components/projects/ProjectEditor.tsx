@@ -100,7 +100,7 @@ export function ProjectEditor({ project, trees, onBack, onUpdateMapCenter }: Pro
 
   return (
     <>
-      <div className="flex flex-col h-[calc(100vh-80px)]">
+      <div className="fixed inset-0 top-16 flex flex-col bg-background z-30">
         {/* Header Bar */}
         <div className="px-1 py-3 border-b border-border flex items-center justify-between gap-4 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
