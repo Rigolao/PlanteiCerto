@@ -11,8 +11,11 @@ import { TreeCardSkeleton } from '../components/ui/Skeleton';
 import { AuthModal } from '../components/auth/AuthModal';
 import { EmptyStateFilters } from '../components/ui/EmptyStateFilters';
 import type { ActiveFilter } from '../components/ui/EmptyStateFilters';
+import { TreesToolbar, defaultAdvancedFilters } from '../components/trees/TreesToolbar';
+import type { AdvancedFilters } from '../components/trees/TreesToolbar';
+import { TreesCompareBar } from '../components/trees/TreesCompareBar';
 import { toast } from 'sonner';
-import { Home, Shield, Zap, PersonStanding, Star, Search } from 'lucide-react';
+import { Home, Shield, Zap, PersonStanding, Star } from 'lucide-react';
 
 interface TreesPageProps {
   trees: Arvore[];
@@ -44,15 +47,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
 
   const showFavoritesOnly = searchParams.get('favoritos') === 'true';
 
-  const [advancedFilters, setAdvancedFilters] = useState({
-    porte: '',
-    copa: '',
-    folhagem: '',
-    nativas: false,
-    sem_espinhos: false,
-    compat_fiacao: false,
-    calcada_segura: false,
-  });
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({ ...defaultAdvancedFilters });
 
   const activeAdvancedCount = Object.values(advancedFilters).filter(v => v !== '' && v !== false).length;
 
@@ -76,7 +71,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
 
   const clearAllFilters = () => {
     setTermoBusca('');
-    setAdvancedFilters({ porte: '', copa: '', folhagem: '', nativas: false, sem_espinhos: false, compat_fiacao: false, calcada_segura: false });
+    setAdvancedFilters({ ...defaultAdvancedFilters });
     searchParams.delete('favoritos');
     setSearchParams(searchParams);
   };
@@ -91,35 +86,16 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
           a.nome_cientifico.toLowerCase().includes(lower)
       );
     }
-    
-    if (advancedFilters.nativas) {
-      result = result.filter(a => a.origem === 'Nativa BR');
-    }
-    if (advancedFilters.sem_espinhos) {
-      result = result.filter(a => a.presenca_espinhos === false);
-    }
-    if (advancedFilters.porte) {
-      result = result.filter(a => a.porte_altura_classe === advancedFilters.porte);
-    }
-    if (advancedFilters.copa) {
-      result = result.filter(a => a.copa_classe === advancedFilters.copa);
-    }
-    if (advancedFilters.folhagem) {
-      result = result.filter(a => a.decidua_perenifolia === advancedFilters.folhagem);
-    }
-    if (advancedFilters.compat_fiacao) {
-      result = result.filter(a => a.compat_fiacao === 'C');
-    }
-    if (advancedFilters.calcada_segura) {
-      result = result.filter(a => (a.potencial_dano_calcada_1a5 ?? 5) <= 2);
-    }
 
-    // Favorites filter
-    if (showFavoritesOnly && user) {
-      result = result.filter(a => favoriteIds.has(a.id));
-    }
+    if (advancedFilters.nativas) result = result.filter(a => a.origem === 'Nativa BR');
+    if (advancedFilters.sem_espinhos) result = result.filter(a => a.presenca_espinhos === false);
+    if (advancedFilters.porte) result = result.filter(a => a.porte_altura_classe === advancedFilters.porte);
+    if (advancedFilters.copa) result = result.filter(a => a.copa_classe === advancedFilters.copa);
+    if (advancedFilters.folhagem) result = result.filter(a => a.decidua_perenifolia === advancedFilters.folhagem);
+    if (advancedFilters.compat_fiacao) result = result.filter(a => a.compat_fiacao === 'C');
+    if (advancedFilters.calcada_segura) result = result.filter(a => (a.potencial_dano_calcada_1a5 ?? 5) <= 2);
+    if (showFavoritesOnly && user) result = result.filter(a => favoriteIds.has(a.id));
 
-    // Sorting
     const sorted = [...result];
     if (ordenacao === 'nome_az') {
       sorted.sort((a, b) => a.nome_popular.localeCompare(b.nome_popular, 'pt-BR'));
@@ -154,9 +130,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   // Callback ref: connects IntersectionObserver when sentinel mounts
   const sentinelRef = useCallback((node: HTMLDivElement | null) => {
     observerRef.current?.disconnect();
-
     if (!node) return;
-
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
@@ -167,7 +141,6 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
       },
       { rootMargin: '200px', threshold: 0 }
     );
-
     observerRef.current.observe(node);
   }, []);
 
@@ -228,217 +201,21 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
         Encontrar Árvore Ideal
       </button>
 
-      {/* Search, Sort, Favorites Toggle, and Advanced Toggle */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 mb-4 flex-wrap">
-        <div className="relative w-full sm:max-w-xs">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            value={termoBusca}
-            onChange={e => setTermoBusca(e.target.value)}
-            placeholder="Buscar por nome ou espécie..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
-          />
-        </div>
-
-        {/* Ordenação */}
-        <div className="relative flex-shrink-0 w-full sm:w-auto">
-          <select
-            value={ordenacao}
-            onChange={e => setOrdenacao(e.target.value)}
-            className={`w-full sm:w-auto pl-3 pr-8 py-2.5 rounded-xl border text-sm font-medium bg-card cursor-pointer focus:outline-none focus:border-primary transition-all appearance-none ${
-              ordenacao
-                ? 'border-primary text-primary bg-primary/5'
-                : 'border-border text-foreground hover:border-primary/40'
-            }`}
-          >
-            <option value="">Ordenar por...</option>
-            <option value="nome_az">Nome (A → Z)</option>
-            <option value="nome_za">Nome (Z → A)</option>
-            <option value="maior_porte">Maior porte primeiro</option>
-            <option value="menor_porte">Menor porte primeiro</option>
-            <option value="mais_sombra">Mais sombra primeiro</option>
-          </select>
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>
-            </svg>
-          </span>
-        </div>
-
-        {user && (
-          <button
-            onClick={toggleFavoritesFilter}
-            className={`flex-shrink-0 flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all cursor-pointer w-full sm:w-auto ${
-              showFavoritesOnly
-                ? 'bg-red-500/10 text-red-600 border-red-500/40 shadow-sm dark:text-red-400 dark:border-red-400/40'
-                : 'bg-card text-foreground border-border hover:border-red-300'
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill={showFavoritesOnly ? 'currentColor' : 'none'}
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            Favoritos
-            {favoriteIds.size > 0 && (
-              <span className={`text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center ${
-                showFavoritesOnly
-                  ? 'bg-red-500 text-white'
-                  : 'bg-muted text-muted-foreground'
-              }`}>
-                {favoriteIds.size}
-              </span>
-            )}
-          </button>
-        )}
-
-        <button
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className={`flex-shrink-0 flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all cursor-pointer w-full sm:w-auto ${
-            showAdvanced || activeAdvancedCount > 0
-              ? 'bg-primary/10 text-primary border-primary shadow-sm'
-              : 'bg-card text-foreground border-border hover:border-primary/40'
-          }`}
-        >
-          Filtros Avançados
-          {activeAdvancedCount > 0 && (
-            <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-              {activeAdvancedCount}
-            </span>
-          )}
-        </button>
-      </div>
-
-
-
-      {/* Advanced Filters Panel */}
-      {showAdvanced && (
-        <div className="bg-card border border-border rounded-2xl p-5 mb-8 animate-in fade-in slide-in-from-top-2 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-foreground font-display text-lg">Critérios Específicos</h3>
-            {activeAdvancedCount > 0 && (
-              <button
-                onClick={() => setAdvancedFilters({ porte: '', copa: '', folhagem: '', nativas: false, sem_espinhos: false, compat_fiacao: false, calcada_segura: false })}
-                className="text-sm font-semibold text-primary/80 hover:text-primary cursor-pointer border-none bg-transparent p-0 underline underline-offset-4"
-              >
-                Limpar Todos ({activeAdvancedCount})
-              </button>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-            {/* Porte */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-foreground">Porte da Árvore</label>
-              <select
-                value={advancedFilters.porte}
-                onChange={e => setAdvancedFilters(prev => ({ ...prev, porte: e.target.value }))}
-                className="w-full p-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:border-primary cursor-pointer"
-              >
-                <option value="">Qualquer tamanho</option>
-                <option value="Grande">Grande (acima de 12m)</option>
-                <option value="Médio">Médio (6m a 12m)</option>
-                <option value="Pequeno">Pequeno (até 6m)</option>
-              </select>
-            </div>
-
-            {/* Copa */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-foreground">Tamanho da Copa</label>
-              <select
-                value={advancedFilters.copa}
-                onChange={e => setAdvancedFilters(prev => ({ ...prev, copa: e.target.value }))}
-                className="w-full p-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:border-primary cursor-pointer"
-              >
-                <option value="">Qualquer copa</option>
-                <option value="Grande">Grande</option>
-                <option value="Média">Média</option>
-                <option value="Pequena">Pequena</option>
-              </select>
-            </div>
-
-            {/* Folhagem */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-foreground">Tipo de Folhagem</label>
-              <select
-                value={advancedFilters.folhagem}
-                onChange={e => setAdvancedFilters(prev => ({ ...prev, folhagem: e.target.value }))}
-                className="w-full p-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:border-primary cursor-pointer"
-              >
-                <option value="">Todas</option>
-                <option value="Perenifólia">Perenifólia (Não perde folha)</option>
-                <option value="Decídua">Decídua (Perde folhas)</option>
-                <option value="Semidecídua">Semidecídua (Perde parcialmente)</option>
-              </select>
-            </div>
-            
-            {/* Nativas do Brasil */}
-            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${advancedFilters.nativas ? 'bg-primary/10 border-primary shadow-sm' : 'bg-background border-border hover:border-primary/40'}`}>
-              <input
-                type="checkbox"
-                checked={advancedFilters.nativas}
-                onChange={e => setAdvancedFilters(prev => ({ ...prev, nativas: e.target.checked }))}
-                className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
-              />
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5"><Home size={14} /> Nativas do Brasil</span>
-                <span className="text-xs text-muted-foreground">Árvores de origem nacional</span>
-              </div>
-            </label>
-
-            {/* Sem Espinhos */}
-            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${advancedFilters.sem_espinhos ? 'bg-primary/10 border-primary shadow-sm' : 'bg-background border-border hover:border-primary/40'}`}>
-              <input
-                type="checkbox"
-                checked={advancedFilters.sem_espinhos}
-                onChange={e => setAdvancedFilters(prev => ({ ...prev, sem_espinhos: e.target.checked }))}
-                className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
-              />
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5"><Shield size={14} /> Sem Espinhos</span>
-                <span className="text-xs text-muted-foreground">Totalmente livres de espinhos</span>
-              </div>
-            </label>
-            
-            {/* Fiação */}
-            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${advancedFilters.compat_fiacao ? 'bg-primary/10 border-primary shadow-sm' : 'bg-background border-border hover:border-primary/40'}`}>
-              <input
-                type="checkbox"
-                checked={advancedFilters.compat_fiacao}
-                onChange={e => setAdvancedFilters(prev => ({ ...prev, compat_fiacao: e.target.checked }))}
-                className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
-              />
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5"><Zap size={14} /> Compatível p/ Fiação</span>
-                <span className="text-xs text-muted-foreground">Árvores que não encostam nos fios</span>
-              </div>
-            </label>
-
-            {/* Calçada Segura */}
-            <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${advancedFilters.calcada_segura ? 'bg-primary/10 border-primary shadow-sm' : 'bg-background border-border hover:border-primary/40'}`}>
-              <input
-                type="checkbox"
-                checked={advancedFilters.calcada_segura}
-                onChange={e => setAdvancedFilters(prev => ({ ...prev, calcada_segura: e.target.checked }))}
-                className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
-              />
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5"><PersonStanding size={14} /> Calçadas Seguras</span>
-                <span className="text-xs text-muted-foreground">Baixo risco de destruição (Dano 1 ou 2)</span>
-              </div>
-            </label>
-          </div>
-        </div>
-      )}
+      <TreesToolbar
+        termoBusca={termoBusca}
+        onTermoBuscaChange={setTermoBusca}
+        ordenacao={ordenacao}
+        onOrdenacaoChange={setOrdenacao}
+        showFavoritesOnly={showFavoritesOnly}
+        onToggleFavorites={toggleFavoritesFilter}
+        favoriteCount={favoriteIds.size}
+        user={user}
+        showAdvanced={showAdvanced}
+        onToggleAdvanced={() => setShowAdvanced(!showAdvanced)}
+        advancedFilters={advancedFilters}
+        onAdvancedFiltersChange={setAdvancedFilters}
+        activeAdvancedCount={activeAdvancedCount}
+      />
 
       {/* Grid */}
       {loading ? (
@@ -475,7 +252,6 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
         </>
       )}
 
-
       {/* Detail Modal */}
       <TreeDetailModal
         arvore={selectedTree}
@@ -493,38 +269,11 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
 
       {/* Floating Compare Action Bar */}
       {compareIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4 pointer-events-none">
-          <div className="bg-card/95 backdrop-blur-md border shadow-xl rounded-2xl p-3 flex items-center justify-between gap-4 pointer-events-auto transform transition-all duration-300 animate-in slide-in-from-bottom-5">
-            <div className="flex flex-col ml-2">
-              <span className="text-sm font-bold text-foreground">
-                {compareIds.size} de 3 árvores
-              </span>
-              <span className="text-xs text-muted-foreground font-medium">
-                selecionadas
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCompareIds(new Set())}
-                className="px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Limpar
-              </button>
-              <button
-                onClick={() => setIsCompareModalOpen(true)}
-                disabled={compareIds.size < 2}
-                className={`px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-1.5 ${
-                  compareIds.size >= 2
-                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                    : 'bg-muted text-muted-foreground cursor-not-allowed'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                {compareIds.size < 2 ? 'Escolha +' : 'Comparar'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <TreesCompareBar
+          compareCount={compareIds.size}
+          onClear={() => setCompareIds(new Set())}
+          onCompare={() => setIsCompareModalOpen(true)}
+        />
       )}
 
       {/* Auth Modal for unauthenticated favorite clicks */}

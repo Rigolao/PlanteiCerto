@@ -48,12 +48,12 @@ export async function generateProjectPDF(
 
   setText(doc, COLORS.text);
   doc.setFontSize(18);
-  doc.setFont(undefined as any, 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text('PlanteiCerto', m, 16);
 
   setText(doc, COLORS.muted);
   doc.setFontSize(8);
-  doc.setFont(undefined as any, 'normal');
+  doc.setFont('helvetica', 'normal');
   doc.text('Relatório de Arborização Urbana', m, 21);
 
   const hoje = new Date().toLocaleDateString('pt-BR');
@@ -68,12 +68,12 @@ export async function generateProjectPDF(
 
   setText(doc, COLORS.primary);
   doc.setFontSize(14);
-  doc.setFont(undefined as any, 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text(project.nome, m + 6, y + 10);
 
   setText(doc, COLORS.text);
   doc.setFontSize(9);
-  doc.setFont(undefined as any, 'normal');
+  doc.setFont('helvetica', 'normal');
   if (project.descricao) {
     const desc = doc.splitTextToSize(project.descricao, contentW - 12);
     doc.text(desc, m + 6, y + 16);
@@ -102,7 +102,7 @@ export async function generateProjectPDF(
 
   setText(doc, COLORS.text);
   doc.setFontSize(11);
-  doc.setFont(undefined as any, 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text('Estatísticas e Impacto Ambiental', m, y);
   
   y += 6;
@@ -116,7 +116,7 @@ export async function generateProjectPDF(
   doc.roundedRect(m, y, statBoxW, 16, 2, 2, 'FD');
   setText(doc, COLORS.muted);
   doc.setFontSize(7);
-  doc.setFont(undefined as any, 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text('DIVERSIDADE', m + 4, y + 6);
   setText(doc, COLORS.primary);
   doc.setFontSize(12);
@@ -128,7 +128,7 @@ export async function generateProjectPDF(
   doc.roundedRect(m + statBoxW + 5, y, statBoxW, 16, 2, 2, 'FD');
   setText(doc, COLORS.muted);
   doc.setFontSize(7);
-  doc.setFont(undefined as any, 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text('COBERTURA DE COPA', m + statBoxW + 9, y + 6);
   setText(doc, COLORS.primary);
   doc.setFontSize(12);
@@ -140,7 +140,7 @@ export async function generateProjectPDF(
   doc.roundedRect(m + (statBoxW * 2) + 10, y, statBoxW, 16, 2, 2, 'FD');
   setText(doc, COLORS.muted);
   doc.setFontSize(7);
-  doc.setFont(undefined as any, 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text('ORIGEM (NATIVAS)', m + (statBoxW * 2) + 14, y + 6);
   setText(doc, COLORS.primary);
   doc.setFontSize(12);
@@ -204,7 +204,7 @@ export async function generateProjectPDF(
   // ─── Lista de Árvores de Plantio ────────────────────────────────────────────────────
   setText(doc, COLORS.text);
   doc.setFontSize(14);
-  doc.setFont(undefined as any, 'bold');
+  doc.setFont('helvetica', 'bold');
   doc.text('Lista de Plantio e Coordenadas', m, y);
   
   y += 8;
@@ -226,7 +226,7 @@ export async function generateProjectPDF(
 
   setText(doc, COLORS.muted);
   doc.setFontSize(6.5);
-  doc.setFont(undefined as any, 'bold');
+  doc.setFont('helvetica', 'bold');
   const headerY = y + 5;
   doc.text('ESPÉCIE', cols.nome, headerY);
   doc.text('ORIGEM', cols.nativa, headerY);
@@ -258,7 +258,7 @@ export async function generateProjectPDF(
 
       setText(doc, COLORS.muted);
       doc.setFontSize(6.5);
-      doc.setFont(undefined as any, 'bold');
+      doc.setFont('helvetica', 'bold');
       const hdrY = y + 5;
       doc.text('ESPÉCIE', cols.nome, hdrY);
       doc.text('ORIGEM', cols.nativa, hdrY);
@@ -277,13 +277,13 @@ export async function generateProjectPDF(
 
     // Coluna 1: Nome Popular e Cientifico
     setText(doc, COLORS.text);
-    doc.setFont(undefined as any, 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     const splitName = doc.splitTextToSize(tree.nome_popular, 62);
     doc.text(splitName, cols.nome, textBaseY);
 
     setText(doc, COLORS.muted);
-    doc.setFont(undefined as any, 'italic');
+    doc.setFont('helvetica', 'italic');
     doc.setFontSize(6.5);
     const splitSci = doc.splitTextToSize(tree.nome_cientifico, 62);
     // Para simplificar e reduzir altura vertical no rowH curto, colocar logo na linha abaixo.
@@ -291,12 +291,12 @@ export async function generateProjectPDF(
 
     // Coluna 2: Nativa
     setText(doc, COLORS.text);
-    doc.setFont(undefined as any, 'normal');
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     const isNativa = tree.origem === 'Nativa BR';
     if (isNativa) {
         setText(doc, COLORS.primary);
-        doc.setFont(undefined as any, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Brasil', cols.nativa, textBaseY + 1.5);
     } else {
         doc.text('Exótica', cols.nativa, textBaseY + 1.5);
@@ -304,7 +304,7 @@ export async function generateProjectPDF(
 
     // Coluna 3: Coordenadas
     setText(doc, COLORS.text);
-    doc.setFont(undefined as any, 'normal');
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     const coordStr1 = `Lat: ${point.lat.toFixed(6)}`;
     const coordStr2 = `Lng: ${point.lng.toFixed(6)}`;
@@ -338,10 +338,11 @@ function addFooter(doc: jsPDF, pageW: number, pageH: number) {
   
   setText(doc, COLORS.muted);
   doc.setFontSize(7);
-  doc.setFont(undefined as any, 'normal');
+  doc.setFont('helvetica', 'normal');
   doc.text('PlanteiCerto - Democratizando a arborização urbana', m, footerY);
   
-  const pageNumber = (doc as any).internal.getCurrentPageInfo().pageNumber;
+  // @ts-expect-error jsPDF internal API
+  const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
   doc.text(`Página ${pageNumber}`, pageW / 2, footerY, { align: 'center' });
   doc.text('www.planteicerto.com.br', pageW - m, footerY, { align: 'right' });
 }

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Ruler, Leaf, Heart, Target, Flower2, SlidersHorizontal } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { Question } from '../../data/questionnaire';
@@ -17,7 +18,7 @@ const groupIcons: Record<string, LucideIcon> = {
   'Outros Fatores': SlidersHorizontal,
 };
 
-export function QuestionCard({ question, selectedValue, onSelect }: QuestionCardProps) {
+export const QuestionCard = memo(function QuestionCard({ question, selectedValue, onSelect }: QuestionCardProps) {
   const GroupIcon = groupIcons[question.groupLabel] ?? Leaf;
   const selectedValues = selectedValue ? selectedValue.split(',').filter(Boolean) : [];
 
@@ -82,4 +83,4 @@ export function QuestionCard({ question, selectedValue, onSelect }: QuestionCard
       </div>
     </div>
   );
-}
+});

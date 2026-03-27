@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Ruler, Globe, Leaf, AlertTriangle, CheckCircle, Home } from 'lucide-react';
 import type { Arvore } from '../../types/tree';
 
@@ -10,7 +11,7 @@ interface TreeCardProps {
   onToggleCompare?: (e: React.MouseEvent) => void;
 }
 
-export function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComparing, onToggleCompare }: TreeCardProps) {
+export const TreeCard = memo(function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComparing, onToggleCompare }: TreeCardProps) {
   return (
     <article
       onClick={onClick}
@@ -23,6 +24,7 @@ export function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComp
           <img
             src={arvore.foto}
             alt={arvore.nome_popular}
+            loading="lazy"
             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
           />
         ) : (
@@ -140,4 +142,4 @@ export function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComp
       </div>
     </article>
   );
-}
+});

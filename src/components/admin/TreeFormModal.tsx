@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, type UseFormRegister } from 'react-hook-form';
 import { Save, Loader2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { FormSection } from './FormSection';
@@ -341,7 +341,7 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
 }
 
 // Helper components to reduce repetition
-function NumberField({ label, register, name }: { label: string; register: any; name: string }) {
+function NumberField({ label, register, name }: { label: string; register: UseFormRegister<TreeFormData>; name: keyof TreeFormData }) {
   return (
     <div>
       <label className="block text-xs font-medium text-muted-foreground mb-1">{label}</label>
@@ -355,7 +355,7 @@ function NumberField({ label, register, name }: { label: string; register: any; 
   );
 }
 
-function CheckboxField({ label, register, name }: { label: string; register: any; name: string }) {
+function CheckboxField({ label, register, name }: { label: string; register: UseFormRegister<TreeFormData>; name: keyof TreeFormData }) {
   return (
     <label className="flex items-center gap-2 cursor-pointer">
       <input

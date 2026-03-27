@@ -79,7 +79,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           handleClose();
         }
       }
-    } catch (err: any) {
+    } catch {
       toast.error('Ocorreu um erro na requisição. Verifique sua conexão ou tente mais tarde.');
     } finally {
       setLoading(false);

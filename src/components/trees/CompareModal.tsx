@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { Arvore } from '../../types/tree';
 import { Modal } from '../ui/Modal';
 import { Droplets, Wind, MoveHorizontal, Ruler, Leaf, Sun, Building2, Home } from 'lucide-react';
@@ -36,7 +36,7 @@ function ScaleRating({ value }: { value: number | null | undefined }) {
   );
 }
 
-export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
+export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
   const [activeTab, setActiveTab] = useState<'dimensoes' | 'botanica' | 'tolerancias' | 'urbano'>('dimensoes');
 
   if (!trees || trees.length === 0) return null;
@@ -63,7 +63,7 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
               <div key={`header-${tree.id}`} className="flex flex-col gap-2">
                 <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-muted border">
                   {tree.foto ? (
-                    <img src={tree.foto} alt={tree.nome_popular} className="w-full h-full object-cover" />
+                    <img src={tree.foto} alt={tree.nome_popular} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-primary/5 text-primary">
                       <svg width="32" height="32" viewBox="0 0 48 48" fill="none" className="opacity-40">
@@ -199,15 +199,15 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
         <div className="block md:hidden">
           {/* Tabs Nav */}
           <div className="flex overflow-x-auto gap-2 pb-3 mb-5 snap-x border-b border-border/50 hide-scrollbar">
-            {[
-              { id: 'dimensoes', label: 'Dimensões' },
-              { id: 'botanica', label: 'Botânica' },
-              { id: 'tolerancias', label: 'Tolerâncias' },
-              { id: 'urbano', label: 'Uso Urbano' },
-            ].map((tab) => (
+            {([
+              { id: 'dimensoes' as const, label: 'Dimensões' },
+              { id: 'botanica' as const, label: 'Botânica' },
+              { id: 'tolerancias' as const, label: 'Tolerâncias' },
+              { id: 'urbano' as const, label: 'Uso Urbano' },
+            ]).map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`shrink-0 snap-start px-3.5 py-2 text-sm font-semibold rounded-xl border transition-colors ${
                   activeTab === tab.id
                     ? 'bg-primary text-primary-foreground border-primary shadow-sm'
@@ -226,7 +226,7 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
                 {/* Tree Identity */}
                 <div className="flex items-center gap-3">
                   <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-muted border flex items-center justify-center text-xl">
-                    {tree.foto ? <img src={tree.foto} alt={tree.nome_popular} className="w-full h-full object-cover" /> : (
+                    {tree.foto ? <img src={tree.foto} alt={tree.nome_popular} className="w-full h-full object-cover" loading="lazy" /> : (
                       <svg width="24" height="24" viewBox="0 0 48 48" fill="none" className="opacity-40">
                         <path d="M24 44V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                         <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="currentColor" opacity="0.6"/>
@@ -346,4 +346,4 @@ export function CompareModal({ trees, isOpen, onClose }: CompareModalProps) {
       </div>
     </Modal>
   );
-}
+});

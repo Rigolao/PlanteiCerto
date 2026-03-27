@@ -153,8 +153,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (updateError) throw updateError;
       
       return { error: null };
-    } catch (error: any) {
-      return { error: error.message };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      return { error: message };
     }
   };
 

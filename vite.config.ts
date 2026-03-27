@@ -4,6 +4,17 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-map': ['leaflet', 'react-leaflet'],
+          'vendor-pdf': ['jspdf', 'html2canvas'],
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+        }
+      }
+    }
+  },
   plugins: [
     react(),
     tailwindcss(),
