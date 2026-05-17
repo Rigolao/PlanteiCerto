@@ -1,4 +1,4 @@
-export type QuestionType = 'eliminatorio' | 'classificatorio';
+export type QuestionType = 'eliminatorio' | 'classificatorio' | 'misto';
 
 export interface QuestionOption {
   value: string;
@@ -19,6 +19,38 @@ export interface Question {
 }
 
 export const questionnaire: Question[] = [
+  // ── GRUPO 4: CONTEXTO E OBJETIVOS ──
+  {
+    id: 'q4_1',
+    group: 4,
+    groupLabel: 'Contexto e Objetivos',
+    type: 'classificatorio',
+    text: 'Qual o tipo de local de plantio?',
+    options: [
+      { value: 'calcada', label: 'Calçada em frente a lote/residência' },
+      { value: 'canteiro_central', label: 'Canteiro central de avenida' },
+      { value: 'praca_parque', label: 'Praça ou parque (área interna)' },
+      { value: 'rotatorio', label: 'Rotatória ou trevo viário' },
+    ],
+  },
+  {
+    id: 'q4_2',
+    group: 4,
+    groupLabel: 'Contexto e Objetivos',
+    type: 'classificatorio',
+    text: 'Qual o principal objetivo com a árvore? (escolha até 2)',
+    helpText: 'Selecione até 2 opções.',
+    multiSelect: true,
+    options: [
+      { value: 'sombra', label: 'Sombra e conforto térmico' },
+      { value: 'embelezamento', label: 'Embelezamento e floração' },
+      { value: 'fauna', label: 'Atração de fauna (aves/polinizadores)' },
+      { value: 'baixa_manutencao', label: 'Baixa manutenção / pouca sujeira' },
+      { value: 'qualidade_ar', label: 'Melhorar qualidade do ar e biodiversidade' },
+      { value: 'nativas', label: 'Valorizar espécies nativas da região' },
+    ],
+  },
+
   // ── GRUPO 1: CRITÉRIOS ELIMINATÓRIOS (Espaço e Interferências) ──
   {
     id: 'q1_1',
@@ -168,12 +200,12 @@ export const questionnaire: Question[] = [
     options: [],
   },
 
-  // ── GRUPO 2: CRITÉRIOS CLASSIFICATÓRIOS (Condições Ecológicas) ──
+  // ── GRUPO 2 & 6: CONDIÇÕES ECOLÓGICAS E AMBIENTAIS ──
   {
     id: 'q2_1',
     group: 2,
     groupLabel: 'Condições Ecológicas',
-    type: 'classificatorio',
+    type: 'misto',
     text: 'Qual a condição de insolação do local?',
     options: [
       { value: 'sol_pleno', label: 'Sol pleno (mais de 6h de sol direto)' },
@@ -185,7 +217,7 @@ export const questionnaire: Question[] = [
     id: 'q2_2',
     group: 2,
     groupLabel: 'Condições Ecológicas',
-    type: 'classificatorio',
+    type: 'misto',
     text: 'Como é a umidade do solo no local?',
     options: [
       { value: 'seco', label: 'Seco (bem drenado)' },
@@ -197,7 +229,7 @@ export const questionnaire: Question[] = [
     id: 'q2_3',
     group: 2,
     groupLabel: 'Condições Ecológicas',
-    type: 'classificatorio',
+    type: 'misto',
     text: 'Qual a qualidade do solo?',
     options: [
       { value: 'bom', label: 'Bom (solo natural, permeável)' },
@@ -208,20 +240,42 @@ export const questionnaire: Question[] = [
     id: 'q2_4',
     group: 2,
     groupLabel: 'Condições Ecológicas',
-    type: 'classificatorio',
+    type: 'misto',
     text: 'Haverá irrigação regular no primeiro ano?',
     options: [
       { value: 'sim', label: 'Sim' },
       { value: 'nao', label: 'Não' },
     ],
   },
+  {
+    id: 'q6_1',
+    group: 6,
+    groupLabel: 'Outros Fatores',
+    type: 'classificatorio',
+    text: 'O local é muito exposto a ventos fortes?',
+    options: [
+      { value: 'sim', label: 'Sim, local ventoso' },
+      { value: 'nao', label: 'Não, local abrigado' },
+    ],
+  },
+  {
+    id: 'q6_2',
+    group: 6,
+    groupLabel: 'Outros Fatores',
+    type: 'classificatorio',
+    text: 'O local sofre com ilha de calor (necessidade de sombra extra)?',
+    options: [
+      { value: 'sim', label: 'Sim, priorizar espécies com alto potencial de sombra' },
+      { value: 'nao', label: 'Não' },
+    ],
+  },
 
-  // ── GRUPO 3: CRITÉRIOS CLASSIFICATÓRIOS (Preferências do Usuário) ──
+  // ── GRUPO 3: PREFERÊNCIAS E MANUTENÇÃO ──
   {
     id: 'q3_1',
     group: 3,
     groupLabel: 'Preferências',
-    type: 'classificatorio',
+    type: 'misto',
     text: 'A queda de folhas, flores ou frutos é um problema no local?',
     options: [
       { value: 'sim', label: 'Sim, quero minimizar sujeira' },
@@ -232,7 +286,7 @@ export const questionnaire: Question[] = [
     id: 'q3_2',
     group: 3,
     groupLabel: 'Preferências',
-    type: 'classificatorio',
+    type: 'misto',
     text: 'A presença de espinhos ou substâncias irritantes é um problema?',
     options: [
       { value: 'sim', label: 'Sim, quero evitar' },
@@ -243,7 +297,7 @@ export const questionnaire: Question[] = [
     id: 'q3_3',
     group: 3,
     groupLabel: 'Preferências',
-    type: 'classificatorio',
+    type: 'misto',
     text: 'É necessário evitar atração de abelhas ou insetos?',
     options: [
       { value: 'sim', label: 'Sim, quero minimizar' },
@@ -259,38 +313,6 @@ export const questionnaire: Question[] = [
     options: [
       { value: 'sim', label: 'Sim, haverá manutenção profissional' },
       { value: 'nao', label: 'Não, manutenção mínima' },
-    ],
-  },
-
-  // ── GRUPO 4: CONTEXTO E OBJETIVOS ──
-  {
-    id: 'q4_1',
-    group: 4,
-    groupLabel: 'Contexto e Objetivos',
-    type: 'classificatorio',
-    text: 'Qual o tipo de local de plantio?',
-    options: [
-      { value: 'calcada', label: 'Calçada em frente a lote/residência' },
-      { value: 'canteiro_central', label: 'Canteiro central de avenida' },
-      { value: 'praca_parque', label: 'Praça ou parque (área interna)' },
-      { value: 'rotatorio', label: 'Rotatória ou trevo viário' },
-    ],
-  },
-  {
-    id: 'q4_2',
-    group: 4,
-    groupLabel: 'Contexto e Objetivos',
-    type: 'classificatorio',
-    text: 'Qual o principal objetivo com a árvore? (escolha até 2)',
-    helpText: 'Selecione até 2 opções.',
-    multiSelect: true,
-    options: [
-      { value: 'sombra', label: 'Sombra e conforto térmico' },
-      { value: 'embelezamento', label: 'Embelezamento e floração' },
-      { value: 'fauna', label: 'Atração de fauna (aves/polinizadores)' },
-      { value: 'baixa_manutencao', label: 'Baixa manutenção / pouca sujeira' },
-      { value: 'qualidade_ar', label: 'Melhorar qualidade do ar e biodiversidade' },
-      { value: 'nativas', label: 'Valorizar espécies nativas da região' },
     ],
   },
 
@@ -315,30 +337,6 @@ export const questionnaire: Question[] = [
     options: [
       { value: 'sim', label: 'Sim, priorizar' },
       { value: 'nao', label: 'Não é uma prioridade' },
-    ],
-  },
-
-  // ── GRUPO 6: OUTROS FATORES ──
-  {
-    id: 'q6_1',
-    group: 6,
-    groupLabel: 'Outros Fatores',
-    type: 'classificatorio',
-    text: 'O local é muito exposto a ventos fortes?',
-    options: [
-      { value: 'sim', label: 'Sim, local ventoso' },
-      { value: 'nao', label: 'Não, local abrigado' },
-    ],
-  },
-  {
-    id: 'q6_2',
-    group: 6,
-    groupLabel: 'Outros Fatores',
-    type: 'classificatorio',
-    text: 'O local sofre com ilha de calor (necessidade de sombra extra)?',
-    options: [
-      { value: 'sim', label: 'Sim, priorizar espécies com alto potencial de sombra' },
-      { value: 'nao', label: 'Não' },
     ],
   },
 ];

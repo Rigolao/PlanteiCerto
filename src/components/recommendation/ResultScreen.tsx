@@ -11,8 +11,8 @@ interface ResultScreenProps {
   trees: RecommendedTree[];
   eliminatedCount: number;
   totalCount: number;
-  criteriaSummary: CriteriaSummary;
   onRestart: () => void;
+  onEdit: () => void;
   onClose: () => void;
 }
 
@@ -45,8 +45,9 @@ function ScoreBreakdownBar({ criterion }: { criterion: ScoreCriterion }) {
   );
 }
 
-export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSummary, onRestart, onClose }: ResultScreenProps) {
+export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSummary, onRestart, onEdit, onClose }: ResultScreenProps) {
   const [selectedTree, setSelectedTree] = useState<Arvore | null>(null);
+  const [isCriteriaOpen, setIsCriteriaOpen] = useState(false);
   const { user } = useAuth();
   const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
 
@@ -88,14 +89,20 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
-              onClick={onRestart}
+              onClick={onEdit}
               className="px-8 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm cursor-pointer hover:brightness-110 transition-all"
             >
-              Refazer Questionário
+              Editar Respostas
+            </button>
+            <button
+              onClick={onRestart}
+              className="px-8 py-3 rounded-xl bg-muted text-foreground font-semibold text-sm cursor-pointer hover:bg-muted/80 transition-all"
+            >
+              Limpar e Refazer
             </button>
             <button
               onClick={onClose}
-              className="px-8 py-3 rounded-xl bg-muted text-muted-foreground font-semibold text-sm cursor-pointer hover:bg-muted/80 transition-all"
+              className="px-8 py-3 rounded-xl bg-background border border-border text-foreground font-semibold text-sm cursor-pointer hover:bg-muted/50 transition-all"
             >
               Voltar ao Catálogo
             </button>
@@ -107,49 +114,97 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
 
   return (
     <>
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground font-display mb-1">
-          Árvores Recomendadas
-        </h1>
-        <p className="text-base text-muted-foreground">
-          <span className="font-semibold text-primary">{trees.length}</span> espécie{trees.length !== 1 ? 's' : ''} compatíve{trees.length !== 1 ? 'is' : 'l'} de {totalCount} analisada{totalCount !== 1 ? 's' : ''}
-          {eliminatedCount > 0 && (
-            <span className="text-destructive"> · {eliminatedCount} eliminada{eliminatedCount !== 1 ? 's' : ''} pelos filtros do local</span>
-          )}
-        </p>
+      {/* Header and Actions */}
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-8">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground font-display mb-2">
+            Árvores Recomendadas
+          </h1>
+          <p className="text-base text-muted-foreground">
+            <span className="font-semibold text-primary">{trees.length}</span> espécie{trees.length !== 1 ? 's' : ''} compatíve{trees.length !== 1 ? 'is' : 'l'} de {totalCount} analisada{totalCount !== 1 ? 's' : ''}
+            {eliminatedCount > 0 && (
+              <span className="text-destructive block sm:inline mt-1 sm:mt-0">
+                <span className="hidden sm:inline"> · </span>
+                {eliminatedCount} eliminada{eliminatedCount !== 1 ? 's' : ''} pelos filtros do local
+              </span>
+            )}
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={onEdit}
+            className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm cursor-pointer hover:brightness-110 transition-all shadow-sm"
+          >
+            Editar Respostas
+          </button>
+          <button
+            onClick={onRestart}
+            className="px-5 py-2.5 rounded-xl bg-muted text-foreground font-semibold text-sm cursor-pointer hover:bg-muted/80 transition-all"
+          >
+            Limpar e Refazer
+          </button>
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-xl bg-background border border-border text-foreground font-semibold text-sm cursor-pointer hover:bg-muted/50 transition-all"
+          >
+            Voltar ao Catálogo
+          </button>
+        </div>
       </div>
 
       {/* Criteria summary card */}
       {(hasEliminatory || hasClassificatory) && (
-        <div className="mb-8 bg-card rounded-2xl border border-border p-5 space-y-4">
-          <h2 className="text-sm font-bold text-foreground/70 uppercase tracking-wide">Como as espécies foram avaliadas</h2>
-
-          {hasEliminatory && (
-            <div>
-              <p className="text-xs font-semibold text-destructive mb-2">Filtros eliminatórios (condições do local)</p>
-              <div className="flex flex-wrap gap-2">
-                {criteriaSummary.eliminatory.map((c) => (
-                  <span key={c} className="text-xs px-2.5 py-1 rounded-full bg-destructive/10 text-destructive font-medium border border-destructive/20">
-                    {c}
-                  </span>
-                ))}
-              </div>
+        <div className="mb-8 bg-card rounded-2xl border border-border overflow-hidden">
+          <button
+            onClick={() => setIsCriteriaOpen(!isCriteriaOpen)}
+            className="w-full flex items-center justify-between p-5 text-left transition-colors hover:bg-muted/50 cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-foreground/70 uppercase tracking-wide">Como as espécies foram avaliadas</h2>
+              <span className="text-[10px] font-bold bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                {criteriaSummary.eliminatory.length + criteriaSummary.classificatory.length}
+              </span>
             </div>
-          )}
+            <svg
+              className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isCriteriaOpen ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-          {hasClassificatory && (
-            <div>
-              <p className="text-xs font-semibold text-primary mb-2">Critérios de pontuação (preferências e ecologia)</p>
-              <div className="flex flex-wrap gap-2">
-                {criteriaSummary.classificatory.map((c) => (
-                  <span key={c} className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium border border-primary/20">
-                    {c}
-                  </span>
-                ))}
-              </div>
+          <div
+            className={`transition-all duration-300 ease-in-out overflow-hidden ${isCriteriaOpen ? 'max-h-[1000px] opacity-100 border-t border-border' : 'max-h-0 opacity-0'}`}
+          >
+            <div className="p-5 space-y-4 bg-muted/10">
+              {hasEliminatory && (
+                <div>
+                  <p className="text-xs font-semibold text-destructive mb-2">Filtros eliminatórios (condições do local)</p>
+                  <div className="flex flex-wrap gap-2">
+                    {criteriaSummary.eliminatory.map((c) => (
+                      <span key={c} className="text-xs px-2.5 py-1 rounded-full bg-destructive/10 text-destructive font-medium border border-destructive/20">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {hasClassificatory && (
+                <div>
+                  <p className="text-xs font-semibold text-primary mb-2">Critérios de pontuação (preferências e ecologia)</p>
+                  <div className="flex flex-wrap gap-2">
+                    {criteriaSummary.classificatory.map((c) => (
+                      <span key={c} className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium border border-primary/20">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -172,21 +227,20 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-accent/50 text-primary">
                   <svg width="32" height="32" viewBox="0 0 48 48" fill="none" className="opacity-40">
-                    <path d="M24 44V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="currentColor" opacity="0.6"/>
-                    <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="currentColor" opacity="0.4"/>
+                    <path d="M24 44V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="currentColor" opacity="0.6" />
+                    <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="currentColor" opacity="0.4" />
                   </svg>
                 </div>
               )}
-              
+
               {/* Favorite Button */}
               <button
                 onClick={(e) => handleToggleFavorite(e, tree.id)}
-                className={`absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer transition-all duration-200 z-10 ${
-                  isFavorite(tree.id)
+                className={`absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer transition-all duration-200 z-10 ${isFavorite(tree.id)
                     ? 'bg-red-500 text-white shadow-lg scale-100'
                     : 'bg-black/30 text-white/90 hover:bg-black/50 backdrop-blur-sm'
-                }`}
+                  }`}
                 title={isFavorite(tree.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                 style={isFavorite(tree.id) ? { animation: 'favorite-pulse 0.3s ease-out' } : undefined}
               >
@@ -257,22 +311,6 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
             </div>
           </button>
         ))}
-      </div>
-
-      {/* Footer actions */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center pb-4">
-        <button
-          onClick={onRestart}
-          className="px-8 py-3 rounded-xl bg-muted text-foreground font-semibold text-sm cursor-pointer hover:bg-muted/80 transition-all"
-        >
-          Refazer Questionário
-        </button>
-        <button
-          onClick={onClose}
-          className="px-8 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm cursor-pointer hover:brightness-110 transition-all"
-        >
-          Voltar ao Catálogo
-        </button>
       </div>
 
       <TreeDetailModal

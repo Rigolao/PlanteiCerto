@@ -24,12 +24,27 @@ export const QuestionCard = memo(function QuestionCard({ question, selectedValue
 
   return (
     <div className="space-y-5">
-      {/* Group badge */}
-      <div className="flex items-center gap-1.5">
-        <GroupIcon size={13} className="text-primary" />
-        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-          {question.groupLabel}
-        </span>
+      {/* Group badge and Type tags */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5">
+          <GroupIcon size={13} className="text-primary" />
+          <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+            {question.groupLabel}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {(question.type === 'eliminatorio' || question.type === 'misto') && (
+            <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20" title="Pode eliminar espécies da lista de recomendação">
+              Eliminatório
+            </span>
+          )}
+          {(question.type === 'classificatorio' || question.type === 'misto') && (
+            <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20" title="Influencia a pontuação das espécies recomendadas">
+              Classificatório
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Question text */}
