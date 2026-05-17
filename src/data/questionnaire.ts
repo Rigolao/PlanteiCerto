@@ -7,7 +7,7 @@ export interface QuestionOption {
 
 export interface Question {
   id: string;
-  group: 1 | 2 | 3 | 4 | 5 | 6;
+  group: 1 | 2 | 3 | 4 | 5;
   groupLabel: string;
   type: QuestionType;
   text: string;
@@ -19,10 +19,10 @@ export interface Question {
 }
 
 export const questionnaire: Question[] = [
-  // ── GRUPO 4: CONTEXTO E OBJETIVOS ──
+  // ── GRUPO 1: CONTEXTO E OBJETIVOS ──
   {
-    id: 'q4_1',
-    group: 4,
+    id: 'q1_1',
+    group: 1,
     groupLabel: 'Contexto e Objetivos',
     type: 'classificatorio',
     text: 'Qual o tipo de local de plantio?',
@@ -34,8 +34,8 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q4_2',
-    group: 4,
+    id: 'q1_2',
+    group: 1,
     groupLabel: 'Contexto e Objetivos',
     type: 'classificatorio',
     text: 'Qual o principal objetivo com a árvore? (escolha até 2)',
@@ -51,10 +51,10 @@ export const questionnaire: Question[] = [
     ],
   },
 
-  // ── GRUPO 1: CRITÉRIOS ELIMINATÓRIOS (Espaço e Interferências) ──
+  // ── GRUPO 2: CRITÉRIOS ELIMINATÓRIOS (Espaço e Interferências) ──
   {
-    id: 'q1_1',
-    group: 1,
+    id: 'q2_1',
+    group: 2,
     groupLabel: 'Espaço e Interferências',
     type: 'eliminatorio',
     text: 'Qual a largura total da calçada (m)?',
@@ -67,8 +67,8 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q1_2',
-    group: 1,
+    id: 'q2_2',
+    group: 2,
     groupLabel: 'Espaço e Interferências',
     type: 'eliminatorio',
     text: 'Qual a largura efetiva da faixa de serviço (m)?',
@@ -82,8 +82,8 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q1_3',
-    group: 1,
+    id: 'q2_3',
+    group: 2,
     groupLabel: 'Espaço e Interferências',
     type: 'eliminatorio',
     text: 'É necessário manter faixa livre acessível de 1,20 m (ABNT NBR 9050)?',
@@ -94,8 +94,8 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q1_4',
-    group: 1,
+    id: 'q2_4',
+    group: 2,
     groupLabel: 'Espaço e Interferências',
     type: 'eliminatorio',
     text: 'Qual a dimensão disponível para o berço/cova (m²)?',
@@ -106,8 +106,8 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q1_5',
-    group: 1,
+    id: 'q2_5',
+    group: 2,
     groupLabel: 'Espaço e Interferências',
     type: 'eliminatorio',
     text: 'Existe fiação aérea no local?',
@@ -118,20 +118,20 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q1_6',
-    group: 1,
+    id: 'q2_6',
+    group: 2,
     groupLabel: 'Espaço e Interferências',
     type: 'eliminatorio',
     text: 'Qual a distância até a fiação aérea (m)?',
-    showIf: { questionId: 'q1_5', values: ['sim_convencional', 'sim_protegida'] },
+    showIf: { questionId: 'q2_5', values: ['sim_convencional', 'sim_protegida'] },
     options: [
       { value: 'lt_4', label: 'Menos de 4 m' },
       { value: 'gt_4', label: '4 m ou mais' },
     ],
   },
   {
-    id: 'q1_7',
-    group: 1,
+    id: 'q2_7',
+    group: 2,
     groupLabel: 'Espaço e Interferências',
     type: 'eliminatorio',
     text: 'Qual o recuo da edificação em relação à calçada?',
@@ -142,15 +142,15 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q1_8',
-    group: 1,
+    id: 'q2_8',
+    group: 2,
     groupLabel: 'Espaço e Interferências',
     type: 'eliminatorio',
     text: 'Distâncias de segurança',
     subQuestions: [
       {
-        id: 'q1_8a',
-        group: 1,
+        id: 'q2_8a',
+        group: 2,
         groupLabel: 'Espaço e Interferências',
         type: 'eliminatorio',
         text: 'Qual a distância até a esquina mais próxima (m)?',
@@ -161,8 +161,8 @@ export const questionnaire: Question[] = [
         ],
       },
       {
-        id: 'q1_8b',
-        group: 1,
+        id: 'q2_8b',
+        group: 2,
         groupLabel: 'Espaço e Interferências',
         type: 'eliminatorio',
         text: 'Qual a distância até o poste de iluminação mais próximo (m)?',
@@ -173,8 +173,8 @@ export const questionnaire: Question[] = [
         ],
       },
       {
-        id: 'q1_8c',
-        group: 1,
+        id: 'q2_8c',
+        group: 2,
         groupLabel: 'Espaço e Interferências',
         type: 'eliminatorio',
         text: 'Qual a distância até a guia rebaixada (rampa de acessibilidade) mais próxima (m)?',
@@ -185,8 +185,8 @@ export const questionnaire: Question[] = [
         ],
       },
       {
-        id: 'q1_8d',
-        group: 1,
+        id: 'q2_8d',
+        group: 2,
         groupLabel: 'Espaço e Interferências',
         type: 'eliminatorio',
         text: 'Qual a distância até a boca-de-lobo ou caixa de inspeção mais próxima (m)?',
@@ -200,11 +200,11 @@ export const questionnaire: Question[] = [
     options: [],
   },
 
-  // ── GRUPO 2 & 6: CONDIÇÕES ECOLÓGICAS E AMBIENTAIS ──
+  // ── GRUPO 3: CONDIÇÕES ECOLÓGICAS E AMBIENTAIS ──
   {
-    id: 'q2_1',
-    group: 2,
-    groupLabel: 'Condições Ecológicas',
+    id: 'q3_1',
+    group: 3,
+    groupLabel: 'Condições Ecológicas e Ambientais',
     type: 'misto',
     text: 'Qual a condição de insolação do local?',
     options: [
@@ -214,9 +214,9 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q2_2',
-    group: 2,
-    groupLabel: 'Condições Ecológicas',
+    id: 'q3_2',
+    group: 3,
+    groupLabel: 'Condições Ecológicas e Ambientais',
     type: 'misto',
     text: 'Como é a umidade do solo no local?',
     options: [
@@ -226,9 +226,9 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q2_3',
-    group: 2,
-    groupLabel: 'Condições Ecológicas',
+    id: 'q3_3',
+    group: 3,
+    groupLabel: 'Condições Ecológicas e Ambientais',
     type: 'misto',
     text: 'Qual a qualidade do solo?',
     options: [
@@ -237,9 +237,9 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q2_4',
-    group: 2,
-    groupLabel: 'Condições Ecológicas',
+    id: 'q3_4',
+    group: 3,
+    groupLabel: 'Condições Ecológicas e Ambientais',
     type: 'misto',
     text: 'Haverá irrigação regular no primeiro ano?',
     options: [
@@ -248,9 +248,9 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q6_1',
-    group: 6,
-    groupLabel: 'Outros Fatores',
+    id: 'q3_5',
+    group: 3,
+    groupLabel: 'Condições Ecológicas e Ambientais',
     type: 'classificatorio',
     text: 'O local é muito exposto a ventos fortes?',
     options: [
@@ -259,9 +259,9 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q6_2',
-    group: 6,
-    groupLabel: 'Outros Fatores',
+    id: 'q3_6',
+    group: 3,
+    groupLabel: 'Condições Ecológicas e Ambientais',
     type: 'classificatorio',
     text: 'O local sofre com ilha de calor (necessidade de sombra extra)?',
     options: [
@@ -270,11 +270,11 @@ export const questionnaire: Question[] = [
     ],
   },
 
-  // ── GRUPO 3: PREFERÊNCIAS E MANUTENÇÃO ──
+  // ── GRUPO 4: PREFERÊNCIAS E MANUTENÇÃO ──
   {
-    id: 'q3_1',
-    group: 3,
-    groupLabel: 'Preferências',
+    id: 'q4_1',
+    group: 4,
+    groupLabel: 'Preferências e Manutenção',
     type: 'misto',
     text: 'A queda de folhas, flores ou frutos é um problema no local?',
     options: [
@@ -283,9 +283,9 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q3_2',
-    group: 3,
-    groupLabel: 'Preferências',
+    id: 'q4_2',
+    group: 4,
+    groupLabel: 'Preferências e Manutenção',
     type: 'misto',
     text: 'A presença de espinhos ou substâncias irritantes é um problema?',
     options: [
@@ -294,9 +294,9 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q3_3',
-    group: 3,
-    groupLabel: 'Preferências',
+    id: 'q4_3',
+    group: 4,
+    groupLabel: 'Preferências e Manutenção',
     type: 'misto',
     text: 'É necessário evitar atração de abelhas ou insetos?',
     options: [
@@ -305,9 +305,9 @@ export const questionnaire: Question[] = [
     ],
   },
   {
-    id: 'q3_4',
-    group: 3,
-    groupLabel: 'Preferências',
+    id: 'q4_4',
+    group: 4,
+    groupLabel: 'Preferências e Manutenção',
     type: 'classificatorio',
     text: 'Haverá poda profissional periódica?',
     options: [
@@ -341,10 +341,6 @@ export const questionnaire: Question[] = [
   },
 ];
 
-/**
- * Flatten subQuestions into a linear step list for the wizard UI.
- * Parent questions with subQuestions are replaced by their children.
- */
 export function flattenQuestions(questions: Question[]): Question[] {
   const result: Question[] = [];
   for (const q of questions) {
