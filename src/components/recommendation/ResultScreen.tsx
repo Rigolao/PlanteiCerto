@@ -11,6 +11,7 @@ interface ResultScreenProps {
   trees: RecommendedTree[];
   eliminatedCount: number;
   totalCount: number;
+  criteriaSummary: CriteriaSummary;
   onRestart: () => void;
   onEdit: () => void;
   onClose: () => void;
@@ -49,7 +50,7 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
   const [selectedTree, setSelectedTree] = useState<Arvore | null>(null);
   const [isCriteriaOpen, setIsCriteriaOpen] = useState(false);
   const { user } = useAuth();
-  const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   const handleToggleFavorite = (e: React.MouseEvent, treeId: number) => {
     e.stopPropagation();
