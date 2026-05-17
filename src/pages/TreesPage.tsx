@@ -183,7 +183,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
       {/* Hero Section */}
       <section className="mb-8 mt-2">
         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3 font-display leading-tight">
-          Encontre a árvore <em className="text-primary not-italic font-display italic">ideal</em>
+          Encontre a árvore <em className="text-primary not-italic font-display italic">certa</em>
         </h1>
         <p className="text-muted-foreground text-base max-w-lg leading-relaxed">
           Descubra as melhores espécies para arborização urbana, com avaliações de impacto nas calçadas, limpeza e clima.
@@ -198,7 +198,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 3v1m0 16v1m8.66-13.5l-.87.5M4.21 16l-.87.5M20.66 16l-.87-.5M4.21 8l-.87-.5M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
         </svg>
-        Encontrar Árvore Ideal
+        Encontrar Árvore Recomendada
       </button>
 
       <TreesToolbar
