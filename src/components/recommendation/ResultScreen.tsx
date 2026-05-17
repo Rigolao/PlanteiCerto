@@ -3,6 +3,9 @@ import type { RecommendedTree, CriteriaSummary, ScoreCriterion } from '../../typ
 import type { Arvore } from '../../types/tree';
 import { TreeDetailModal } from '../trees/TreeDetailModal';
 import { TreePine } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useFavorites } from '../../hooks/useFavorites';
+import { toast } from 'sonner';
 
 interface ResultScreenProps {
   trees: RecommendedTree[];
@@ -44,6 +47,17 @@ function ScoreBreakdownBar({ criterion }: { criterion: ScoreCriterion }) {
 
 export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSummary, onRestart, onClose }: ResultScreenProps) {
   const [selectedTree, setSelectedTree] = useState<Arvore | null>(null);
+  const { user } = useAuth();
+  const { favoriteIds, toggleFavorite, isFavorite } = useFavorites();
+
+  const handleToggleFavorite = (e: React.MouseEvent, treeId: number) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.info('Faça login para favoritar árvores.');
+      return;
+    }
+    toggleFavorite(treeId);
+  };
 
   const hasEliminatory = criteriaSummary.eliminatory.length > 0;
   const hasClassificatory = criteriaSummary.classificatory.length > 0;
@@ -164,8 +178,35 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
                   </svg>
                 </div>
               )}
+              
+              {/* Favorite Button */}
+              <button
+                onClick={(e) => handleToggleFavorite(e, tree.id)}
+                className={`absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer transition-all duration-200 z-10 ${
+                  isFavorite(tree.id)
+                    ? 'bg-red-500 text-white shadow-lg scale-100'
+                    : 'bg-black/30 text-white/90 hover:bg-black/50 backdrop-blur-sm'
+                }`}
+                title={isFavorite(tree.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                style={isFavorite(tree.id) ? { animation: 'favorite-pulse 0.3s ease-out' } : undefined}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill={isFavorite(tree.id) ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
+
               {/* Score badge */}
-              <div className={`absolute top-3 right-3 w-12 h-12 rounded-full ${scoreBadgeColor(tree.score)} flex flex-col items-center justify-center shadow-lg`}>
+              <div className={`absolute top-3 right-3 w-12 h-12 rounded-full ${scoreBadgeColor(tree.score)} flex flex-col items-center justify-center shadow-lg z-10`}>
                 <span className="text-white text-sm font-bold leading-none">{tree.score}</span>
                 <span className="text-white/80 text-[9px] leading-none">pts</span>
               </div>
@@ -200,15 +241,16 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
               {/* Score breakdown — top 3 criteria */}
               {tree.scoreBreakdown && tree.scoreBreakdown.length > 0 && (
                 <div className="space-y-2 pt-3 border-t border-border">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Pontuação por critério</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Destaques da árvore</p>
                   {tree.scoreBreakdown
-                    .sort((a, b) => b.maxPoints - a.maxPoints)
+                    .filter(c => c.points > 0)
+                    .sort((a, b) => b.points - a.points || b.maxPoints - a.maxPoints)
                     .slice(0, 3)
                     .map((c) => (
                       <ScoreBreakdownBar key={c.label} criterion={c} />
                     ))}
-                  {tree.scoreBreakdown.length > 3 && (
-                    <p className="text-[10px] text-muted-foreground">+{tree.scoreBreakdown.length - 3} critérios · ver ficha completa</p>
+                  {tree.scoreBreakdown.filter(c => c.points > 0).length > 3 && (
+                    <p className="text-[10px] text-muted-foreground">+{tree.scoreBreakdown.filter(c => c.points > 0).length - 3} outros critérios pontuados</p>
                   )}
                 </div>
               )}
@@ -237,6 +279,14 @@ export function ResultScreen({ trees, eliminatedCount, totalCount, criteriaSumma
         arvore={selectedTree}
         isOpen={!!selectedTree}
         onClose={() => setSelectedTree(null)}
+        isFavorite={selectedTree ? isFavorite(selectedTree.id) : false}
+        onToggleFavorite={selectedTree ? () => {
+          if (!user) {
+            toast.info('Faça login para favoritar árvores.');
+            return;
+          }
+          toggleFavorite(selectedTree.id);
+        } : undefined}
       />
     </>
   );
