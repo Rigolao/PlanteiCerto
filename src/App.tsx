@@ -11,6 +11,7 @@ import { InstallPWABanner } from './components/ui/InstallPWABanner';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 const TreesPage = lazy(() => import('./pages/TreesPage').then(m => ({ default: m.TreesPage })));
+const AboutPage = lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
@@ -36,6 +37,7 @@ export default function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<TreesPage trees={trees} />} />
+            <Route path="/quem-somos" element={<AboutPage />} />
             <Route path="/recomendacao" element={<RecommendationPage />} />
 
             {/* Protected Routes */}

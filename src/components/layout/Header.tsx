@@ -19,6 +19,7 @@ export function Header() {
   const location = useLocation();
 
   const isArvores = location.pathname === '/';
+  const isQuemSomos = location.pathname === '/quem-somos';
   const isProjetos = location.pathname === '/projetos';
   const isPerfil = location.pathname === '/perfil';
 
@@ -53,11 +54,11 @@ export function Header() {
           >
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none" className="shrink-0">
               <rect width="32" height="32" rx="7" fill="currentColor" className="text-primary" />
-              <path d="M16 26V14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M16 14C16 14 11 11 8 6C12 4 16 9 16 14Z" fill="white" opacity="0.9"/>
-              <path d="M16 14C16 14 21 11 24 6C20 4 16 9 16 14Z" fill="white" opacity="0.7"/>
-              <path d="M16 19C16 19 10 16 8 11C12 9 16 14 16 19Z" fill="white" opacity="0.6"/>
-              <path d="M16 19C16 19 22 16 24 11C20 9 16 14 16 19Z" fill="white" opacity="0.5"/>
+              <path d="M16 26V14" stroke="white" strokeWidth="2" strokeLinecap="round" />
+              <path d="M16 14C16 14 11 11 8 6C12 4 16 9 16 14Z" fill="white" opacity="0.9" />
+              <path d="M16 14C16 14 21 11 24 6C20 4 16 9 16 14Z" fill="white" opacity="0.7" />
+              <path d="M16 19C16 19 10 16 8 11C12 9 16 14 16 19Z" fill="white" opacity="0.6" />
+              <path d="M16 19C16 19 22 16 24 11C20 9 16 14 16 19Z" fill="white" opacity="0.5" />
             </svg>
             <span className="font-serif font-bold text-foreground">PlanteiCerto</span>
           </button>
@@ -92,6 +93,13 @@ export function Header() {
                 Meu Perfil
               </button>
             )}
+            <button
+              onClick={() => navigate('/quem-somos')}
+              className={`bg-transparent border-none cursor-pointer text-sm transition-colors ${isQuemSomos ? 'text-primary font-semibold border-b-2 border-primary pb-0.5' : 'text-muted-foreground hover:text-foreground font-medium'
+                }`}
+            >
+              Quem Somos
+            </button>
             {user && isAdmin && (
               <button
                 onClick={() => navigate('/admin/arvores')}

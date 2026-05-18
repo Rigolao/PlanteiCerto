@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Trees, FolderOpen } from 'lucide-react';
+import { Trees, FolderOpen, Info } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { SearchInput } from '../ui/SearchInput';
 import { FilterButton } from '../ui/FilterButton';
@@ -27,6 +27,7 @@ export function Drawer({ isOpen, onClose, termoBusca, setTermoBusca, filtroAtivo
   const { user } = useAuth();
 
   const isArvores = location.pathname === '/';
+  const isQuemSomos = location.pathname === '/quem-somos';
   const isProjetos = location.pathname === '/projetos';
 
   const goTo = (path: string) => {
@@ -70,6 +71,14 @@ export function Drawer({ isOpen, onClose, termoBusca, setTermoBusca, filtroAtivo
           }`}
         >
           <Trees size={16} className="inline-block" /> Árvores
+        </button>
+        <button
+          onClick={() => goTo('/quem-somos')}
+          className={`w-full text-left px-4 py-2.5 rounded-lg border-none cursor-pointer text-sm font-medium transition-colors ${
+            isQuemSomos ? 'bg-primary-foreground text-primary' : 'bg-transparent text-primary-foreground hover:bg-primary-foreground/15'
+          }`}
+        >
+          <Info size={16} className="inline-block" /> Quem Somos
         </button>
         {user && (
           <button
