@@ -9,6 +9,7 @@ import { Toaster } from 'sonner';
 import { useTheme } from './contexts/ThemeContext';
 import { InstallPWABanner } from './components/ui/InstallPWABanner';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { IPProtectionGate } from './components/auth/IPProtectionGate';
 
 const TreesPage = lazy(() => import('./pages/TreesPage').then(m => ({ default: m.TreesPage })));
 const AboutPage = lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
@@ -33,32 +34,34 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<PageSkeleton />}>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<TreesPage trees={trees} />} />
-            <Route path="/quem-somos" element={<AboutPage />} />
-            <Route path="/recomendacao" element={<RecommendationPage />} />
+      <IPProtectionGate>
+        <Suspense fallback={<PageSkeleton />}>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<TreesPage trees={trees} />} />
+              <Route path="/quem-somos" element={<AboutPage />} />
+              <Route path="/recomendacao" element={<RecommendationPage />} />
 
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/projetos" element={<ProjectsPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/perfil" element={<ProfilePage />} />
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/projetos" element={<ProjectsPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/perfil" element={<ProfilePage />} />
+              </Route>
             </Route>
-          </Route>
 
-          {/* Admin Routes */}
-          <Route element={<AdminRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/admin/arvores" element={<AdminTreesPage />} />
-              <Route path="/admin/equipe" element={<AdminUsersPage />} />
+            {/* Admin Routes */}
+            <Route element={<AdminRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/admin/arvores" element={<AdminTreesPage />} />
+                <Route path="/admin/equipe" element={<AdminUsersPage />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </Suspense>
-      <Toaster position="bottom-center" richColors theme={theme as 'light' | 'dark' | 'system'} />
-      <InstallPWABanner />
+          </Routes>
+        </Suspense>
+        <Toaster position="bottom-center" richColors theme={theme as 'light' | 'dark' | 'system'} />
+        <InstallPWABanner />
+      </IPProtectionGate>
     </ErrorBoundary>
   );
 }
