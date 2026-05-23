@@ -1,5 +1,6 @@
-import { useState, useEffect, ReactNode } from 'react';
-import { Lock, ShieldAlert, Leaf } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { Lock, ShieldAlert } from 'lucide-react';
 
 interface IPProtectionGateProps {
   children: ReactNode;
@@ -51,9 +52,7 @@ export function IPProtectionGate({ children }: IPProtectionGateProps) {
 
         <div className="relative z-10 max-w-md mx-auto flex flex-col items-center justify-center flex-grow mt-8">
           <div className="flex flex-col items-center gap-6 mb-10">
-            <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center border border-primary/20 shadow-sm">
-              <Leaf size={44} strokeWidth={1.5} />
-            </div>
+            <img src="/logo.png" alt="PlanteiCerto Logo" className="w-32 h-32 object-contain drop-shadow-sm" />
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-lora font-bold text-foreground tracking-tight">
               PlanteiCerto
             </h1>
