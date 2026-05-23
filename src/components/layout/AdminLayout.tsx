@@ -34,14 +34,7 @@ export function AdminLayout() {
       {/* Logo */}
       <div className="flex items-center justify-between px-6 h-16 border-b border-border">
         <div className="flex items-center gap-2">
-          <svg width="24" height="24" viewBox="0 0 32 32" fill="none" className="shrink-0">
-            <rect width="32" height="32" rx="7" fill="currentColor" className="text-primary" />
-            <path d="M16 26V14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-            <path d="M16 14C16 14 11 11 8 6C12 4 16 9 16 14Z" fill="white" opacity="0.9"/>
-            <path d="M16 14C16 14 21 11 24 6C20 4 16 9 16 14Z" fill="white" opacity="0.7"/>
-            <path d="M16 19C16 19 10 16 8 11C12 9 16 14 16 19Z" fill="white" opacity="0.6"/>
-            <path d="M16 19C16 19 22 16 24 11C20 9 16 14 16 19Z" fill="white" opacity="0.5"/>
-          </svg>
+          <img src="/logo.png" alt="PlanteiCerto Logo" width="48" height="48" className="shrink-0 object-contain rounded-md" />
           <span className="text-foreground text-lg font-bold tracking-tight">Admin</span>
         </div>
         {mobile && onClose && (
@@ -116,14 +109,7 @@ export function AdminLayout() {
           <div className="flex items-center justify-between px-4 h-14">
             <div className="w-10" /> {/* Spacer */}
             <div className="flex items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 32 32" fill="none" className="shrink-0">
-                <rect width="32" height="32" rx="7" fill="currentColor" className="text-primary" />
-                <path d="M16 26V14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M16 14C16 14 11 11 8 6C12 4 16 9 16 14Z" fill="white" opacity="0.9"/>
-                <path d="M16 14C16 14 21 11 24 6C20 4 16 9 16 14Z" fill="white" opacity="0.7"/>
-                <path d="M16 19C16 19 10 16 8 11C12 9 16 14 16 19Z" fill="white" opacity="0.6"/>
-                <path d="M16 19C16 19 22 16 24 11C20 9 16 14 16 19Z" fill="white" opacity="0.5"/>
-              </svg>
+              <img src="/logo.png" alt="PlanteiCerto Logo" width="44" height="44" className="shrink-0 object-contain rounded-md" />
               <span className="font-bold text-base">Admin</span>
             </div>
             <button

@@ -52,14 +52,7 @@ export function Header() {
             onClick={() => navigate('/')}
             className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0"
           >
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" className="shrink-0">
-              <rect width="32" height="32" rx="7" fill="currentColor" className="text-primary" />
-              <path d="M16 26V14" stroke="white" strokeWidth="2" strokeLinecap="round" />
-              <path d="M16 14C16 14 11 11 8 6C12 4 16 9 16 14Z" fill="white" opacity="0.9" />
-              <path d="M16 14C16 14 21 11 24 6C20 4 16 9 16 14Z" fill="white" opacity="0.7" />
-              <path d="M16 19C16 19 10 16 8 11C12 9 16 14 16 19Z" fill="white" opacity="0.6" />
-              <path d="M16 19C16 19 22 16 24 11C20 9 16 14 16 19Z" fill="white" opacity="0.5" />
-            </svg>
+            <img src="/logo.png" alt="PlanteiCerto Logo" width="56" height="56" className="shrink-0 object-contain rounded-md" />
             <span className="font-serif font-bold text-foreground">PlanteiCerto</span>
           </button>
 

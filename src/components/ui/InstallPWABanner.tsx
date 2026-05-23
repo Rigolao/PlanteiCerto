@@ -40,8 +40,8 @@ export function InstallPWABanner() {
     <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-[9999] animate-in slide-in-from-bottom-4 duration-300">
       <div className="bg-card border border-border rounded-2xl shadow-xl p-4 flex items-center gap-3">
         {/* Icon */}
-        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <img src="/icons/icon-192x192.png" alt="PlanteiCerto" className="w-10 h-10 rounded-lg" />
+        <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <img src="/icons/icon-192x192.png" alt="PlanteiCerto" className="w-14 h-14 object-contain rounded-lg" />
         </div>
 
         {/* Text */}
