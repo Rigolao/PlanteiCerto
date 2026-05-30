@@ -1,8 +1,26 @@
 import { useState } from 'react';
-import { BookOpen, Info, X } from 'lucide-react';
+import { BookOpen, Info, X, Scale, Binary, Hash, FileText, Award } from 'lucide-react';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const getPdfUrl = (filename: string) => `${supabaseUrl}/storage/v1/object/public/guias/${filename}`;
+const getCriteriosPdfUrl = (filename: string) => `${supabaseUrl}/storage/v1/object/public/criterios/${filename}`;
+
+const documentosCriterios = [
+  {
+    id: 'escala-1-5',
+    titulo: 'Parametrização Simplificada',
+    subtitulo: 'Versão para Leigos',
+    descricao: 'Uma explicação em linguagem simples e acessível sobre o funcionamento das escalas de avaliação e critérios das espécies.',
+    url: getCriteriosPdfUrl('parametrizacao_simples.pdf'),
+  },
+  {
+    id: 'escala-0-1-numericas',
+    titulo: 'Parametrização Técnica',
+    subtitulo: 'Detalhamento Avançado',
+    descricao: 'Detalhamento explícito sobre as regras, pontuações e parâmetros científicos que definem a avaliação de cada critério.',
+    url: getCriteriosPdfUrl('parametrizacao_tecnica.pdf'),
+  },
+];
 
 const guias = [
   { id: 1, titulo: '1 - Porque as árvores da cidade', url: getPdfUrl('guia1.pdf') },
@@ -37,6 +55,95 @@ export function AboutPage() {
           <p>
             Acreditamos que a informação é a principal ferramenta para evitar problemas futuros com infraestrutura, fiação elétrica e calçadas, além de maximizar os benefícios ambientais e estéticos que as árvores proporcionam às nossas cidades.
           </p>
+        </div>
+      </div>
+
+      <div className="mb-12 animate-in fade-in duration-500 delay-100">
+        <div className="flex items-center gap-3 mb-6">
+          <Award className="text-primary w-7 h-7" />
+          <h2 className="text-2xl font-serif font-bold text-foreground">Metodologia e Critérios de Avaliação</h2>
+        </div>
+        
+        <p className="text-muted-foreground mb-8">
+          A classificação e pontuação das espécies no <strong>PlanteiCerto</strong> baseiam-se em critérios metodológicos que analisam a compatibilidade urbana e ecológica. Os dados são estruturados em três tipos de escalas para refletir as diferentes características de cada árvore:
+        </p>
+
+        {/* Grid de Explicação das Escalas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Card 1 a 5 */}
+          <div className="bg-card p-6 rounded-2xl border border-border flex flex-col justify-between hover:border-primary/30 hover:shadow-md transition-all duration-300">
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                <Scale size={20} />
+              </div>
+              <h3 className="font-bold text-lg text-foreground mb-2">Escalas de 1 a 5</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Mensuram graus qualitativos e de tolerância. Utilizada para classificar o nível de resistência a estresses ambientais e potenciais ecológicos ou de impactos urbanos.
+              </p>
+            </div>
+            <div className="mt-4 pt-4 border-t border-border/50 text-xs text-primary font-medium font-mono">
+              1 = Muito Baixo | 5 = Muito Alto
+            </div>
+          </div>
+
+          {/* Card 0 ou 1 */}
+          <div className="bg-card p-6 rounded-2xl border border-border flex flex-col justify-between hover:border-primary/30 hover:shadow-md transition-all duration-300">
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                <Binary size={20} />
+              </div>
+              <h3 className="font-bold text-lg text-foreground mb-2">Escalas de 0 a 1</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Escala binária de presença ou ausência. Define de forma objetiva se a espécie apresenta espinhos, substâncias irritantes ou características específicas de insolação.
+              </p>
+            </div>
+            <div className="mt-4 pt-4 border-t border-border/50 text-xs text-primary font-medium font-mono">
+              0 = Não / Ausente | 1 = Sim / Presente
+            </div>
+          </div>
+
+          {/* Card Numéricas */}
+          <div className="bg-card p-6 rounded-2xl border border-border flex flex-col justify-between hover:border-primary/30 hover:shadow-md transition-all duration-300">
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                <Hash size={20} />
+              </div>
+              <h3 className="font-bold text-lg text-foreground mb-2">Escalas Numéricas</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Valores quantitativos e dimensionais físicos. Indicam medidas técnicas necessárias como largura mínima da calçada, área de berço e recuos para fiação elétrica.
+              </p>
+            </div>
+            <div className="mt-4 pt-4 border-t border-border/50 text-xs text-primary font-medium font-mono">
+              Unidades métricas (m, m²) e absolutas
+            </div>
+          </div>
+        </div>
+
+        {/* Links para Documentos Completos */}
+        <div className="bg-muted/30 border border-border rounded-2xl p-6">
+          <h3 className="font-bold text-foreground mb-4 text-center sm:text-left font-serif">Documentos de Parametrização</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {documentosCriterios.map((doc) => (
+              <button
+                key={doc.id}
+                onClick={() => setSelectedPdf({ titulo: doc.titulo, url: doc.url })}
+                className="flex items-center gap-4 p-4 bg-card hover:bg-muted/70 hover:border-primary/40 transition-all duration-200 rounded-xl border border-border text-left group cursor-pointer w-full"
+              >
+                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
+                  <FileText size={24} />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-primary mb-0.5">{doc.subtitulo}</div>
+                  <h4 className="font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
+                    {doc.titulo}
+                  </h4>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                    {doc.descricao}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
