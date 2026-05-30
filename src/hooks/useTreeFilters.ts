@@ -9,10 +9,13 @@ export function useTreeFilters(trees: Arvore[]) {
     let result = trees;
 
     if (termoBusca) {
-      const lower = termoBusca.toLowerCase();
+      const normalizeStr = (str: string | null | undefined) => 
+        (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      const lower = normalizeStr(termoBusca);
+      
       result = result.filter(a =>
-        a.nome_popular.toLowerCase().includes(lower) ||
-        a.nome_cientifico.toLowerCase().includes(lower)
+        normalizeStr(a.nome_popular).includes(lower) ||
+        normalizeStr(a.nome_cientifico).includes(lower)
       );
     }
 

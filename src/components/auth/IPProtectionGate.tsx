@@ -74,7 +74,7 @@ export function IPProtectionGate({ children }: IPProtectionGateProps) {
               <span className="ml-1.5">mrssouza@unaerp.br</span>
             </p>
             <p>
-              <strong className="text-foreground">Dr. Murilo Daniel:</strong>
+              <strong className="text-foreground">Dr. Murilo Daniel De Mello Innocentini:</strong>
               <span className="ml-1.5">minnocentini@unaerp.br</span>
             </p>
           </div>
