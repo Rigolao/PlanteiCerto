@@ -174,6 +174,11 @@ export function MobileDrawer({
               Fazer Login
             </button>
           )}
+
+          <div className="mt-4 pt-4 border-t border-border flex items-center justify-center gap-6 py-2">
+            <img src="/logos/unaerp.png" alt="UNAERP" className="h-14 w-auto object-contain opacity-90" />
+            <img src="/logos/mestrado.png" alt="Mestrado Tecnologia Ambiental" className="h-9 w-auto object-contain opacity-90" />
+          </div>
         </div>
       </div>
     </div>

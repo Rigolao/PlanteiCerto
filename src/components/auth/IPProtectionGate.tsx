@@ -60,9 +60,15 @@ export function IPProtectionGate({ children }: IPProtectionGateProps) {
 
           <div className="w-24 border-t border-primary/20 mb-10"></div>
 
-          <p className="text-lg md:text-xl text-foreground/80 font-light leading-relaxed mb-16 px-4">
+          <p className="text-lg md:text-xl text-foreground/80 font-light leading-relaxed mb-12 px-4">
             Um sistema de recomendação de espécies arbóreas para calçadas urbanas, desenvolvido para apoiar cidadãos na escolha da árvore certa para o lugar certo.
           </p>
+
+          <div className="flex flex-wrap justify-center items-center gap-6 mb-8 bg-white/50 backdrop-blur px-6 py-4 rounded-2xl shadow-sm border border-primary/10">
+            <img src="/logos/unaerp.png" alt="UNAERP" className="h-16 md:h-20 w-auto object-contain" />
+            <div className="hidden md:block w-px h-14 bg-primary/20"></div>
+            <img src="/logos/mestrado.png" alt="Mestrado Tecnologia Ambiental" className="h-12 md:h-14 w-auto object-contain" />
+          </div>
         </div>
 
         {/* Informações de Contato */}

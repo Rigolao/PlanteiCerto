@@ -48,13 +48,19 @@ export function Header() {
       <header className="sticky top-0 z-[1000] bg-background border-b border-border">
         <div className="flex items-center justify-between px-6 md:px-10 h-16 max-w-5xl mx-auto">
           {/* Logo */}
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0"
-          >
-            <img src="/logo.png" alt="PlanteiCerto Logo" width="56" height="56" className="shrink-0 object-contain rounded-md" />
-            <span className="font-serif font-bold text-foreground">PlanteiCerto</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0"
+            >
+              <img src="/logo.png" alt="PlanteiCerto Logo" width="56" height="56" className="shrink-0 object-contain rounded-md" />
+              <span className="font-serif font-bold text-foreground">PlanteiCerto</span>
+            </button>
+            <div className="hidden sm:flex items-center gap-4 ml-3 pl-4 border-l border-border h-12">
+              <img src="/logos/unaerp.png" alt="UNAERP" className="h-12 w-auto object-contain" />
+              <img src="/logos/mestrado.png" alt="Mestrado Tecnologia Ambiental" className="h-8 w-auto object-contain" />
+            </div>
+          </div>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
