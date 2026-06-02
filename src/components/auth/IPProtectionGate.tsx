@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Lock, ShieldAlert } from 'lucide-react';
 
@@ -60,19 +60,19 @@ export function IPProtectionGate({ children }: IPProtectionGateProps) {
           </p>
 
           <div className="flex flex-wrap justify-center items-center gap-6 mb-8 bg-white/50 backdrop-blur px-6 py-4 rounded-2xl shadow-sm border border-primary/10">
-            <a 
-              href="https://unaerp.br" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://unaerp.br"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
             >
               <img src="/logos/unaerp.png" alt="UNAERP" className="h-16 md:h-20 w-auto object-contain" />
             </a>
             <div className="hidden md:block w-px h-14 bg-primary/20"></div>
-            <a 
-              href="https://unaerp.br/pos-graduacao-stricto-sensu/tecnologia-ambiental/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://unaerp.br/pos-graduacao-stricto-sensu/tecnologia-ambiental/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
             >
               <img src="/logos/mestrado.png" alt="Mestrado Tecnologia Ambiental" className="h-12 md:h-14 w-auto object-contain" />
