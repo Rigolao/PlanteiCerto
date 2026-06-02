@@ -1,11 +1,11 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { useProfile } from '../../hooks/useProfile';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthModal } from '../auth/AuthModal';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Shield } from 'lucide-react';
+import { Shield, ChevronDown, User as UserIcon, FolderGit2, LogOut } from 'lucide-react';
 import { MobileDrawer } from './MobileDrawer';
 
 export function Header() {
@@ -15,13 +15,26 @@ export function Header() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fecha o dropdown ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   const navigate = useNavigate();
   const location = useLocation();
 
   const isArvores = location.pathname === '/';
   const isQuemSomos = location.pathname === '/quem-somos';
-  const isProjetos = location.pathname === '/projetos';
-  const isPerfil = location.pathname === '/perfil';
 
   // Fecha o drawer ao mudar de rota
   useEffect(() => {
@@ -63,7 +76,7 @@ export function Header() {
           </div>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
             <button
               onClick={() => navigate('/')}
               className={`bg-transparent border-none cursor-pointer text-sm transition-colors ${isArvores ? 'text-primary font-semibold border-b-2 border-primary pb-0.5' : 'text-muted-foreground hover:text-foreground font-medium'
@@ -71,27 +84,6 @@ export function Header() {
             >
               Árvores
             </button>
-            {user && (
-              <button
-                onClick={() => navigate('/projetos')}
-                className={`bg-transparent border-none cursor-pointer text-sm transition-colors ${isProjetos ? 'text-primary font-semibold border-b-2 border-primary pb-0.5' : 'text-muted-foreground hover:text-foreground font-medium'
-                  }`}
-              >
-                Meus Projetos
-              </button>
-            )}
-            {user && (
-              <button
-                onClick={() => navigate('/perfil')}
-                className={`flex items-center gap-2 bg-transparent border-none cursor-pointer text-sm transition-colors ${isPerfil ? 'text-primary font-semibold border-b-2 border-primary pb-0.5' : 'text-muted-foreground hover:text-foreground font-medium'
-                  }`}
-              >
-                {user.avatar_url ? (
-                  <img src={user.avatar_url} alt="Avatar" className="w-6 h-6 rounded-full object-cover" />
-                ) : null}
-                Meu Perfil
-              </button>
-            )}
             <button
               onClick={() => navigate('/quem-somos')}
               className={`bg-transparent border-none cursor-pointer text-sm transition-colors ${isQuemSomos ? 'text-primary font-semibold border-b-2 border-primary pb-0.5' : 'text-muted-foreground hover:text-foreground font-medium'
@@ -99,22 +91,69 @@ export function Header() {
             >
               Quem Somos
             </button>
-            {user && isAdmin && (
-              <button
-                onClick={() => navigate('/admin/arvores')}
-                className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
-              >
-                <Shield size={16} />
-                Admin
-              </button>
-            )}
+
             {user ? (
-              <button
-                onClick={() => setLogoutModalOpen(true)}
-                className="text-muted-foreground text-sm bg-transparent border-none cursor-pointer hover:text-foreground transition-colors"
-              >
-                Sair
-              </button>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 bg-transparent border-none cursor-pointer text-sm transition-colors text-muted-foreground hover:text-foreground font-medium"
+                >
+                  {user.avatar_url ? (
+                    <img src={user.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full object-cover border border-border" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
+                      {user.nome?.[0]?.toUpperCase() || 'U'}
+                    </div>
+                  )}
+                  <span className="hidden lg:block max-w-[100px] truncate">{user.nome}</span>
+                  <ChevronDown size={16} className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-3 w-56 bg-card border border-border rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-2 border-b border-border mb-2">
+                      <p className="text-sm font-semibold text-foreground truncate">{user.nome}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+
+                    <button
+                      onClick={() => { navigate('/perfil'); setDropdownOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer border-none text-left bg-transparent"
+                    >
+                      <UserIcon size={16} />
+                      Meu Perfil
+                    </button>
+
+                    <button
+                      onClick={() => { navigate('/projetos'); setDropdownOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer border-none text-left bg-transparent"
+                    >
+                      <FolderGit2 size={16} />
+                      Meus Projetos
+                    </button>
+
+                    {isAdmin && (
+                      <button
+                        onClick={() => { navigate('/admin/arvores'); setDropdownOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer border-none text-left bg-transparent"
+                      >
+                        <Shield size={16} />
+                        Administração
+                      </button>
+                    )}
+
+                    <div className="h-px bg-border my-2"></div>
+
+                    <button
+                      onClick={() => { setLogoutModalOpen(true); setDropdownOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors cursor-pointer border-none text-left bg-transparent"
+                    >
+                      <LogOut size={16} />
+                      Sair
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <button
                 onClick={() => setAuthModalOpen(true)}
