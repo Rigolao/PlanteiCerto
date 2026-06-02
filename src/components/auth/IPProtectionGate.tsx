@@ -53,14 +53,14 @@ export function IPProtectionGate({ children }: IPProtectionGateProps) {
         <div className="relative z-10 max-w-md mx-auto flex flex-col items-center justify-center flex-grow mt-8">
           <div className="flex flex-col items-center gap-6 mb-10">
             <img src="/logo.png" alt="PlanteiCerto Logo" className="w-32 h-32 object-contain drop-shadow-sm" />
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-lora font-bold text-foreground tracking-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-lora font-bold text-[#052e16] tracking-tight">
               PlanteiCerto
             </h1>
           </div>
 
           <div className="w-24 border-t border-primary/20 mb-10"></div>
 
-          <p className="text-lg md:text-xl text-foreground/80 font-light leading-relaxed mb-12 px-4">
+          <p className="text-lg md:text-xl text-[#052e16]/80 font-light leading-relaxed mb-12 px-4">
             Um sistema de recomendação de espécies arbóreas para calçadas urbanas, desenvolvido para apoiar cidadãos na escolha da árvore certa para o lugar certo.
           </p>
 
@@ -86,15 +86,15 @@ export function IPProtectionGate({ children }: IPProtectionGateProps) {
         </div>
 
         {/* Informações de Contato */}
-        <div className="relative z-10 w-full pt-8 mt-12 border-t border-primary/10 text-xs text-muted-foreground flex flex-col items-center">
+        <div className="relative z-10 w-full pt-8 mt-12 border-t border-[#052e16]/10 text-xs text-[#052e16]/80 flex flex-col items-center">
           <p className="mb-3 font-medium">Para dúvidas ou liberação de acesso temporário, contate:</p>
           <div className="flex flex-col md:flex-row gap-3 md:gap-8 text-center">
             <p>
-              <strong className="text-foreground">Matheus Rigolão:</strong>
+              <strong className="text-[#052e16]">Matheus Rigolão:</strong>
               <span className="ml-1.5">mrssouza@unaerp.br</span>
             </p>
             <p>
-              <strong className="text-foreground">Dr. Murilo Daniel De Mello Innocentini:</strong>
+              <strong className="text-[#052e16]">Dr. Murilo Daniel De Mello Innocentini:</strong>
               <span className="ml-1.5">minnocentini@unaerp.br</span>
             </p>
           </div>
