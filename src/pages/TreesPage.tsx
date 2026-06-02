@@ -36,7 +36,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   const [termoBusca, setTermoBusca] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [ordenacao, setOrdenacao] = useState('');
+  const [ordenacao, setOrdenacao] = useState('nome_az');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const filteredLengthRef = useRef(0);
