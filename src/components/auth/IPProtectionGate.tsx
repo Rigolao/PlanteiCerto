@@ -7,22 +7,17 @@ interface IPProtectionGateProps {
 }
 
 export function IPProtectionGate({ children }: IPProtectionGateProps) {
-  const [isUnlocked, setIsUnlocked] = useState(true); // default true to avoid flicker before mount check
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    return localStorage.getItem('ip_unlocked') === 'true';
+  });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const unlocked = sessionStorage.getItem('ip_unlocked');
-    if (unlocked !== 'true') {
-      setIsUnlocked(false);
-    }
-  }, []);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username === 'admin' && password === 'plantei_admin_certo') {
-      sessionStorage.setItem('ip_unlocked', 'true');
+      localStorage.setItem('ip_unlocked', 'true');
       setIsUnlocked(true);
       setError('');
     } else {
