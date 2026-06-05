@@ -77,7 +77,7 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   };
 
   const filtered = useMemo(() => {
-    let result = trees;
+    let result = trees.filter(a => a.ativa !== false);
     if (termoBusca) {
       const normalizeStr = (str: string | null | undefined) => 
         (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();

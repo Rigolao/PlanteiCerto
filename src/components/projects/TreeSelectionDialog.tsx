@@ -57,15 +57,19 @@ export function TreeSelectionDialog({
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
+  const eligibleTrees = useMemo(() => {
+    return trees.filter(t => t.ativa !== false || t.id === initialTreeId);
+  }, [trees, initialTreeId]);
+
   const filteredTrees = useMemo(() => {
-    if (!busca.trim()) return trees;
+    if (!busca.trim()) return eligibleTrees;
     const term = busca.toLowerCase();
-    return trees.filter(
+    return eligibleTrees.filter(
       (t) =>
         t.nome_popular.toLowerCase().includes(term) ||
         t.nome_cientifico.toLowerCase().includes(term)
     );
-  }, [trees, busca]);
+  }, [eligibleTrees, busca]);
 
   // Scroll highlighted item into view
   useEffect(() => {

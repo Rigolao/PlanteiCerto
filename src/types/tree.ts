@@ -34,6 +34,7 @@ export interface Arvore {
   tolerancia_poda_1a5: number | null;
   potencial_sombra_1a5: number | null;
   contribuicao_biodiversidade_1a5: number | null;
+  ativa?: boolean;
 }
 
 export type FiltroAtributo = 'todos' | 'nativas' | 'sem_espinhos';

@@ -22,6 +22,7 @@ const defaultValues: TreeFormData = {
   foto: null,
   origem: 'Nativa BR',
   decidua_perenifolia: 'Perenifólia',
+  ativa: true,
   epoca_floracao: null,
   epoca_frutificacao: null,
   altura_adulta_max_m: null,
@@ -149,6 +150,10 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
                 <option value="Decídua">Decídua</option>
                 <option value="Semidecídua">Semidecídua</option>
               </select>
+            </div>
+
+            <div className="flex items-center pt-5">
+              <CheckboxField label="Disponibilizar árvore no catálogo (Ativa)" register={register} name="ativa" />
             </div>
 
             <Controller

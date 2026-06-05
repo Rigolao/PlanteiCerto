@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, TreePine } from 'lucide-react';
 import { useTrees } from '../hooks/useTrees';
-import { useDeleteTree } from '../hooks/useAdminTrees';
+import { useDeleteTree, useUpdateTree } from '../hooks/useAdminTrees';
 import { TreeDataTable } from '../components/admin/TreeDataTable';
 import { TreeFormModal } from '../components/admin/TreeFormModal';
 import { SearchInput } from '../components/ui/SearchInput';
@@ -10,6 +10,11 @@ import type { Arvore } from '../types/tree';
 export function AdminTreesPage() {
   const { trees, loading } = useTrees();
   const deleteTree = useDeleteTree();
+  const updateTree = useUpdateTree();
+
+  const handleToggleActive = (tree: Arvore) => {
+    updateTree.mutate({ id: tree.id, ativa: tree.ativa === false });
+  };
   const [search, setSearch] = useState('');
   const [editingTree, setEditingTree] = useState<Arvore | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -78,6 +83,7 @@ export function AdminTreesPage() {
         searchQuery={search}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onToggleActive={handleToggleActive}
       />
 
       {/* Form Modal */}

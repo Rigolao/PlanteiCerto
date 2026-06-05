@@ -41,6 +41,7 @@ interface Tree {
   tolerancia_poda_1a5: number | null;
   potencial_sombra_1a5: number | null;
   contribuicao_biodiversidade_1a5: number | null;
+  ativa?: boolean;
 }
 
 type Answers = Record<string, string>;
@@ -492,7 +493,7 @@ Deno.serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: allTrees, error } = await supabase.from('trees').select('*');
+    const { data: allTrees, error } = await supabase.from('trees').select('*').eq('ativa', true);
 
     if (error) {
       return new Response(

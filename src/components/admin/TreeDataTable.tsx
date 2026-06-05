@@ -9,6 +9,7 @@ interface TreeDataTableProps {
   searchQuery: string;
   onEdit: (tree: Arvore) => void;
   onDelete: (tree: Arvore) => void;
+  onToggleActive: (tree: Arvore) => void;
 }
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15] as const;
@@ -91,6 +92,7 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete }: TreeData
               <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden md:table-cell">Nome Científico</th>
               <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Porte</th>
               <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Origem</th>
+              <th className="text-center px-4 py-3 font-semibold text-muted-foreground">Status</th>
               <th className="text-right px-4 py-3 font-semibold text-muted-foreground">Ações</th>
             </tr>
           </thead>
@@ -121,6 +123,16 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete }: TreeData
                   }`}>
                     {tree.origem}
                   </span>
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <label className="inline-flex items-center justify-center cursor-pointer" title={tree.ativa !== false ? 'Desativar visualização' : 'Ativar visualização'}>
+                    <input
+                      type="checkbox"
+                      checked={tree.ativa !== false}
+                      onChange={() => onToggleActive(tree)}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                    />
+                  </label>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1">
