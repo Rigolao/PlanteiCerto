@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react';
 import { Upload, X, Image } from 'lucide-react';
 
+const MAX_SIZE_MB = 5;
+
 interface ImageUploadProps {
   currentUrl: string | null;
   onFileSelect: (file: File | null) => void;
@@ -9,22 +11,32 @@ interface ImageUploadProps {
 
 export function ImageUpload({ currentUrl, onFileSelect, previewFile }: ImageUploadProps) {
   const [dragOver, setDragOver] = useState(false);
+  const [sizeError, setSizeError] = useState('');
 
   const previewUrl = previewFile ? URL.createObjectURL(previewFile) : currentUrl;
+
+  const validateAndSelect = (file: File) => {
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      setSizeError(`Arquivo muito grande. Máximo: ${MAX_SIZE_MB}MB.`);
+      return;
+    }
+    setSizeError('');
+    onFileSelect(file);
+  };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
-      onFileSelect(file);
+      validateAndSelect(file);
     }
   }, [onFileSelect]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      onFileSelect(file);
+      validateAndSelect(file);
     }
   };
 
@@ -75,7 +87,11 @@ export function ImageUpload({ currentUrl, onFileSelect, previewFile }: ImageUplo
           <span className="text-xs text-muted-foreground">
             Arraste uma imagem ou clique para selecionar
           </span>
+          <span className="text-xs text-muted-foreground/60 mt-1">Máx. {MAX_SIZE_MB}MB</span>
         </label>
+      )}
+      {sizeError && (
+        <p className="text-xs text-destructive mt-1">{sizeError}</p>
       )}
     </div>
   );

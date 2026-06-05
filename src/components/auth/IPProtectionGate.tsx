@@ -16,7 +16,7 @@ export function IPProtectionGate({ children }: IPProtectionGateProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'plantei_admin_certo') {
+    if (username === 'admin' && password === import.meta.env.VITE_GATE_PASSWORD) {
       localStorage.setItem('ip_unlocked', 'true');
       setIsUnlocked(true);
       setError('');

@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (avatarFile) {
         const fileExt = avatarFile.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
         const filePath = `${user?.id}/${fileName}`;
         
         const { error: uploadError } = await supabase.storage

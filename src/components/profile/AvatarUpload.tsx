@@ -1,4 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+
+const MAX_SIZE_MB = 5;
 
 interface AvatarUploadProps {
   avatarPreview: string | null;
@@ -8,11 +10,17 @@ interface AvatarUploadProps {
 
 export function AvatarUpload({ avatarPreview, nome, onFileSelect }: AvatarUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [sizeError, setSizeError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      onFileSelect(e.target.files[0]);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      setSizeError(`Arquivo muito grande. Máximo: ${MAX_SIZE_MB}MB.`);
+      return;
     }
+    setSizeError('');
+    onFileSelect(file);
   };
 
   return (
@@ -44,6 +52,9 @@ export function AvatarUpload({ avatarPreview, nome, onFileSelect }: AvatarUpload
       >
         Escolher nova foto
       </button>
+      {sizeError && (
+        <p className="text-xs text-destructive text-center">{sizeError}</p>
+      )}
     </div>
   );
 }
