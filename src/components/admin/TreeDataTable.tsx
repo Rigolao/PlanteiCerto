@@ -43,7 +43,7 @@ function DeleteConfirmDialog({
   );
 }
 
-export function TreeDataTable({ trees, searchQuery, onEdit, onDelete }: TreeDataTableProps) {
+export function TreeDataTable({ trees, searchQuery, onEdit, onDelete, onToggleActive }: TreeDataTableProps) {
   const [page, setPage] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [treeToDelete, setTreeToDelete] = useState<Arvore | null>(null);
