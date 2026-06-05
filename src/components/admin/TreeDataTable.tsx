@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Pencil, Trash2, ChevronLeft, ChevronRight, TreePine } from 'lucide-react';
+import { Pencil, Trash2, ChevronLeft, ChevronRight, TreePine, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useTreeUsageCount } from '../../hooks/useAdminTrees';
 import type { Arvore } from '../../types/tree';
@@ -48,6 +48,42 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete, onToggleAc
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [treeToDelete, setTreeToDelete] = useState<Arvore | null>(null);
 
+  // Estados de ordenação - padrão por ID crescente
+  const [sortField, setSortField] = useState<keyof Arvore | null>('id');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (field: keyof Arvore) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const renderSortIcon = (field: keyof Arvore) => {
+    if (sortField !== field) {
+      return <ArrowUpDown size={14} className="opacity-40 ml-1.5 group-hover:opacity-80 transition-opacity" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp size={14} className="ml-1.5 text-primary" />
+      : <ArrowDown size={14} className="ml-1.5 text-primary" />;
+  };
+
+  const renderSortableHeader = (field: keyof Arvore, label: string, className = "", buttonClassName = "") => {
+    return (
+      <th className={`${className} px-4 py-3 font-semibold text-muted-foreground`}>
+        <button
+          onClick={() => handleSort(field)}
+          className={`group inline-flex items-center hover:text-foreground transition-colors bg-transparent border-none p-0 cursor-pointer font-semibold ${buttonClassName}`}
+        >
+          {label}
+          {renderSortIcon(field)}
+        </button>
+      </th>
+    );
+  };
+
   const filtered = trees.filter((t) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -57,8 +93,33 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete, onToggleAc
     );
   });
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginated = filtered.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+  const sorted = [...filtered].sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let valA = a[sortField];
+    let valB = b[sortField];
+
+    if (sortField === 'ativa') {
+      valA = a.ativa !== false;
+      valB = b.ativa !== false;
+    }
+
+    if (typeof valA === 'string' && typeof valB === 'string') {
+      return sortDirection === 'asc'
+        ? valA.localeCompare(valB, 'pt-BR')
+        : valB.localeCompare(valA, 'pt-BR');
+    }
+
+    if (valA === null || valA === undefined) return sortDirection === 'asc' ? 1 : -1;
+    if (valB === null || valB === undefined) return sortDirection === 'asc' ? -1 : 1;
+
+    if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sorted.length / itemsPerPage);
+  const paginated = sorted.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
 
   useEffect(() => {
     if (page >= totalPages && totalPages > 0) {
@@ -87,18 +148,20 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete, onToggleAc
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted/50 border-b border-border">
+              {renderSortableHeader('id', 'ID', 'text-left')}
               <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Foto</th>
-              <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Nome Popular</th>
-              <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden md:table-cell">Nome Científico</th>
-              <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Porte</th>
-              <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Origem</th>
-              <th className="text-center px-4 py-3 font-semibold text-muted-foreground">Status</th>
+              {renderSortableHeader('nome_popular', 'Nome Popular', 'text-left')}
+              {renderSortableHeader('nome_cientifico', 'Nome Científico', 'text-left hidden md:table-cell')}
+              {renderSortableHeader('porte_altura_classe', 'Porte', 'text-left hidden lg:table-cell')}
+              {renderSortableHeader('origem', 'Origem', 'text-left hidden lg:table-cell')}
+              {renderSortableHeader('ativa', 'Status', 'text-center', 'w-full justify-center')}
               <th className="text-right px-4 py-3 font-semibold text-muted-foreground">Ações</th>
             </tr>
           </thead>
           <tbody>
             {paginated.map((tree) => (
               <tr key={tree.id} className="border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors">
+                <td className="px-4 py-3 text-muted-foreground font-mono text-xs">#{tree.id}</td>
                 <td className="px-4 py-3">
                   {tree.foto ? (
                     <img
@@ -161,7 +224,7 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete, onToggleAc
       {/* Pagination — always visible */}
       <div className="flex items-center justify-between mt-4 flex-wrap gap-2">
         <p className="text-sm text-muted-foreground">
-          Mostrando {page * itemsPerPage + 1}–{Math.min((page + 1) * itemsPerPage, filtered.length)} de {filtered.length}
+          Mostrando {page * itemsPerPage + 1}–{Math.min((page + 1) * itemsPerPage, sorted.length)} de {sorted.length}
         </p>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
