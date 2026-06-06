@@ -34,3 +34,14 @@ CLAUDE.md
 
 # Superpowers brainstorm sessions
 .superpowers/
+
+# Supabase CLI temp files
+supabase/.temp/
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# Claude Code local settings
+.claude/settings.local.json
