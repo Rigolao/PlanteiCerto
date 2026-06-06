@@ -1,9 +1,18 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',').map((o) => o.trim()) ?? [
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+
+function corsHeaders(origin: string | null): Record<string, string> {
+  const allowed = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Vary': 'Origin',
+  };
+}
 
 interface Tree {
   id: number;
@@ -475,8 +484,11 @@ function buildCriteriaSummary(answers: Answers): { eliminatory: string[]; classi
 // ── Main Handler ──
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get('origin');
+  const cors = corsHeaders(origin);
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: cors });
   }
 
   try {
@@ -485,7 +497,7 @@ Deno.serve(async (req: Request) => {
     if (!answers || typeof answers !== 'object') {
       return new Response(
         JSON.stringify({ error: 'Campo "answers" é obrigatório' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -498,7 +510,7 @@ Deno.serve(async (req: Request) => {
     if (error) {
       return new Response(
         JSON.stringify({ error: 'Erro ao buscar espécies', details: error.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -522,12 +534,12 @@ Deno.serve(async (req: Request) => {
         eliminated_count: totalCount - survivors.length,
         criteriaSummary: buildCriteriaSummary(answers),
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { headers: { ...cors, 'Content-Type': 'application/json' } },
     );
   } catch (err) {
     return new Response(
       JSON.stringify({ error: 'Erro interno', details: String(err) }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } },
     );
   }
 });
