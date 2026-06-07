@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BookOpen, Info, X, Scale, Binary, Hash, FileText, Award } from 'lucide-react';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -37,6 +37,28 @@ const guias = [
 
 export function AboutPage() {
   const [selectedPdf, setSelectedPdf] = useState<{ titulo: string; url: string } | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
+
+  useEffect(() => {
+    if (!selectedPdf) {
+      setBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
+      return;
+    }
+    setLoadingPdf(true);
+    setBlobUrl(null);
+    fetch(selectedPdf.url)
+      .then(res => res.blob())
+      .then(blob => setBlobUrl(URL.createObjectURL(blob)))
+      .catch(() => setBlobUrl(null))
+      .finally(() => setLoadingPdf(false));
+  }, [selectedPdf]);
+
+  const closePdf = () => {
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+    setBlobUrl(null);
+    setSelectedPdf(null);
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 animate-in fade-in duration-500">
@@ -176,28 +198,45 @@ export function AboutPage() {
       {/* PDF Viewer Modal */}
       {selectedPdf && (
         <div className="fixed inset-0 z-[10002] flex items-center justify-center p-4 sm:p-6">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
-            onClick={() => setSelectedPdf(null)}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={closePdf}
           />
           <div className="relative bg-background w-full max-w-5xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-4 border-b border-border bg-card">
               <h3 className="font-bold text-foreground pr-8 truncate">
                 {selectedPdf.titulo}
               </h3>
-              <button
-                onClick={() => setSelectedPdf(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <a
+                  href={selectedPdf.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-muted"
+                >
+                  Abrir em nova aba
+                </a>
+                <button
+                  onClick={closePdf}
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
-            <div className="flex-1 bg-muted/30">
-              <iframe
-                src={selectedPdf.url}
-                className="w-full h-full border-none"
-                title={selectedPdf.titulo}
-              />
+            <div className="flex-1 bg-muted/30 relative">
+              {loadingPdf && (
+                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
+                  Carregando...
+                </div>
+              )}
+              {blobUrl && (
+                <iframe
+                  src={blobUrl}
+                  className="w-full h-full border-none"
+                  title={selectedPdf.titulo}
+                />
+              )}
             </div>
           </div>
         </div>
