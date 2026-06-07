@@ -493,11 +493,14 @@ Deno.serve(async (req: Request) => {
     const { answers } = (await req.json()) as { answers: Answers };
 
     if (!answers || typeof answers !== 'object') {
+      console.error(JSON.stringify({ event: 'recommendation_error', reason: 'invalid_input' }));
       return new Response(
         JSON.stringify({ error: 'Campo "answers" é obrigatório' }),
         { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
+
+    console.log(JSON.stringify({ event: 'recommendation_request', answers_count: Object.keys(answers).length }));
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -506,6 +509,7 @@ Deno.serve(async (req: Request) => {
     const { data: allTrees, error } = await supabase.from('trees').select('*').eq('ativa', true);
 
     if (error) {
+      console.error(JSON.stringify({ event: 'recommendation_error', reason: 'db_query_failed', details: error.message }));
       return new Response(
         JSON.stringify({ error: 'Erro ao buscar espécies', details: error.message }),
         { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } },
@@ -526,6 +530,13 @@ Deno.serve(async (req: Request) => {
 
     scored.sort((a, b) => b.score - a.score);
 
+    console.log(JSON.stringify({
+      event: 'recommendation_success',
+      total_trees: totalCount,
+      eliminated_count: totalCount - survivors.length,
+      trees_returned: scored.length,
+    }));
+
     return new Response(
       JSON.stringify({
         trees: scored,
@@ -535,6 +546,7 @@ Deno.serve(async (req: Request) => {
       { headers: { ...cors, 'Content-Type': 'application/json' } },
     );
   } catch (err) {
+    console.error(JSON.stringify({ event: 'recommendation_error', reason: 'unhandled_exception', details: String(err) }));
     return new Response(
       JSON.stringify({ error: 'Erro interno', details: String(err) }),
       { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } },

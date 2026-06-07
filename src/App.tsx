@@ -10,6 +10,8 @@ import { useTheme } from './contexts/ThemeContext';
 import { InstallPWABanner } from './components/ui/InstallPWABanner';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { IPProtectionGate } from './components/auth/IPProtectionGate';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const TreesPage = lazy(() => import('./pages/TreesPage').then(m => ({ default: m.TreesPage })));
 const AboutPage = lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
@@ -61,6 +63,8 @@ export default function App() {
         </Suspense>
         <Toaster position="bottom-center" richColors theme={theme as 'light' | 'dark' | 'system'} />
         <InstallPWABanner />
+        <Analytics />
+        <SpeedInsights />
       </IPProtectionGate>
     </ErrorBoundary>
   );
