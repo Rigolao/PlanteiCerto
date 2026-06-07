@@ -1,3 +1,4 @@
+-- Atualização de nomes populares baseada no documento de referência
 UPDATE trees SET nome_popular = 'Resedá extremosa' WHERE id = 2;
 UPDATE trees SET nome_popular = 'Sabão-de-soldado' WHERE id = 4;
 UPDATE trees SET nome_popular = 'Uvaia' WHERE id = 5;
@@ -10,7 +11,7 @@ UPDATE trees SET nome_popular = 'Almecega' WHERE id = 15;
 UPDATE trees SET nome_popular = 'Araçá' WHERE id = 17;
 UPDATE trees SET nome_popular = 'Angelim-doce' WHERE id = 18;
 UPDATE trees SET nome_popular = 'Aroeira-pimenteira' WHERE id = 20;
-UPDATE trees SET nome_popular = 'Ipê roxo de bola' WHERE id = 23;
+UPDATE trees SET nome_popular = 'Ipê-roxo-de-bola' WHERE id = 23;
 UPDATE trees SET nome_popular = 'Pitangueira' WHERE id = 25;
 UPDATE trees SET nome_popular = 'Sapateiro, tobocuva' WHERE id = 70;
 UPDATE trees SET nome_popular = 'Suinã' WHERE id = 73;
@@ -25,12 +26,12 @@ UPDATE trees SET nome_popular = 'Capororoca-do-cerrado' WHERE id = 85;
 UPDATE trees SET nome_popular = 'Almecega' WHERE id = 87;
 UPDATE trees SET nome_popular = 'Canela amarela' WHERE id = 88;
 UPDATE trees SET nome_popular = 'Catiguá vermelho' WHERE id = 89;
-UPDATE trees SET nome_popular = 'Ipê roxo da mata' WHERE id = 91;
+UPDATE trees SET nome_popular = 'Ipê-roxo-da-mata' WHERE id = 91;
 UPDATE trees SET nome_popular = 'Alecrim-de-campinas' WHERE id = 96;
 UPDATE trees SET nome_popular = 'Araçarana' WHERE id = 97;
 UPDATE trees SET nome_popular = 'Aroeira-pimenteira' WHERE id = 98;
-UPDATE trees SET nome_popular = 'Ipê roxo de bola' WHERE id = 99;
-UPDATE trees SET nome_popular = 'Ipê branco' WHERE id = 104;
+UPDATE trees SET nome_popular = 'Ipê-roxo-de-bola' WHERE id = 99;
+UPDATE trees SET nome_popular = 'Ipê-branco' WHERE id = 104;
 UPDATE trees SET nome_popular = 'Pau-rei' WHERE id = 106;
 UPDATE trees SET nome_popular = 'Açoita-cavalo' WHERE id = 108;
 UPDATE trees SET nome_popular = 'Cabreúva-amarela' WHERE id = 110;
@@ -58,15 +59,15 @@ UPDATE trees SET nome_popular = 'Guaraiuva' WHERE id = 141;
 UPDATE trees SET nome_popular = 'Guarantã' WHERE id = 142;
 UPDATE trees SET nome_popular = 'Guaritá' WHERE id = 143;
 UPDATE trees SET nome_popular = 'Ingá do brejo' WHERE id = 144;
-UPDATE trees SET nome_popular = 'Ipê amarelo' WHERE id = 145;
-UPDATE trees SET nome_popular = 'Ipê amarelo' WHERE id = 146;
-UPDATE trees SET nome_popular = 'Ipê amarelo' WHERE id = 147;
-UPDATE trees SET nome_popular = 'Ipê amarelo' WHERE id = 148;
-UPDATE trees SET nome_popular = 'Ipê amarelo da mata' WHERE id = 149;
-UPDATE trees SET nome_popular = 'Ipê amarelo do brejo' WHERE id = 150;
-UPDATE trees SET nome_popular = 'Ipê rosa' WHERE id = 151;
-UPDATE trees SET nome_popular = 'Ipê roxo anão' WHERE id = 152;
-UPDATE trees SET nome_popular = 'Ipê roxo de bola' WHERE id = 153;
+UPDATE trees SET nome_popular = 'Ipê-amarelo' WHERE id = 145;
+UPDATE trees SET nome_popular = 'Ipê-amarelo' WHERE id = 146;
+UPDATE trees SET nome_popular = 'Ipê-amarelo' WHERE id = 147;
+UPDATE trees SET nome_popular = 'Ipê-amarelo' WHERE id = 148;
+UPDATE trees SET nome_popular = 'Ipê-amarelo-da-mata' WHERE id = 149;
+UPDATE trees SET nome_popular = 'Ipê-amarelo-do-brejo' WHERE id = 150;
+UPDATE trees SET nome_popular = 'Ipê-rosa' WHERE id = 151;
+UPDATE trees SET nome_popular = 'Ipê-roxo-anão' WHERE id = 152;
+UPDATE trees SET nome_popular = 'Ipê-roxo-de-bola' WHERE id = 153;
 UPDATE trees SET nome_popular = 'Ipê-roxo' WHERE id = 154;
 UPDATE trees SET nome_popular = 'Jacarandá paulista' WHERE id = 155;
 UPDATE trees SET nome_popular = 'Jequitibá branco' WHERE id = 161;
@@ -95,3 +96,14 @@ UPDATE trees SET nome_popular = 'Quaresmeira' WHERE id = 195;
 UPDATE trees SET nome_popular = 'Quereltéria' WHERE id = 196;
 UPDATE trees SET nome_popular = 'Pau-terra, jundiaí' WHERE id = 197;
 UPDATE trees SET nome_popular = 'Resedá de folha graúda' WHERE id = 198;
+
+-- Peroba (esquecidas na primeira migration)
+UPDATE trees SET nome_popular = 'Peroba poca' WHERE id = 191;
+UPDATE trees SET nome_popular = 'Peroba rosa' WHERE id = 192;
+
+-- Desativar árvores sem correspondência no documento
+UPDATE trees SET ativa = false WHERE id IN (6, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 38, 39, 40, 43, 44, 90, 100, 103);
+
+-- Ipês com hífen (inclui as inativas id=32 e id=43)
+UPDATE trees SET nome_popular = 'Ipê-branco' WHERE id = 32;
+UPDATE trees SET nome_popular = 'Ipê-amarelo-de-jardim' WHERE id = 43;
