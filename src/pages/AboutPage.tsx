@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BookOpen, Info, X, Scale, Binary, Hash, FileText, Award } from 'lucide-react';
+import { PdfViewer } from '../components/ui/PdfViewer';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const getPdfUrl = (filename: string) => `${supabaseUrl}/storage/v1/object/public/guias/${filename}`;
@@ -37,28 +38,7 @@ const guias = [
 
 export function AboutPage() {
   const [selectedPdf, setSelectedPdf] = useState<{ titulo: string; url: string } | null>(null);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
-  const [loadingPdf, setLoadingPdf] = useState(false);
-
-  useEffect(() => {
-    if (!selectedPdf) {
-      setBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
-      return;
-    }
-    setLoadingPdf(true);
-    setBlobUrl(null);
-    fetch(selectedPdf.url)
-      .then(res => res.blob())
-      .then(blob => setBlobUrl(URL.createObjectURL(blob)))
-      .catch(() => setBlobUrl(null))
-      .finally(() => setLoadingPdf(false));
-  }, [selectedPdf]);
-
-  const closePdf = () => {
-    if (blobUrl) URL.revokeObjectURL(blobUrl);
-    setBlobUrl(null);
-    setSelectedPdf(null);
-  };
+  const closePdf = () => setSelectedPdf(null);
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 animate-in fade-in duration-500">
@@ -71,7 +51,7 @@ export function AboutPage() {
         <h2 className="text-2xl font-bold mb-4 text-foreground">Sobre o PlanteiCerto</h2>
         <div className="prose prose-green dark:prose-invert max-w-none text-muted-foreground space-y-4">
           <p>
-            O <strong>PlanteiCerto</strong> é uma plataforma dedicada a auxiliar cidadãos, profissionais e gestores públicos na escolha adequada de espécies arbóreas para o plantio urbano e rural. 
+            O <strong>PlanteiCerto</strong> é uma plataforma dedicada a auxiliar cidadãos, profissionais e gestores públicos na escolha adequada de espécies arbóreas para o plantio urbano e rural.
             Nosso objetivo é promover a arborização consciente, garantindo que a árvore certa seja plantada no lugar certo.
           </p>
           <p>
@@ -85,7 +65,7 @@ export function AboutPage() {
           <Award className="text-primary w-7 h-7" />
           <h2 className="text-2xl font-serif font-bold text-foreground">Metodologia e Critérios de Avaliação</h2>
         </div>
-        
+
         <p className="text-muted-foreground mb-8">
           A classificação e pontuação das espécies no <strong>PlanteiCerto</strong> baseiam-se em critérios metodológicos que analisam a compatibilidade urbana e ecológica. Os dados são estruturados em três tipos de escalas para refletir as diferentes características de cada árvore:
         </p>
@@ -173,7 +153,7 @@ export function AboutPage() {
         <BookOpen className="text-primary w-7 h-7" />
         <h2 className="text-2xl font-serif font-bold text-foreground">Guias de Arborização</h2>
       </div>
-      
+
       <p className="text-muted-foreground mb-8">
         Acesse nossos materiais educativos para aprender mais sobre planejamento, plantio e manutenção de árvores.
       </p>
@@ -224,19 +204,8 @@ export function AboutPage() {
                 </button>
               </div>
             </div>
-            <div className="flex-1 bg-muted/30 relative">
-              {loadingPdf && (
-                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
-                  Carregando...
-                </div>
-              )}
-              {blobUrl && (
-                <iframe
-                  src={blobUrl}
-                  className="w-full h-full border-none"
-                  title={selectedPdf.titulo}
-                />
-              )}
+            <div className="flex-1 min-h-0">
+              <PdfViewer url={selectedPdf.url} />
             </div>
           </div>
         </div>
