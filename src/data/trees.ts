@@ -233,7 +233,7 @@ export const staticTrees: Arvore[] = [
     epoca_floracao: 'Mai-Dez',
     epoca_frutificacao: 'Set-Dez',
     altura_adulta_max_m: 20,
-    porte_altura_classe: 'Pequeno',
+    porte_altura_classe: 'Grande',
     diametro_copa_adulto_max_m: 4,
     copa_classe: 'Pequena',
     dap_adulto_max_cm: 30,
