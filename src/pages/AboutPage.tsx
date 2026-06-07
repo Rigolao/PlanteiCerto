@@ -10,7 +10,7 @@ const documentosCriterios = [
   {
     id: 'escala-1-5',
     titulo: 'Parametrização Simplificada',
-    subtitulo: 'Versão para Leigos',
+    subtitulo: 'Para o cidadão comum',
     descricao: 'Uma explicação em linguagem simples e acessível sobre o funcionamento das escalas de avaliação e critérios das espécies.',
     url: getCriteriosPdfUrl('parametrizacao_simples.pdf'),
   },
