@@ -122,7 +122,7 @@ update public.profiles set role = 'admin' where email = 'seu@email.com';
 
 ## Relação com produção (VPS)
 
-O ensaio do deploy de produção (docker-compose oficial, idêntico ao que roda num VPS)
-está documentado fora do repo em `~/Developer/PlanteiCerto-infra/ENSAIO-COMPOSE.md`,
-junto com o plano de migração. Resumo do fluxo: desenvolver aqui → commitar migrations
-e functions → aplicar no VPS (`psql` + copiar functions) → deploy do frontend na Vercel.
+A VPS de produção já está no ar — arquitetura, acesso, runbook de operações,
+backup e status do cutover estão documentados em [`INFRAESTRUTURA.md`](./INFRAESTRUTURA.md).
+Resumo do fluxo: desenvolver aqui → commitar migrations e functions → aplicar
+no VPS (`psql` + copiar functions) → deploy do frontend na Vercel.
