@@ -90,6 +90,35 @@ Backend: **MinIO** (S3-compatible), containers `supabase-minio-1` +
   oficial do `docker-compose.yml` vem com `GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI`
   errado (`${API_EXTERNAL_URL}/callback`, falta o `/auth/v1`) — já corrigido na
   VPS, mas cuidado se recriar do zero.
+- **`supabase db dump` (schema) exclui objetos anexados em tabelas dos schemas
+  `auth`/`storage`** ("schemas internos"), mesmo quando a lógica é 100% da
+  aplicação. O restore inicial (feito com dump bruto da cloud, não com as
+  migrations do repo) ficou faltando dois pedaços — **ambos já cobertos pela
+  migration reconciliada `supabase/migrations/20260702000001_auth_storage_from_prod.sql`**,
+  que não foi usada no restore de hoje. Descobertos só **depois do cutover**,
+  com usuário real:
+  1. **Trigger `on_auth_user_created`** (cria a linha em `public.profiles` no
+     signup — a função `handle_new_user()` restaurou normal, só o
+     `CREATE TRIGGER ... ON auth.users` que faltou). Sintoma: login OAuth
+     funciona, mas toda query em `profiles` dá `406 PGRST116` (zero linhas).
+  2. **RLS de `storage.objects` sem nenhuma policy** — `rowsecurity = true` e
+     zero policies bloqueia upload pra todo mundo (admin de árvore, avatar),
+     service_role continua funcionando por bypassar RLS (por isso passou
+     despercebido nos nossos testes, que usaram service_role/scripts, não a
+     UI real). Mais grave que o trigger — vale testar upload de imagem logo
+     depois de qualquer restore futuro.
+
+  Fix aplicado (idempotente, pode rodar de novo sem problema — `ON CONFLICT`/
+  policies teriam que ser dropadas antes de recriar se já existirem):
+  ```sql
+  -- rodar o conteúdo completo de 20260702000001_auth_storage_from_prod.sql
+  ```
+  Checklist pós-restore pra não repetir isso:
+  ```sql
+  select tgname from pg_trigger where tgrelid = 'auth.users'::regclass and not tgisinternal;
+  select count(*) from pg_policies where schemaname='storage' and tablename='objects';
+  ```
+  (esperado: 1 trigger, 10 policies)
 - **`SITE_URL`/`ADDITIONAL_REDIRECT_URLS`**: precisam apontar pro domínio real do
   frontend, senão o GoTrue cai no fallback (`localhost:3000`, valor padrão do
   template) depois do login — isso quebrou o Google OAuth logo após o cutover.
