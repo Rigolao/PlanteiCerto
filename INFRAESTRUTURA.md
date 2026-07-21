@@ -4,9 +4,10 @@ Este documento descreve a infraestrutura real que roda (ou vai rodar) o backend 
 PlanteiCerto: um Supabase self-hosted numa VPS, migrado do Supabase Cloud gerenciado.
 O frontend continua na Vercel em ambos os cenários.
 
-**Status atual:** VPS 100% configurada e validada, rodando **em paralelo** ao Supabase
-Cloud. O app de produção real (Vercel) ainda aponta pro Cloud — o cutover final
-(trocar as env vars da Vercel) ainda não aconteceu.
+**Status atual:** cutover feito — o app de produção real (`www.planteicerto.com.br`,
+Vercel) já aponta pra VPS. Supabase Cloud continua ativo (não cancelado) como
+rede de segurança durante o período de observação; rollback é só reverter a env
+var da Vercel enquanto o Cloud não for cancelado.
 
 ## Arquitetura
 
@@ -89,6 +90,13 @@ Backend: **MinIO** (S3-compatible), containers `supabase-minio-1` +
   oficial do `docker-compose.yml` vem com `GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI`
   errado (`${API_EXTERNAL_URL}/callback`, falta o `/auth/v1`) — já corrigido na
   VPS, mas cuidado se recriar do zero.
+- **`SITE_URL`/`ADDITIONAL_REDIRECT_URLS`**: precisam apontar pro domínio real do
+  frontend, senão o GoTrue cai no fallback (`localhost:3000`, valor padrão do
+  template) depois do login — isso quebrou o Google OAuth logo após o cutover.
+  Valores corretos hoje: `SITE_URL=https://www.planteicerto.com.br` (canônico —
+  `planteicerto.com.br` sem `www` dá 307 pra `www`); `ADDITIONAL_REDIRECT_URLS`
+  inclui `www`, raiz, `/reset-password` de ambos, e `http://localhost:5173`
+  (+ `/reset-password`) pra dev local.
 
 ## MCP (self-hosted)
 
@@ -137,16 +145,20 @@ não é superuser aqui).
 
 Vários segredos passaram por sessões de chat durante a configuração inicial
 (senha do Postgres Cloud, `S3_PROTOCOL_ACCESS_KEY_SECRET`, `DASHBOARD_PASSWORD`,
-Google Client Secret). **Devem ser rotacionados** antes do cutover final — nenhum
-foi rotacionado ainda até a última atualização deste documento.
+Google Client Secret). **Devem ser rotacionados** — nenhum foi rotacionado ainda
+até a última atualização deste documento.
 
-## Cutover (pendente)
+## Cutover
 
-Checklist para migrar o app real da nuvem pra VPS:
+**Feito em 2026-07-21.** Checklist executado:
 
-1. Rodar VPS em paralelo alguns dias, smoke test diário
-2. Re-sync final do banco/storage (dados mudam desde o dump inicial)
-3. Deploy na Vercel com `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` novos
-   (`vercel.json` já tem o CSP liberado pra `api.planteicerto.com.br`)
-4. Observar 48-72h
-5. Dump final do Cloud guardado, cancelar assinatura Supabase Pro
+1. ~~Rodar VPS em paralelo alguns dias, smoke test diário~~ — validado no mesmo dia
+2. ✅ Re-sync final do banco/storage — zero drift (contagens e `rclone check`
+   batendo 100% com a cloud, nada mudou desde a migração inicial)
+3. ✅ Deploy na Vercel com `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` novos
+4. ⏳ Observar 48-72h — em andamento
+5. ⏳ Dump final do Cloud guardado, cancelar assinatura Supabase Pro — pendente
+   até o período de observação terminar
+
+**Rollback**: reverter as env vars da Vercel pro Cloud + redeploy, enquanto a
+assinatura do Supabase Cloud não for cancelada (passo 5).
