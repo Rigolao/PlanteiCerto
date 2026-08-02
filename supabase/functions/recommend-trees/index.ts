@@ -51,6 +51,23 @@ interface Tree {
   potencial_sombra_1a5: number | null;
   contribuicao_biodiversidade_1a5: number | null;
   ativa?: boolean;
+  // Projeção de 10 anos — espelha src/types/tree.ts (Deno não importa de src/).
+  // Não entra na pontuação hoje; vem no select('*') e é devolvida ao cliente.
+  dap_10a_cm?: number | null;
+  dap_10a_min_cm?: number | null;
+  dap_10a_max_cm?: number | null;
+  altura_10a_m?: number | null;
+  altura_10a_min_m?: number | null;
+  altura_10a_max_m?: number | null;
+  biomassa_aerea_10a_kg?: number | null;
+  carbono_armazenado_10a_kg?: number | null;
+  co2e_10a_kg?: number | null;
+  sobrevivencia_10a_pct?: number | null;
+  co2e_esperado_por_muda_10a_kg?: number | null;
+  classe_bvoc?: string | null;
+  evidencia_bvoc?: string | null;
+  confianca_bvoc?: string | null;
+  exibir_aviso_bvoc?: boolean | null;
 }
 
 type Answers = Record<string, string>;

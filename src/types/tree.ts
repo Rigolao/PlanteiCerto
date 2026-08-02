@@ -35,6 +35,28 @@ export interface Arvore {
   potencial_sombra_1a5: number | null;
   contribuicao_biodiversidade_1a5: number | null;
   ativa?: boolean;
+  // Projeção de crescimento em 10 anos (cenário fixo: muda de DAP 3cm / altura 1,5m
+  // em boas condições). Opcionais porque nem toda espécie tem projeção — palmeiras
+  // não seguem a alometria de DAP — e o fallback estático de src/data/trees.ts não os traz.
+  dap_10a_cm?: number | null;
+  dap_10a_min_cm?: number | null;
+  dap_10a_max_cm?: number | null;
+  altura_10a_m?: number | null;
+  altura_10a_min_m?: number | null;
+  altura_10a_max_m?: number | null;
+  biomassa_aerea_10a_kg?: number | null;
+  carbono_armazenado_10a_kg?: number | null;
+  co2e_10a_kg?: number | null;
+  sobrevivencia_10a_pct?: number | null;
+  co2e_esperado_por_muda_10a_kg?: number | null;
+  classe_bvoc?: ClasseBvoc | null;
+  evidencia_bvoc?: string | null;
+  confianca_bvoc?: ConfiancaBvoc | null;
+  exibir_aviso_bvoc?: boolean | null;
 }
+
+export type ClasseBvoc = 'baixo' | 'moderado' | 'alto' | 'desconhecido' | 'indeterminado';
+
+export type ConfiancaBvoc = 'baixa' | 'baixa-média' | 'média' | 'média-alta';
 
 export type FiltroAtributo = 'todos' | 'nativas' | 'sem_espinhos';

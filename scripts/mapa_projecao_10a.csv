@@ -1,0 +1,150 @@
+tree_id,ativa,nome_popular_banco,nome_cientifico_banco,especie_id,nome_cientifico_planilha,metodo
+1,t,Oiti,Licania tomentosa,99,Moquilea tomentosa,nome_popular
+2,t,Resedá extremosa,Lagerstroemia indica,129,Lagerstroemia indica,nome_cientifico
+3,t,Pata-de-vaca,Bauhinia forficata,102,Bauhinia forficata,nome_cientifico
+4,t,Sabão-de-soldado,Sapindus saponaria,130,Sapindus saponaria,nome_cientifico
+5,t,Uvaia,Eugenia pyriformis Cambess.,137,Eugenia pyriformis,nome_cientifico
+6,f,Farinha-seca,Albizia niopoides (Spruce ex Benth.) Burkart,52,Albizia hasslerii,nome_popular
+7,t,Guaçatonga,Casearia sylvestris Sw.,59,Casearia sylvestris,nome_cientifico
+8,t,Açoita-cavalo,Luehea divaricata Mart.,1,Luehea divaricata,nome_cientifico
+9,t,Aldrago,Pterocarpus violaceus Vogel,2,Pterocarpus violaceus,nome_cientifico
+10,t,Aldrago miúdo,Pterocarpus rohrii Vahl,3,Pterocarpus rohrii,nome_cientifico
+11,t,Amendoim-do-campo,Platypodium elegans Vogel,10,Platypodium elegans,nome_cientifico
+12,t,Alfeneiro-do-japão,Ligustrum lucidum W.T. Aiton,6,Ligustrum lucidum,nome_cientifico
+13,t,Alecrim-de-campinas,Holocalyx balansae Micheli,4,Holocalyx balansae,nome_cientifico
+14,t,Algodão-do-brejo,Hibiscus pernambucensis,7,Talipariti pernambucense,nome_popular
+15,f,Almecega,Protium heptaphyllum (Aubl.) Marchand,8,Protium heptaphyllum,nome_cientifico
+16,t,Amarelinho,Helietta apiculata,9,Helietta apiculata,nome_cientifico
+17,t,Araçá,Psidium cattleianum Sabine,13,Psidium cattleyanum,nome_popular
+18,t,Angelim-doce,Andira fraxinifolia,12,Andira fraxinifolia,nome_cientifico
+19,t,Araçarana,Calyptranthes clusiifolia (Miq.) O.Berg,14,Calyptranthes clusiifolia,nome_cientifico
+20,t,Aroeira-pimenteira,Schinus terebinthifolius,16,Schinus terebinthifolius,nome_cientifico
+21,t,Astrapéia,Dombeya wallichii,17,Dombeya wallichii,nome_cientifico
+22,t,Bico-de-pato,Machaerium aculeatum,18,Machaerium aculeatum,nome_cientifico
+23,t,Ipê-roxo-de-bola,Handroanthus impetiginosus (Mart. ex DC.) Mattos,75,Handroanthus impetiginosus,override
+25,t,Pitangueira,Eugenia uniflora,124,Eugenia uniflora,nome_cientifico
+32,f,Ipê-branco,Handroanthus albus,71,Handroanthus roseo-albus,nome_popular
+70,t,"Sapateiro, tobocuva",Pera glabrata,131,Pera glabrata,nome_cientifico
+71,t,Sibipiruna,Caesalpinia peltophoroides,133,Cenostigma pluviosum,nome_popular
+72,t,Sombreiro,Clitoria fairchildiana,134,Clitoria fairchildiana,nome_cientifico
+73,t,Suinã,Erythrina speciosa,135,Erythrina speciosa,nome_cientifico
+74,t,Tarumã-do-cerrado,Vitex polygama,136,Vitex polygama,nome_cientifico
+75,t,Sapucaia,Lecythis pisonis,132,Lecythis pisonis,nome_cientifico
+76,t,Calicarpa,Callicarpa reevesii,21,Callicarpa reevesii,nome_cientifico
+77,t,Camboatá,Cupania vernalis,24,Cupania vernalis,nome_cientifico
+78,t,Pau-marfim,Balfourodendron riedelianum,113,Balfourodendron riedelianum,nome_cientifico
+79,t,Cassia imperial,Senna fistula,37,Cassia fistula,nome_popular
+80,t,Aldrago miúdo,Pterocarpus rohrii,3,Pterocarpus rohrii,nome_cientifico
+81,t,Canela cheirosa,Endlicheria paniculata,29,Endlicheria paniculata,nome_cientifico
+82,t,Amendoim-do-campo,Platypodium elegans,10,Platypodium elegans,nome_cientifico
+83,t,Canela sassafrás,Ocotea odorifera,30,Ocotea odorifera,nome_cientifico
+84,t,Capororoca,Rapanea ferruginea Aubl. Mez,33,Myrsine coriacea,nome_popular
+85,t,Capororoca-do-cerrado,Myrsine guianensis,34,Myrsine guianensis,nome_cientifico
+86,t,Rabo-de-cutia,Stifftia crysantha,127,Stifftia chrysantha,nome_popular
+87,t,Almecega,Protium heptaphyllum,8,Protium heptaphyllum,nome_cientifico
+88,t,Canela amarela,Ocotea velutina (Nees) Rohwer,28,Ocotea velutina,nome_cientifico
+89,t,Catiguá vermelho,Trichilia claussenii C.DC.,40,Trichilia claussenii,nome_cientifico
+91,t,Ipê-roxo-da-mata,Tabebuia avellanedae,74,Handroanthus impetiginosus,nome_popular
+92,t,Pau-terra-mirim,Qualea parviflora,118,Qualea parviflora,nome_cientifico
+93,t,Alfeneiro-do-japão,Ligustrum lucidum,6,Ligustrum lucidum,nome_cientifico
+94,t,Farinha seca,Albizia hasslerii,52,Albizia hasslerii,nome_cientifico
+95,t,"Aleluia, pau-fava",Senna macranthera,5,Senna macranthera,nome_cientifico
+96,t,Alecrim-de-campinas,Holocalyx balansae,4,Holocalyx balansae,nome_cientifico
+97,t,Araçarana,Calyptranthes clusiifolia,14,Calyptranthes clusiifolia,nome_cientifico
+98,t,Aroeira-pimenteira,Schinus terebinthifolia,16,Schinus terebinthifolius,nome_popular
+99,t,Ipê-roxo-de-bola,Handroanthus impetiginosus,75,Handroanthus impetiginosus,override
+104,t,Ipê-branco,Tabebuia roseo-alba,71,Handroanthus roseo-albus,nome_popular
+105,t,Monguba,Pachira aquatica Aubl.,95,Pachira aquatica,nome_cientifico
+106,t,Pau-rei,Pterygota brasiliensis Allemão,115,Pterygota brasiliensis,nome_cientifico
+107,t,Rabo-de-cutia,Stifftia crysantha Mikan,127,Stifftia chrysantha,nome_popular
+108,t,Açoita-cavalo,Luehea divaricata,1,Luehea divaricata,nome_cientifico
+109,t,Amoreira,Morus nigra,11,Morus nigra,nome_cientifico
+110,t,Cabreúva-amarela,Myrocarpus frondosus,19,Myrocarpus frondosus,nome_cientifico
+111,t,Cabreúva-vermelha,Myroxylon peruiferum L.f.,20,Myroxylon peruiferum,nome_cientifico
+112,t,Calistemon,Callistemon viminalis,22,Melaleuca viminalis,override
+113,t,Calistemon,Callistemon imperialis,23,Melaleuca viminalis,override
+114,t,Cambuci,Campomanesia phaea,25,Campomanesia phaea,nome_cientifico
+115,t,Cambuí,Myrciaria tenella,26,Myrciaria tenella,nome_cientifico
+116,t,Canafístula,Peltophorum dubium,27,Peltophorum dubium,nome_cientifico
+117,t,Capororoca,Rapanea ferruginea,33,Myrsine coriacea,nome_popular
+118,t,Caputuna-preta,Metrodorea nigra,35,Metrodorea nigra,nome_cientifico
+119,t,"Caqui-do-mato, olho-de-boi",Matayba eleagnoides,36,Matayba elaeagnoides,nome_popular
+120,t,Cassia imperial,Senna fistula (L.) H.S.Irwin & Barneby,37,Cassia fistula,nome_popular
+121,t,"Cassia javanesa, cassia rosa",Cassia javanica,38,Cassia javanica,nome_cientifico
+122,t,Catiguá,Trichilia hirta L.,39,Trichilia hirta,nome_cientifico
+123,t,Catiguá vermelho,Trichilia claussenii,40,Trichilia claussenii,nome_cientifico
+124,t,Cedro,Cedrela fissilis,41,Cedrela fissilis,nome_cientifico
+125,t,Cerejeira-do-rio-grande,Hexachlamys edulis,42,Eugenia myrcianthes,nome_popular
+126,t,Chichá,Sterculia chicha St. Hil.,43,Sterculia striata,nome_popular
+127,t,Copaíba,Copaifera langsdorffii,44,Copaifera langsdorffii,nome_cientifico
+128,t,Coração-de-negro,Poecilanthe parviflora,45,Poecilanthe parviflora,nome_cientifico
+129,t,"Corrupita, abricó-de-macaco",Couroupita guianensis,46,Couroupita guianensis,nome_cientifico
+130,t,Craveiro-da-índia,Syzygium aromaticum,47,Syzygium aromaticum,nome_cientifico
+131,t,Dedaleira,Lafoensia pacari,48,Lafoensia pacari,nome_cientifico
+132,t,"Embira-de-sapo, feijão cru",Lonchocarpus muehlbergianus,49,Lonchocarpus muehlbergianus,nome_cientifico
+133,t,Falsa murta,Murraya paniculata,50,Murraya paniculata,nome_cientifico
+134,t,"Falso-timbó, ingá-bravo",Lonchocarpus guilleminianus,51,Lonchocarpus guilleminianus,nome_cientifico
+135,t,"Faveira, sucupira lisa",Pterodon emarginatus,53,Pterodon emarginatus,nome_cientifico
+136,t,Folha-de-castanha,Ouratea castaneifolia,54,Ouratea castaneifolia,nome_cientifico
+137,t,"Fruto-de-pombo, murta-branca",Allophyllus edulis,55,Allophylus edulis,nome_popular
+138,t,Genipapo,Genipa americana,56,Genipa americana,nome_cientifico
+139,t,Grumixama,Eugenia brasiliensis,58,Eugenia brasiliensis,nome_cientifico
+140,t,Guaçatonga,Casearia sylvestris,59,Casearia sylvestris,nome_cientifico
+141,t,Guaraiuva,Savia dictyocarpa,60,Savia dictyocarpa,nome_cientifico
+142,t,Guarantã,Esenbeckia leiocarpa,61,Esenbeckia leiocarpa,nome_cientifico
+143,t,Guaritá,Astronium graveolens,62,Astronium graveolens,nome_cientifico
+144,t,Ingá do brejo,Inga uruguensis,63,Inga vera,nome_popular
+145,t,Ipê-amarelo,Tabebuia chrysotricha,65,Handroanthus chrysotrichus,override
+146,t,Ipê-amarelo,Tabebuia aurea,66,Handroanthus caraiba,override
+147,t,Ipê-amarelo,Tabebuia ochracea,67,Handroanthus ochraceus,override
+148,t,Ipê-amarelo,Tabebuia serratifolia,68,Handroanthus serratifolius,override
+149,t,Ipê-amarelo-da-mata,Tabebuia vellosoi,69,Handroanthus vellosoi,nome_popular
+150,t,Ipê-amarelo-do-brejo,Handroanthus umbellatus,70,Handroanthus umbellatus,nome_cientifico
+151,t,Ipê-rosa,Tabebuia pentaphylla,72,Tabebuia rosea,nome_popular
+152,t,Ipê-roxo-anão,Tabebuia avellanedae var. paulensis,73,Handroanthus impetiginosus,nome_popular
+153,t,Ipê-roxo-de-bola,Tabebuia impetiginosa,75,Handroanthus impetiginosus,nome_popular
+154,t,Ipê-roxo,Tabebuia heptaphylla,76,Handroanthus heptaphyllus,nome_popular
+155,f,Jacarandá paulista,Machaerium villosum,77,Machaerium villosum,nome_cientifico
+156,t,Jacarandá-da-Bahia,Dalbergia nigra,78,Dalbergia nigra,nome_cientifico
+157,t,Jambo amarelo,Syzygium jambos (L.) Alston,79,Syzygium jambos,nome_cientifico
+158,t,Jambo vermelho,Syzygium malaccense,80,Syzygium malaccense,nome_cientifico
+159,t,Jatobá,Hymenaea courbaril L.,81,Hymenaea courbaril,nome_cientifico
+160,t,Jatobá-do-cerrado,Hymenaea stigonocarpa,82,Hymenaea stigonocarpa,nome_cientifico
+161,t,Jequitibá branco,Cariniana estrellensis,83,Cariniana estrellensis,nome_cientifico
+162,t,Jequitibá rosa,Cariniana legalis (Mart.) Kuntze,84,Cariniana legalis,nome_cientifico
+163,t,Lofântera,Lophanthera lactescens,86,Lophanthera lactescens,nome_cientifico
+164,t,Louro pardo,Cordia trichotoma,87,Cordia trichotoma,nome_cientifico
+165,t,Magnólia,Magnolia grandiflora,88,Magnolia grandiflora,nome_cientifico
+166,t,Magnólia amarela,Michelia champaca,89,Magnolia champaca,nome_popular
+167,t,Manacá-da-serra,Tibouchina mutabilis,90,Pleroma mutabile,nome_popular
+168,t,Maria-mole,Guapira opposita,91,Guapira opposita,nome_cientifico
+169,t,"Marinheiro, camboatã",Guarea guidonia,92,Guarea guidonia,nome_cientifico
+170,t,Melaleuca,Melaleuca leucadendron,93,Melaleuca leucadendron,nome_cientifico
+171,t,Mirindiba,Lafoensia glyptocarpa,94,Lafoensia glyptocarpa,nome_cientifico
+172,t,Mulungu,Erythrina falcata,96,Erythrina falcata,nome_cientifico
+173,t,Mulungu,Erythrina mulungu,97,Erythrina verna,override
+174,t,"Nó-de-porco, resedá nacional",Physocalymma scaberrimum,98,Physocalymma scaberrimum,nome_cientifico
+175,t,Olho-de-cabra,Ormosia arborea,100,Ormosia arborea,nome_cientifico
+176,t,Paineira,Ceiba speciosa,101,Ceiba speciosa,nome_cientifico
+177,t,Pata-de-vaca,Bauhinia variegata,103,Bauhinia variegata,nome_cientifico
+178,t,Pata-de-vaca,Bauhinia blakeana,104,Bauhinia blakeana,nome_cientifico
+179,t,Pata-de-vaca rosa,Bauhinia monandra,105,Bauhinia monandra,nome_cientifico
+180,t,Pata-de-vaca roxa,Bauhinia purpurea,106,Bauhinia purpurea,nome_cientifico
+181,t,Pau cigarra,Senna multijuga,107,Senna multijuga,nome_cientifico
+182,t,Pau d'alho,Gallesia integrifolia,108,Gallesia integrifolia,nome_cientifico
+183,t,Pau mulato,Calycophyllum spruceanum,109,Calycophyllum spruceanum,nome_cientifico
+184,t,Pau-brasil,Caesalpinia echinata,110,Paubrasilia echinata,nome_popular
+185,t,Pau-de-tucano,Vochysia tucanorum,111,Vochysia tucanorum,nome_cientifico
+186,t,Pau-ferro,Caesalpinia leiostachya,112,Libidibia ferrea,nome_popular
+187,t,Pau-pereira,Platycyamus regnellii,114,Platycyamus regnellii,nome_cientifico
+188,t,Pau-rei,Pterygota brasiliensis,115,Pterygota brasiliensis,nome_cientifico
+189,t,Pau-ripa,Luetzelburgia auriculata,116,Luetzelburgia auriculata,nome_cientifico
+190,t,Peito-do-pombo,Tapirira guianensis,119,Tapirira guianensis,nome_cientifico
+191,t,Peroba poca,Aspidosperma cylindrocarpon,120,Aspidosperma cylindrocarpon,nome_cientifico
+192,t,Peroba rosa,Aspidosperma polyneuron,121,Aspidosperma polyneuron,nome_cientifico
+193,t,Pindaiva,Duguetia lanceolata,122,Duguetia lanceolata,nome_cientifico
+194,t,Pinha-do-brejo,Magnolia ovata (syn. Talauma ovata),123,Magnolia ovata,nome_cientifico
+195,t,Quaresmeira,Tibouchina granulosa,125,Pleroma granulosum,nome_popular
+196,t,Quereltéria,Koelreuteria paniculata,126,Koelreuteria paniculata,nome_cientifico
+197,t,"Pau-terra, jundiaí",Qualea jundiahy,117,Qualea jundiahy,nome_cientifico
+198,t,Resedá de folha graúda,Lagerstroemia speciosa,128,Lagerstroemia speciosa,nome_cientifico

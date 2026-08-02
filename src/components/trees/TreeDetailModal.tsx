@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import type { Arvore } from '../../types/tree';
 import { Modal } from '../ui/Modal';
-import { Sprout, ShieldCheck, CalendarDays, Building2 } from 'lucide-react';
+import { Sprout, ShieldCheck, CalendarDays, Building2, TrendingUp, Info } from 'lucide-react';
 
 interface TreeDetailModalProps {
   arvore: Arvore | null;
@@ -16,6 +16,112 @@ function compatFiacaoLabel(v: 'N' | 'A' | 'C' | null): string {
   if (v === 'A') return 'Compatível c/ Alta Tensão';
   if (v === 'C') return 'Compatível';
   return '—';
+}
+
+const CLASSE_BVOC_LABEL: Record<string, string> = {
+  baixo: 'Baixa',
+  moderado: 'Moderada',
+  alto: 'Alta',
+  desconhecido: 'Desconhecida',
+  indeterminado: 'Indeterminada',
+};
+
+// Constantes da planilha de projeção do orientador — iguais para todas as espécies.
+const CENARIO_PROJECAO = 'Muda de DAP 3 cm e altura 1,5 m, plantada em boas condições.';
+
+/** Formata número em pt-BR com no máximo `casas` decimais, sem zeros à toa. */
+function num(valor: number, casas = 1): string {
+  return valor.toLocaleString('pt-BR', { maximumFractionDigits: casas });
+}
+
+function ProjecaoTile({ label, valor, detalhe }: { label: string; valor: string; detalhe?: string }) {
+  return (
+    <div className="bg-muted rounded-md px-2 py-1.5">
+      <div className="text-[9px] text-muted-foreground">{label}</div>
+      <div className="text-xs font-semibold text-foreground">{valor}</div>
+      {detalhe && <div className="text-[9px] text-muted-foreground">{detalhe}</div>}
+    </div>
+  );
+}
+
+/**
+ * Projeção de crescimento em 10 anos. Só aparece para espécies que têm a projeção
+ * do orientador — palmeiras (ex: Jerivá) não têm, porque não seguem a alometria de DAP.
+ */
+function ProjecaoSection({ arvore }: { arvore: Arvore }) {
+  if (arvore.dap_10a_cm == null) return null;
+
+  return (
+    <div className="py-3 px-3.5 border-b border-border last:border-b-0">
+      <div className="flex items-center gap-1.5 mb-2">
+        <TrendingUp size={13} className="text-primary" />
+        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+          Projeção em 10 anos
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        <ProjecaoTile
+          label="DAP"
+          valor={`${num(arvore.dap_10a_cm, 2)} cm`}
+          detalhe={arvore.dap_10a_min_cm != null && arvore.dap_10a_max_cm != null
+            ? `entre ${num(arvore.dap_10a_min_cm, 2)} e ${num(arvore.dap_10a_max_cm, 2)} cm`
+            : undefined}
+        />
+        {arvore.altura_10a_m != null && (
+          <ProjecaoTile
+            label="Altura"
+            valor={`${num(arvore.altura_10a_m, 2)} m`}
+            detalhe={arvore.altura_10a_min_m != null && arvore.altura_10a_max_m != null
+              ? `entre ${num(arvore.altura_10a_min_m, 2)} e ${num(arvore.altura_10a_max_m, 2)} m`
+              : undefined}
+          />
+        )}
+        {arvore.co2e_10a_kg != null && (
+          <ProjecaoTile label="CO₂e capturado" valor={`${num(arvore.co2e_10a_kg)} kg`} />
+        )}
+        {arvore.co2e_esperado_por_muda_10a_kg != null && (
+          <ProjecaoTile
+            label="CO₂e esperado por muda"
+            valor={`${num(arvore.co2e_esperado_por_muda_10a_kg)} kg`}
+            detalhe="já descontada a mortalidade"
+          />
+        )}
+        {arvore.sobrevivencia_10a_pct != null && (
+          <ProjecaoTile label="Sobrevivência" valor={`${num(arvore.sobrevivencia_10a_pct)}%`} />
+        )}
+        {arvore.biomassa_aerea_10a_kg != null && (
+          <ProjecaoTile
+            label="Biomassa aérea"
+            valor={`${num(arvore.biomassa_aerea_10a_kg)} kg`}
+            detalhe={arvore.carbono_armazenado_10a_kg != null
+              ? `${num(arvore.carbono_armazenado_10a_kg)} kg de carbono`
+              : undefined}
+          />
+        )}
+      </div>
+
+      {arvore.classe_bvoc && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+            Emissão de BVOC: {CLASSE_BVOC_LABEL[arvore.classe_bvoc] ?? arvore.classe_bvoc}
+          </span>
+        </div>
+      )}
+
+      {arvore.exibir_aviso_bvoc && (
+        <div className="flex items-start gap-1.5 mt-2">
+          <Info size={11} className="text-muted-foreground shrink-0 mt-0.5" />
+          <span className="text-[10px] text-muted-foreground leading-snug">
+            Classificação de BVOC com evidência limitada
+            {arvore.evidencia_bvoc ? ` (${arvore.evidencia_bvoc})` : ''}
+            {arvore.confianca_bvoc ? ` — confiança ${arvore.confianca_bvoc}` : ''}.
+          </span>
+        </div>
+      )}
+
+      <p className="text-[10px] text-muted-foreground mt-2 leading-snug">{CENARIO_PROJECAO}</p>
+    </div>
+  );
 }
 
 function BarIndicator({ label, value }: { label: string; value: number }) {
@@ -249,6 +355,8 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             )}
           </div>
         </div>
+
+        <ProjecaoSection arvore={displayArvore} />
 
       </div>
     </Modal>

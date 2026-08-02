@@ -52,7 +52,30 @@ const defaultValues: TreeFormData = {
   tolerancia_poda_1a5: null,
   potencial_sombra_1a5: null,
   contribuicao_biodiversidade_1a5: null,
+  dap_10a_cm: null,
+  dap_10a_min_cm: null,
+  dap_10a_max_cm: null,
+  altura_10a_m: null,
+  altura_10a_min_m: null,
+  altura_10a_max_m: null,
+  biomassa_aerea_10a_kg: null,
+  carbono_armazenado_10a_kg: null,
+  co2e_10a_kg: null,
+  sobrevivencia_10a_pct: null,
+  co2e_esperado_por_muda_10a_kg: null,
+  classe_bvoc: null,
+  evidencia_bvoc: null,
+  confianca_bvoc: null,
+  exibir_aviso_bvoc: false,
 };
+
+// Constantes da planilha de projeção: valem para todas as espécies, então são
+// contexto fixo na tela em vez de coluna no banco.
+const CENARIO_PROJECAO = 'Cenário: boas condições · muda inicial DAP 3 cm / altura 1,5 m · horizonte de 10 anos';
+
+// Selects com opção "—": sem isso a opção vazia grava '' e o CHECK do enum
+// no Postgres rejeita a linha inteira.
+const enumOpcional = { setValueAs: (v: string) => (v === '' ? null : v) };
 
 export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
   const isEditing = !!tree;
@@ -179,7 +202,7 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Porte</label>
               <select
-                {...register('porte_altura_classe')}
+                {...register('porte_altura_classe', enumOpcional)}
                 className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 <option value="">—</option>
@@ -194,7 +217,7 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Classe Copa</label>
               <select
-                {...register('copa_classe')}
+                {...register('copa_classe', enumOpcional)}
                 className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 <option value="">—</option>
@@ -291,7 +314,7 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Compatibilidade Fiação</label>
               <select
-                {...register('compat_fiacao')}
+                {...register('compat_fiacao', enumOpcional)}
                 className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 <option value="">—</option>
@@ -318,6 +341,67 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
                 <CheckboxField label="Presença de Espinhos" register={register} name="presenca_espinhos" />
                 <CheckboxField label="Substâncias Irritantes" register={register} name="presenca_subst_irritantes" />
               </div>
+            </div>
+          </FormSection>
+
+          {/* Seção 6: Projeção de Crescimento (10 anos) */}
+          <FormSection title="Projeção de Crescimento (10 anos)" defaultOpen={false}>
+            <p className="sm:col-span-2 text-xs text-muted-foreground -mt-1">{CENARIO_PROJECAO}</p>
+
+            <NumberField label="DAP aos 10 anos (cm)" register={register} name="dap_10a_cm" />
+            <NumberField label="Altura aos 10 anos (m)" register={register} name="altura_10a_m" />
+            <NumberField label="DAP mínimo (cm)" register={register} name="dap_10a_min_cm" />
+            <NumberField label="Altura mínima (m)" register={register} name="altura_10a_min_m" />
+            <NumberField label="DAP máximo (cm)" register={register} name="dap_10a_max_cm" />
+            <NumberField label="Altura máxima (m)" register={register} name="altura_10a_max_m" />
+            <NumberField label="Biomassa aérea (kg)" register={register} name="biomassa_aerea_10a_kg" />
+            <NumberField label="Carbono armazenado (kg C)" register={register} name="carbono_armazenado_10a_kg" />
+            <NumberField label="CO₂e (kg)" register={register} name="co2e_10a_kg" />
+            <NumberField label="CO₂e esperado por muda (kg)" register={register} name="co2e_esperado_por_muda_10a_kg" />
+            <NumberField label="Sobrevivência (%)" register={register} name="sobrevivencia_10a_pct" />
+
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Classe BVOC</label>
+              <select
+                {...register('classe_bvoc', enumOpcional)}
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+              >
+                <option value="">—</option>
+                <option value="baixo">Baixo</option>
+                <option value="moderado">Moderado</option>
+                <option value="alto">Alto</option>
+                <option value="desconhecido">Desconhecido</option>
+                <option value="indeterminado">Indeterminado</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Confiança da Classe BVOC</label>
+              <select
+                {...register('confianca_bvoc', enumOpcional)}
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+              >
+                <option value="">—</option>
+                <option value="baixa">Baixa</option>
+                <option value="baixa-média">Baixa-média</option>
+                <option value="média">Média</option>
+                <option value="média-alta">Média-alta</option>
+              </select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Evidência da Classe BVOC</label>
+              <input
+                type="text"
+                maxLength={200}
+                placeholder="Ex: fator de gênero i-Tree"
+                {...register('evidencia_bvoc')}
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <CheckboxField label="Exibir ressalva sobre a classificação BVOC" register={register} name="exibir_aviso_bvoc" />
             </div>
           </FormSection>
         </div>
@@ -350,10 +434,12 @@ function NumberField({ label, register, name }: { label: string; register: UseFo
   return (
     <div>
       <label className="block text-xs font-medium text-muted-foreground mb-1">{label}</label>
+      {/* setValueAs sozinho: com valueAsNumber junto o react-hook-form ignora o
+          setValueAs, e um campo limpo vira NaN — que o Postgres rejeita em numeric */}
       <input
         type="number"
         step="any"
-        {...register(name, { valueAsNumber: true, setValueAs: (v: string) => v === '' ? null : Number(v) })}
+        {...register(name, { setValueAs: (v: string) => v === '' ? null : Number(v) })}
         className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
       />
     </div>
