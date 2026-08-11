@@ -112,6 +112,10 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
       sorted.sort((a, b) => (ordem[a.porte_altura_classe ?? ''] ?? 3) - (ordem[b.porte_altura_classe ?? ''] ?? 3));
     } else if (ordenacao === 'mais_sombra') {
       sorted.sort((a, b) => (b.potencial_sombra_1a5 ?? 0) - (a.potencial_sombra_1a5 ?? 0));
+    } else if (ordenacao === 'mais_co2e') {
+      sorted.sort((a, b) => (b.co2e_esperado_por_muda_10a_kg ?? 0) - (a.co2e_esperado_por_muda_10a_kg ?? 0));
+    } else if (ordenacao === 'maior_crescimento') {
+      sorted.sort((a, b) => (b.altura_10a_m ?? 0) - (a.altura_10a_m ?? 0));
     }
 
     return sorted;
