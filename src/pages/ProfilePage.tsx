@@ -50,7 +50,7 @@ export function ProfilePage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10">
+    <div className="max-w-4xl mx-auto px-6 py-10">
       <h1 className="text-3xl font-bold mb-8">Meu Perfil</h1>
 
       <div className="bg-card border border-border rounded-2xl shadow-sm p-6 md:p-8 mb-8">
