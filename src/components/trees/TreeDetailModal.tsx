@@ -444,7 +444,9 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
               </span>
             )}
             <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-              Espinhos: {displayArvore.presenca_espinhos ? 'Sim' : 'Não'}
+              Espinhos: {displayArvore.presenca_espinhos == null
+                ? 'Não informado'
+                : displayArvore.presenca_espinhos ? 'Sim' : 'Não'}
             </span>
             {displayArvore.presenca_subst_irritantes != null && (
               <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">

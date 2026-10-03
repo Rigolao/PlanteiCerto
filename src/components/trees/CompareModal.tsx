@@ -130,7 +130,7 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Espinhos</span>
-                  <span className="font-semibold text-foreground">{tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
+                  <span className="font-semibold text-foreground">{tree.presenca_espinhos == null ? 'Não informado' : tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
                 </div>
               </div>
             ))}
@@ -279,7 +279,7 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Espinhos</span>
-                        <span className="font-semibold text-foreground">{tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
+                        <span className="font-semibold text-foreground">{tree.presenca_espinhos == null ? 'Não informado' : tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
                       </div>
                     </div>
                   )}
