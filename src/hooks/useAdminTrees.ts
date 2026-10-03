@@ -21,6 +21,7 @@ export function useCreateTree() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trees'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-tree-quality'] });
       toast.success('Árvore cadastrada com sucesso!');
     },
     onError: (error: Error) => {
@@ -46,6 +47,7 @@ export function useUpdateTree() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trees'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-tree-quality'] });
       toast.success('Árvore atualizada com sucesso!');
     },
     onError: (error: Error) => {
@@ -68,6 +70,7 @@ export function useDeleteTree() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trees'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-tree-quality'] });
       toast.success('Árvore excluída com sucesso!');
     },
     onError: (error: Error) => {

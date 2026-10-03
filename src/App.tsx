@@ -20,6 +20,7 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then(m 
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const RecommendationPage = lazy(() => import('./pages/RecommendationPage').then(m => ({ default: m.RecommendationPage })));
 const AdminTreesPage = lazy(() => import('./pages/AdminTreesPage').then(m => ({ default: m.AdminTreesPage })));
+const AdminTreeQualityPage = lazy(() => import('./pages/AdminTreeQualityPage').then(m => ({ default: m.AdminTreeQualityPage })));
 const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage').then(m => ({ default: m.AdminUsersPage })));
 
 function PageSkeleton() {
@@ -56,6 +57,7 @@ export default function App() {
             <Route element={<AdminRoute />}>
               <Route element={<AdminLayout />}>
                 <Route path="/admin/arvores" element={<AdminTreesPage />} />
+                <Route path="/admin/qualidade" element={<AdminTreeQualityPage />} />
                 <Route path="/admin/equipe" element={<AdminUsersPage />} />
               </Route>
             </Route>

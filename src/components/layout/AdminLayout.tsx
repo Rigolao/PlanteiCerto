@@ -1,10 +1,11 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Trees, Users, ArrowLeft, Menu, X } from 'lucide-react';
+import { Trees, Users, ClipboardCheck, ArrowLeft, Menu, X } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const navItems = [
   { label: 'Árvores', path: '/admin/arvores', icon: Trees },
+  { label: 'Qualidade do catálogo', path: '/admin/qualidade', icon: ClipboardCheck },
   { label: 'Equipe', path: '/admin/equipe', icon: Users },
 ];
 
