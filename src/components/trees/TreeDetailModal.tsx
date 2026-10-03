@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useState } from 'react';
 import type { Arvore } from '../../types/tree';
 import { Modal } from '../ui/Modal';
 import { Sprout, ShieldCheck, CalendarDays, Building2, TrendingUp, Info } from 'lucide-react';
@@ -44,61 +44,155 @@ function ProjecaoTile({ label, valor, detalhe }: { label: string; valor: string;
   );
 }
 
-/**
- * Projeção de crescimento em 10 anos. Só aparece para espécies que têm a projeção
- * do orientador — palmeiras (ex: Jerivá) não têm, porque não seguem a alometria de DAP.
- */
+const HORIZONTES_PROJECAO = [
+  {
+    label: '10 anos',
+    dap: 'dap_10a_cm',
+    dapMin: 'dap_10a_min_cm',
+    dapMax: 'dap_10a_max_cm',
+    altura: 'altura_10a_m',
+    alturaMin: 'altura_10a_min_m',
+    alturaMax: 'altura_10a_max_m',
+  },
+  {
+    label: '20 anos',
+    dap: 'dap_20a_cm',
+    dapMin: 'dap_20a_min_cm',
+    dapMax: 'dap_20a_max_cm',
+    altura: 'altura_20a_m',
+    alturaMin: 'altura_20a_min_m',
+    alturaMax: 'altura_20a_max_m',
+  },
+  {
+    label: '30 anos',
+    dap: 'dap_30a_cm',
+    dapMin: 'dap_30a_min_cm',
+    dapMax: 'dap_30a_max_cm',
+    altura: 'altura_30a_m',
+    alturaMin: 'altura_30a_min_m',
+    alturaMax: 'altura_30a_max_m',
+  },
+] as const;
+
+function projectionRange(min: number | null | undefined, max: number | null | undefined, unit: string, value: number | null | undefined): string | undefined {
+  if (min == null && max == null) return undefined;
+  if (min != null && max != null) {
+    if (min === max && min === value) return undefined;
+    return `${num(min, 2)}–${num(max, 2)} ${unit}`;
+  }
+  if (min != null) return `mín. ${num(min, 2)} ${unit}`;
+  if (max != null) return `máx. ${num(max, 2)} ${unit}`;
+  return undefined;
+}
+
+function GrowthProjectionTable({ arvore }: { arvore: Arvore }) {
+  const hasProjection = HORIZONTES_PROJECAO.some(periodo => [
+    arvore[periodo.dap], arvore[periodo.dapMin], arvore[periodo.dapMax],
+    arvore[periodo.altura], arvore[periodo.alturaMin], arvore[periodo.alturaMax],
+  ].some(value => value != null));
+
+  if (!hasProjection) return null;
+
+  const cell = (value: number | null | undefined, min: number | null | undefined, max: number | null | undefined, unit: string) => {
+    const range = projectionRange(min, max, unit, value);
+    return (
+      <div>
+        <div className="text-xs font-semibold text-foreground">{value == null ? '—' : `${num(value, 2)} ${unit}`}</div>
+        {range && <div className="text-[9px] leading-tight text-muted-foreground">{range}</div>}
+      </div>
+    );
+  };
+
+  return (
+    <table aria-label="Projeção de crescimento" className="w-full table-fixed text-left">
+      <caption className="sr-only">DAP e altura projetados para cada horizonte, com faixas quando disponíveis</caption>
+      <thead>
+        <tr className="text-[9px] text-muted-foreground">
+          <th scope="col" className="w-[20%] pb-1 font-medium" />
+          {HORIZONTES_PROJECAO.map(periodo => (
+            <th key={periodo.label} scope="col" className="pb-1 text-center font-medium">{periodo.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row" className="py-1 pr-1 text-[10px] font-medium text-muted-foreground">DAP</th>
+          {HORIZONTES_PROJECAO.map(periodo => (
+            <td key={periodo.label} className="px-0.5 py-1 text-center">
+              {cell(arvore[periodo.dap], arvore[periodo.dapMin], arvore[periodo.dapMax], 'cm')}
+            </td>
+          ))}
+        </tr>
+        <tr>
+          <th scope="row" className="py-1 pr-1 text-[10px] font-medium text-muted-foreground">Altura</th>
+          {HORIZONTES_PROJECAO.map(periodo => (
+            <td key={periodo.label} className="px-0.5 py-1 text-center">
+              {cell(arvore[periodo.altura], arvore[periodo.alturaMin], arvore[periodo.alturaMax], 'm')}
+            </td>
+          ))}
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
 function ProjecaoSection({ arvore }: { arvore: Arvore }) {
-  if (arvore.dap_10a_cm == null) return null;
+  const has10YearIndicators = [
+    arvore.biomassa_aerea_10a_kg,
+    arvore.carbono_armazenado_10a_kg,
+    arvore.co2e_10a_kg,
+    arvore.co2e_esperado_por_muda_10a_kg,
+    arvore.sobrevivencia_10a_pct,
+  ].some(value => value != null);
+  const hasBvocData = arvore.classe_bvoc != null || arvore.exibir_aviso_bvoc;
+  const hasGrowthData = HORIZONTES_PROJECAO.some(periodo => [
+    arvore[periodo.dap], arvore[periodo.dapMin], arvore[periodo.dapMax],
+    arvore[periodo.altura], arvore[periodo.alturaMin], arvore[periodo.alturaMax],
+  ].some(value => value != null));
+
+  if (!hasGrowthData && !has10YearIndicators && !hasBvocData) return null;
 
   return (
     <div className="py-3 px-3.5 border-b border-border last:border-b-0">
       <div className="flex items-center gap-1.5 mb-2">
         <TrendingUp size={13} className="text-primary" />
         <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-          Projeção em 10 anos
+          Projeções de crescimento
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-1.5">
-        <ProjecaoTile
-          label="DAP"
-          valor={`${num(arvore.dap_10a_cm, 2)} cm`}
-          detalhe={arvore.dap_10a_min_cm != null && arvore.dap_10a_max_cm != null
-            ? `entre ${num(arvore.dap_10a_min_cm, 2)} e ${num(arvore.dap_10a_max_cm, 2)} cm`
-            : undefined}
-        />
-        {arvore.altura_10a_m != null && (
-          <ProjecaoTile
-            label="Altura"
-            valor={`${num(arvore.altura_10a_m, 2)} m`}
-            detalhe={arvore.altura_10a_min_m != null && arvore.altura_10a_max_m != null
-              ? `entre ${num(arvore.altura_10a_min_m, 2)} e ${num(arvore.altura_10a_max_m, 2)} m`
-              : undefined}
-          />
-        )}
-        {arvore.co2e_10a_kg != null && (
-          <ProjecaoTile label="CO₂e capturado" valor={`${num(arvore.co2e_10a_kg)} kg`} />
-        )}
-        {arvore.co2e_esperado_por_muda_10a_kg != null && (
-          <ProjecaoTile
-            label="CO₂e esperado por muda"
-            valor={`${num(arvore.co2e_esperado_por_muda_10a_kg)} kg`}
-            detalhe="já descontada a mortalidade"
-          />
-        )}
-        {arvore.sobrevivencia_10a_pct != null && (
-          <ProjecaoTile label="Sobrevivência" valor={`${num(arvore.sobrevivencia_10a_pct)}%`} />
-        )}
-        {arvore.biomassa_aerea_10a_kg != null && (
-          <ProjecaoTile
-            label="Biomassa aérea"
-            valor={`${num(arvore.biomassa_aerea_10a_kg)} kg`}
-            detalhe={arvore.carbono_armazenado_10a_kg != null
-              ? `${num(arvore.carbono_armazenado_10a_kg)} kg de carbono`
-              : undefined}
-          />
-        )}
-      </div>
+      <GrowthProjectionTable arvore={arvore} />
+
+      {has10YearIndicators && (
+        <>
+          <div className="mt-3 mb-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+            Indicadores em 10 anos
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {arvore.co2e_10a_kg != null && (
+              <ProjecaoTile label="CO₂e capturado" valor={`${num(arvore.co2e_10a_kg)} kg`} />
+            )}
+            {arvore.co2e_esperado_por_muda_10a_kg != null && (
+              <ProjecaoTile
+                label="CO₂e esperado por muda"
+                valor={`${num(arvore.co2e_esperado_por_muda_10a_kg)} kg`}
+                detalhe="já descontada a mortalidade"
+              />
+            )}
+            {arvore.sobrevivencia_10a_pct != null && (
+              <ProjecaoTile label="Sobrevivência" valor={`${num(arvore.sobrevivencia_10a_pct)}%`} />
+            )}
+            {arvore.biomassa_aerea_10a_kg != null && (
+              <ProjecaoTile
+                label="Biomassa aérea"
+                valor={`${num(arvore.biomassa_aerea_10a_kg)} kg`}
+                detalhe={arvore.carbono_armazenado_10a_kg != null
+                  ? `${num(arvore.carbono_armazenado_10a_kg)} kg de carbono`
+                  : undefined}
+              />
+            )}
+          </div>
+        </>
+      )}
 
       {arvore.classe_bvoc && (
         <div className="flex flex-wrap gap-1.5 mt-2">
@@ -119,7 +213,9 @@ function ProjecaoSection({ arvore }: { arvore: Arvore }) {
         </div>
       )}
 
-      <p className="text-[10px] text-muted-foreground mt-2 leading-snug">{CENARIO_PROJECAO}</p>
+      {(hasGrowthData || has10YearIndicators) && (
+        <p className="text-[10px] text-muted-foreground mt-2 leading-snug">{CENARIO_PROJECAO}</p>
+      )}
     </div>
   );
 }
@@ -143,10 +239,10 @@ function BarIndicator({ label, value }: { label: string; value: number }) {
 }
 
 export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleFavorite }: TreeDetailModalProps) {
-  const lastArvore = useRef<Arvore | null>(null);
-  if (arvore) lastArvore.current = arvore;
+  const [lastArvore, setLastArvore] = useState<Arvore | null>(arvore);
+  if (arvore && arvore !== lastArvore) setLastArvore(arvore);
 
-  const displayArvore = lastArvore.current;
+  const displayArvore = arvore ?? lastArvore;
   if (!displayArvore) return null;
 
   const toleranceFields: { label: string; value: number | null }[] = [
@@ -247,7 +343,9 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             </div>
             <div className="bg-muted rounded-md px-2 py-1.5">
               <div className="text-[9px] text-muted-foreground">1ª Bifurcação</div>
-              <div className="text-xs font-semibold text-foreground">{displayArvore.altura_primeira_bifurcacao_m ?? '—'}</div>
+              <div className="text-xs font-semibold text-foreground">
+                {displayArvore.altura_primeira_bifurcacao_m ?? displayArvore.altura_primeira_bifurcacao_faixa ?? '—'}
+              </div>
             </div>
           </div>
         </div>

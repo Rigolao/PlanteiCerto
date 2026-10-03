@@ -91,16 +91,20 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
   useEffect(() => {
     if (isOpen) {
       if (tree) {
-        const { id: _, ...treeData } = tree;
+        const { id: treeId, ...treeData } = tree;
+        void treeId;
         reset(treeData);
       } else {
         reset(defaultValues);
       }
-      setImageFile(null);
     }
   }, [isOpen, tree, reset]);
 
   const saving = createTree.isPending || updateTree.isPending || uploadImage.isPending;
+  const handleClose = () => {
+    setImageFile(null);
+    onClose();
+  };
 
   const onSubmit = async (data: TreeFormData) => {
     let fotoUrl = data.foto;
@@ -116,14 +120,14 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
     const treeData = { ...data, foto: fotoUrl };
 
     if (isEditing && tree) {
-      updateTree.mutate({ id: tree.id, ...treeData }, { onSuccess: onClose });
+      updateTree.mutate({ id: tree.id, ...treeData }, { onSuccess: handleClose });
     } else {
-      createTree.mutate(treeData, { onSuccess: onClose });
+      createTree.mutate(treeData, { onSuccess: handleClose });
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-4xl">
+    <Modal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-4xl">
       <form onSubmit={handleSubmit(onSubmit)} className="p-6">
         <h2 className="text-xl font-bold text-foreground mb-6">
           {isEditing ? `Editar: ${tree?.nome_popular}` : 'Cadastrar Nova Árvore'}
@@ -229,13 +233,7 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
 
             <NumberField label="DAP Máximo (cm)" register={register} name="dap_adulto_max_cm" />
 
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Alt. 1ª Bifurcação</label>
-              <input
-                {...register('altura_primeira_bifurcacao_m')}
-                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
-              />
-            </div>
+            <NumberField label="Alt. 1ª Bifurcação (m)" register={register} name="altura_primeira_bifurcacao_m" />
 
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Forma da Copa</label>

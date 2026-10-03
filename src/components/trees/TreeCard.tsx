@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Ruler, Globe, Leaf, AlertTriangle, CheckCircle, Home } from 'lucide-react';
+import { Ruler, Globe, Leaf, AlertTriangle, CheckCircle, Home, TrendingUp } from 'lucide-react';
 import type { Arvore } from '../../types/tree';
 
 interface TreeCardProps {
@@ -9,6 +9,60 @@ interface TreeCardProps {
   onToggleFavorite?: (e: React.MouseEvent) => void;
   isComparing?: boolean;
   onToggleCompare?: (e: React.MouseEvent) => void;
+}
+
+function formatProjection(value: number | null | undefined, unit: string): string {
+  if (value == null) return '—';
+  return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} ${unit}`;
+}
+
+function GrowthProjection({ arvore }: { arvore: Arvore }) {
+  const hasProjection = [
+    arvore.dap_10a_cm,
+    arvore.altura_10a_m,
+    arvore.dap_20a_cm,
+    arvore.altura_20a_m,
+    arvore.dap_30a_cm,
+    arvore.altura_30a_m,
+  ].some(value => value != null);
+
+  if (!hasProjection) return null;
+
+  return (
+    <section aria-label="Projeção de crescimento" className="mt-4 border-t border-border pt-3">
+      <div className="flex items-center gap-1.5 mb-2">
+        <TrendingUp size={12} className="text-primary" />
+        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+          Crescimento estimado
+        </span>
+      </div>
+      <table aria-label="Projeção de crescimento" className="w-full table-fixed text-[11px] tabular-nums">
+        <caption className="sr-only">DAP e altura estimados aos 10, 20 e 30 anos</caption>
+        <thead>
+          <tr className="text-muted-foreground">
+            <th scope="col" className="w-[22%] text-left font-medium" />
+            <th scope="col" className="text-center font-medium">10 anos</th>
+            <th scope="col" className="text-center font-medium">20 anos</th>
+            <th scope="col" className="text-center font-medium">30 anos</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground">
+          <tr>
+            <th scope="row" className="py-1 text-left font-medium text-muted-foreground">DAP</th>
+            <td className="py-1 text-center">{formatProjection(arvore.dap_10a_cm, 'cm')}</td>
+            <td className="py-1 text-center">{formatProjection(arvore.dap_20a_cm, 'cm')}</td>
+            <td className="py-1 text-center">{formatProjection(arvore.dap_30a_cm, 'cm')}</td>
+          </tr>
+          <tr>
+            <th scope="row" className="py-1 text-left font-medium text-muted-foreground">Altura</th>
+            <td className="py-1 text-center">{formatProjection(arvore.altura_10a_m, 'm')}</td>
+            <td className="py-1 text-center">{formatProjection(arvore.altura_20a_m, 'm')}</td>
+            <td className="py-1 text-center">{formatProjection(arvore.altura_30a_m, 'm')}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  );
 }
 
 export const TreeCard = memo(function TreeCard({ arvore, onClick, isFavorite, onToggleFavorite, isComparing, onToggleCompare }: TreeCardProps) {
@@ -139,6 +193,8 @@ export const TreeCard = memo(function TreeCard({ arvore, onClick, isFavorite, on
             </div>
           )}
         </div>
+
+        <GrowthProjection arvore={arvore} />
       </div>
     </article>
   );

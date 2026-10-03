@@ -12,7 +12,9 @@ export interface Arvore {
   diametro_copa_adulto_max_m: number | null;
   copa_classe: 'Grande' | 'Média' | 'Pequena' | null;
   dap_adulto_max_cm: number | null;
-  altura_primeira_bifurcacao_m: string | null;
+  altura_primeira_bifurcacao_m: number | null;
+  // Presentation-only legacy range retained for static fallback records.
+  altura_primeira_bifurcacao_faixa?: string;
   forma_copa: string | null;
   faixa_serv_min_m_recomendada: number | null;
   berco_area_min_m2_recomendada: number | null;
@@ -49,6 +51,19 @@ export interface Arvore {
   co2e_10a_kg?: number | null;
   sobrevivencia_10a_pct?: number | null;
   co2e_esperado_por_muda_10a_kg?: number | null;
+  // Projeções de crescimento em 20 e 30 anos, ausentes no fallback estático.
+  dap_20a_cm?: number | null;
+  dap_20a_min_cm?: number | null;
+  dap_20a_max_cm?: number | null;
+  altura_20a_m?: number | null;
+  altura_20a_min_m?: number | null;
+  altura_20a_max_m?: number | null;
+  dap_30a_cm?: number | null;
+  dap_30a_min_cm?: number | null;
+  dap_30a_max_cm?: number | null;
+  altura_30a_m?: number | null;
+  altura_30a_min_m?: number | null;
+  altura_30a_max_m?: number | null;
   classe_bvoc?: ClasseBvoc | null;
   evidencia_bvoc?: string | null;
   confianca_bvoc?: ConfiancaBvoc | null;
