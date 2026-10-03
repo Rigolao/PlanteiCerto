@@ -1,0 +1,19 @@
+Arquivo: /private/tmp/claude-501/-Users-rigolao-Developer-PlanteiCerto/0c58d9cc-1a17-4e7b-aa5c-9d14ecb887e1/scratchpad/out/PlanteiCerto-Relatorio-Sistema.pdf
+Páginas: 249 | Tamanho: 27.0 MB ✔
+Texto extraído: 474354 caracteres; páginas com < 200 caracteres: 1 (0%)
+Bookmarks (outline): 394 itens, 28 de nível 1 ✔
+Âncora "Elementos visíveis": 206 ocorrências
+Âncora "Rota:": 186 ocorrências
+Âncora "Fluxo passo a passo": 48 ocorrências
+Âncora "Sumário": 1 ocorrências
+String de UI "Confirme seu e-mail": ✔
+String de UI "Aguardando vinculação": ✔
+String de UI "Ver Recomendações": ✔
+String de UI "Acesso restrito a administradores": ✔
+String de UI "Mostrando": ✔
+String de UI "Gerenciar Árvores": ✔
+String de UI "Nenhuma espécie compatível": ✔
+Segredos: nenhum encontrado ✔
+Capturas ok: 223 | referenciadas nos capítulos: 222 | referências sem arquivo: 0 | ok não referenciadas: 0 | failed: 0 (sem menção: 0)
+Marcadores "NÃO CAPTURADO" nos capítulos: 4
+Build: 25 capítulos, 222 figuras, 0 imagens ausentes, mermaid 5/5, erros mermaid 0, imagens quebradas 0
