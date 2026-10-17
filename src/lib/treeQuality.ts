@@ -39,8 +39,11 @@ export interface TreeInformationSummary {
 }
 
 /**
- * Fields read by the recommendation function. A missing value can either let
- * a tree pass an eliminatory rule (`eligibility`) or affect its score (`ranking`).
+ * Fields read by the recommendation function. `eligibility` marks a field read by an eliminatory rule;
+ * `ranking` marks one read by the score. A missing value never lets a tree pass an eliminatory rule:
+ * when the rule applies, the species goes to "Requer avaliação técnica" (unless another criterion
+ * already eliminates it for a known violation). In the score, a missing field earns 0 points and is
+ * shown as "não avaliado"; it never receives an average or maximum grade.
  * These are potential impacts; the exact effect depends on the user's answers.
  */
 export const TREE_QUALITY_RULES: TreeQualityRule[] = [
