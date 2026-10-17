@@ -429,32 +429,107 @@ describe('evaluateEliminatory — fiação convencional baixa', () => {
   });
 });
 
-describe('evaluateEliminatory — fiação protegida (Review Focus 4)', () => {
+describe('evaluateEliminatory — fiação protegida (Review Focus 4, lógica de três valores)', () => {
   const gatilhos: [string, Answers][] = [
     ["q2_5='sim_protegida'", { q2_5: 'sim_protegida' }],
     ["q2_6='gt_4'", { q2_5: 'sim_convencional', q2_6: 'gt_4' }],
   ];
 
+  const fiacao = 'Compatibilidade com fiação: não avaliado';
+  const porte = 'Porte: não avaliado';
+
+  // [compat, porte, status, pendências] — elimina só compat 'N' ∧ porte 'Grande'.
+  const casos: [string | null, string | null, string, string[]][] = [
+    ['N', 'Grande', 'eliminada', []],
+    ['N', 'Médio', 'aprovada', []],
+    ['N', 'Pequeno', 'aprovada', []],
+    ['N', null, 'requer_avaliacao', [porte]],
+    ['A', 'Grande', 'aprovada', []],
+    ['C', 'Grande', 'aprovada', []],
+    ['A', null, 'aprovada', []],
+    ['C', null, 'aprovada', []],
+    [null, 'Grande', 'requer_avaliacao', [fiacao]],
+    [null, 'Médio', 'aprovada', []],
+    [null, 'Pequeno', 'aprovada', []],
+    [null, null, 'requer_avaliacao', [fiacao, porte]],
+  ];
+
   describe.each(gatilhos)('%s', (_nome, answers) => {
-    it("compat='N' + porte='Grande' → eliminada", () => {
-      const r = evaluateEliminatory(tree({ compat_fiacao: 'N', porte_altura_classe: 'Grande' }), answers);
-      expect(r.status).toBe('eliminada');
+    it.each(casos)('compat=%s + porte=%s → %s %j', (compat, porteClasse, status, pendencias) => {
+      const r = evaluateEliminatory(tree({ compat_fiacao: compat, porte_altura_classe: porteClasse }), answers);
+      expect(r).toEqual({ status, pendencias });
     });
+  });
 
-    it("compat=null + porte='Grande' → requer_avaliacao (fiação)", () => {
-      const r = evaluateEliminatory(tree({ compat_fiacao: null, porte_altura_classe: 'Grande' }), answers);
-      expect(r).toEqual({ status: 'requer_avaliacao', pendencias: ['Compatibilidade com fiação: não avaliado'] });
-    });
+  it('pendência de porte da fiação protegida não se repete com a de esquina (q2_8a)', () => {
+    const r = evaluateEliminatory(
+      tree({ compat_fiacao: null, porte_altura_classe: null }),
+      { q2_5: 'sim_protegida', q2_8a: 'lt_6' },
+    );
+    expect(r).toEqual({ status: 'requer_avaliacao', pendencias: [fiacao, porte] });
+  });
 
-    it("compat='N' + porte=null → requer_avaliacao (porte)", () => {
-      const r = evaluateEliminatory(tree({ compat_fiacao: 'N', porte_altura_classe: null }), answers);
-      expect(r).toEqual({ status: 'requer_avaliacao', pendencias: ['Porte: não avaliado'] });
-    });
+  it('fiação convencional baixa não muda: compat=null com porte conhecido segue pendente', () => {
+    const r = evaluateEliminatory(
+      tree({ compat_fiacao: null, porte_altura_classe: 'Pequeno' }),
+      { q2_5: 'sim_convencional', q2_6: 'lt_4' },
+    );
+    expect(r).toEqual({ status: 'requer_avaliacao', pendencias: [fiacao] });
+  });
+});
 
-    it("compat='C' + porte=null → aprovada (a regra não depende do porte)", () => {
-      const r = evaluateEliminatory(tree({ compat_fiacao: 'C', porte_altura_classe: null }), answers);
-      expect(r).toEqual({ status: 'aprovada', pendencias: [] });
-    });
+describe('evaluateEliminatory — cada regra no limiar (operador e limite)', () => {
+  // [regra, respostas, valor que viola no limite, valor logo do lado aprovado, respostas do lado aprovado]
+  const regras: [string, Answers, Partial<Tree>, Partial<Tree>, Answers?][] = [
+    ["q2_2 faixa de serviço (> 2,0 m)", { q2_2: '1_2' },
+      { faixa_serv_min_m_recomendada: 2.1 }, { faixa_serv_min_m_recomendada: 2.0 }],
+    ["q2_3+q2_1 faixa útil (> 3,0 − 1,2 m)", { q2_3: 'sim', q2_1: '2_3' },
+      { faixa_serv_min_m_recomendada: 1.9 }, { faixa_serv_min_m_recomendada: 1.8 }],
+    ["q2_4 berço (> 2,0 m²)", { q2_4: '1_2' },
+      { berco_area_min_m2_recomendada: 2.1 }, { berco_area_min_m2_recomendada: 2.0 }],
+    ["q2_5 convencional baixa (compat 'N')", { q2_5: 'sim_convencional', q2_6: 'lt_4' },
+      { compat_fiacao: 'N' }, { compat_fiacao: 'A' }],
+    ["q2_5 protegida ('N' ∧ 'Grande')", { q2_5: 'sim_protegida' },
+      { compat_fiacao: 'N', porte_altura_classe: 'Grande' }, { compat_fiacao: 'N', porte_altura_classe: 'Médio' }],
+    ["q2_7 recuo (copa 'Grande')", { q2_7: 'lt_2' },
+      { copa_classe: 'Grande' }, { copa_classe: 'Média' }],
+    ["q2_8a esquina (porte 'Grande')", { q2_8a: 'lt_6' },
+      { porte_altura_classe: 'Grande' }, { porte_altura_classe: 'Médio' }],
+    ["q2_8b poste (copa 'Grande')", { q2_8b: 'lt_4' },
+      { copa_classe: 'Grande' }, { copa_classe: 'Média' }],
+    ['q2_8c guia rebaixada (todas)', { q2_8c: 'lt_1_5' }, {}, {}, { q2_8c: 'gt_1_5' }],
+    ['q2_8d boca-de-lobo (dano ≥ 4)', { q2_8d: 'lt_1_5' },
+      { potencial_dano_calcada_1a5: 4 }, { potencial_dano_calcada_1a5: 3 }],
+    ['q3_1 sol pleno', { q3_1: 'sol_pleno' },
+      { tolerancia_sol_pleno: false }, { tolerancia_sol_pleno: true }],
+    ['q3_1 meia sombra', { q3_1: 'meia_sombra' },
+      { tolerancia_meia_sombra: false }, { tolerancia_meia_sombra: true }],
+    ['q3_1 sombra', { q3_1: 'sombra' },
+      { tolerancia_sombra: false }, { tolerancia_sombra: true }],
+    ['q3_2 seco (seca ≤ 2)', { q3_2: 'seco' },
+      { tolerancia_seca_1a5: 2 }, { tolerancia_seca_1a5: 3 }],
+    ['q3_2 encharcado (encharcamento ≤ 3)', { q3_2: 'encharcado' },
+      { tolerancia_encharcamento_1a5: 3 }, { tolerancia_encharcamento_1a5: 4 }],
+    ['q3_3 solo ruim (compactação ≤ 3)', { q3_3: 'ruim' },
+      { tolerancia_compactacao_solo_1a5: 3 }, { tolerancia_compactacao_solo_1a5: 4 }],
+    ['q3_4 sem irrigação (seca ≤ 2)', { q3_4: 'nao' },
+      { tolerancia_seca_1a5: 2 }, { tolerancia_seca_1a5: 3 }],
+    ['q4_1 sujeira (≥ 3)', { q4_1: 'sim' },
+      { potencial_sujeira_1a5: 3 }, { potencial_sujeira_1a5: 2 }],
+    ['q4_2 espinhos', { q4_2: 'sim' },
+      { presenca_espinhos: true }, { presenca_espinhos: false }],
+    ['q4_2 irritantes', { q4_2: 'sim' },
+      { presenca_subst_irritantes: true }, { presenca_subst_irritantes: false }],
+    ['q4_3 atração de fauna (≥ 4)', { q4_3: 'sim' },
+      { atracao_fauna_1a5: 4 }, { atracao_fauna_1a5: 3 }],
+  ];
+
+  it.each(regras)('%s', (_regra, answers, viola, aprova, answersAprova = answers) => {
+    expect(evaluateEliminatory(tree(viola), answers)).toEqual({ status: 'eliminada', pendencias: [] });
+    expect(evaluateEliminatory(tree(aprova), answersAprova)).toEqual({ status: 'aprovada', pendencias: [] });
+    // Mesmo limiar da versão anterior.
+    expect(oraclePasses(tree(viola), answers)).toBe(false);
+    expect(oraclePasses(tree(aprova), answersAprova)).toBe(true);
   });
 });
 
@@ -739,6 +814,45 @@ describe('calculateScore — objetivos múltiplos (q1_2)', () => {
       NENHUM_ESTIMADO,
     );
     expect(breakdown[0]).toMatchObject({ points: 20, status: 'avaliado' });
+  });
+
+  it('baixa_manutencao: decidua_perenifolia NULL como único objetivo → 0 ponto, nao_avaliado, mesmo com sujeira', () => {
+    const { breakdown } = calculateScore(
+      tree({ decidua_perenifolia: null, potencial_sujeira_1a5: 4 }),
+      { q1_2: 'baixa_manutencao' },
+      NENHUM_ESTIMADO,
+    );
+    // Sem a fenologia não se infere pela sujeira: a cota é NULL (nem 20 de perenifólia, nem 8 de sujeira).
+    expect(breakdown[0]).toEqual({
+      label: 'Objetivo(s) de plantio (não avaliado)',
+      points: 0,
+      maxPoints: 20,
+      status: 'nao_avaliado',
+    });
+  });
+
+  it('baixa_manutencao: decidua_perenifolia NULL com sujeira conhecida → cota 0 e sujeira não usada', () => {
+    const { breakdown } = calculateScore(
+      tree({ id: 7, decidua_perenifolia: null, potencial_sujeira_1a5: 4, atracao_fauna_1a5: 5 }),
+      { q1_2: 'baixa_manutencao,fauna' },
+      new Set(['7:potencial_sujeira_1a5']),
+    );
+    // cota 10 cada: fauna 5/5 × 10 = 10; baixa_manutencao 0
+    expect(breakdown[0]).toEqual({ label: 'Objetivo(s) de plantio', points: 10, maxPoints: 20, status: 'avaliado' });
+  });
+
+  it('baixa_manutencao: decidua_perenifolia NULL com sujeira NULL → cota 0, nao_avaliado', () => {
+    const { breakdown } = calculateScore(
+      tree({ decidua_perenifolia: null, potencial_sujeira_1a5: null }),
+      { q1_2: 'baixa_manutencao' },
+      NENHUM_ESTIMADO,
+    );
+    expect(breakdown[0]).toEqual({
+      label: 'Objetivo(s) de plantio (não avaliado)',
+      points: 0,
+      maxPoints: 20,
+      status: 'nao_avaliado',
+    });
   });
 
   it('baixa_manutencao: não perenifólia com sujeira NULL → cota 0, nao_avaliado', () => {

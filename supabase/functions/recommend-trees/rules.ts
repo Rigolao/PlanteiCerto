@@ -148,11 +148,16 @@ export function evaluateEliminatory(tree: Tree, answers: Answers): EliminatoryRe
     if (answers.q2_5 === 'sim_convencional' && answers.q2_6 === 'lt_4') {
       exigir(CRITERIO.fiacao, tree.compat_fiacao, (v) => v === 'N');
     } else if (answers.q2_5 === 'sim_protegida' || answers.q2_6 === 'gt_4') {
-      // Só 'N' + 'Grande' elimina. Com 'A'/'C' a regra não depende do porte;
-      // com compat NULL a pendência é a fiação.
-      if (tree.compat_fiacao == null) naoAvaliados.add(CRITERIO.fiacao);
-      else if (tree.compat_fiacao === 'N') {
-        exigir(CRITERIO.porte, tree.porte_altura_classe, (v) => v === 'Grande');
+      // Elimina só compat 'N' ∧ porte 'Grande', em lógica de três valores
+      // (null = desconhecido): um lado conhecido e falso já aprova, qualquer que
+      // seja o outro; sem lado falso, cada lado desconhecido vira pendência.
+      const compatN = tree.compat_fiacao == null ? null : tree.compat_fiacao === 'N';
+      const porteGrande = tree.porte_altura_classe == null ? null : tree.porte_altura_classe === 'Grande';
+      if (compatN === true && porteGrande === true) {
+        violados.push(CRITERIO.fiacao);
+      } else if (compatN !== false && porteGrande !== false) {
+        if (compatN === null) naoAvaliados.add(CRITERIO.fiacao);
+        if (porteGrande === null) naoAvaliados.add(CRITERIO.porte);
       }
     }
   }
@@ -418,12 +423,17 @@ export function calculateScore(
       } else if (obj === 'fauna') {
         cotaPorNota('atracao_fauna_1a5', tree.atracao_fauna_1a5, (v) => v / 5);
       } else if (obj === 'baixa_manutencao') {
-        if (tree.decidua_perenifolia === 'Perenifólia') {
+        // Perenifólia vale a cota inteira; decídua/semidecídua usa a sujeira.
+        // Sem a fenologia (NULL) a cota é NULL — não se infere pela sujeira.
+        if (tree.decidua_perenifolia == null) {
+          cotasComCampo += 1;
+          cotasNulas += 1;
+        } else if (tree.decidua_perenifolia === 'Perenifólia') {
           cotasComCampo += 1;
           usados.push('decidua_perenifolia');
           totalPts += quota;
         } else {
-          if (tree.decidua_perenifolia != null) usados.push('decidua_perenifolia');
+          usados.push('decidua_perenifolia');
           cotaPorNota('potencial_sujeira_1a5', tree.potencial_sujeira_1a5, (v) => (6 - v) / 5);
         }
       } else if (obj === 'qualidade_ar') {
