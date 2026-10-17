@@ -4,7 +4,7 @@ import { QuestionCard } from '../components/recommendation/QuestionCard';
 import { ResultScreen } from '../components/recommendation/ResultScreen';
 import { questionnaire, flattenQuestions } from '../data/questionnaire';
 import { useRecommendation } from '../hooks/useRecommendation';
-import type { Answers, RecommendedTree, CriteriaSummary } from '../types/recommendation';
+import type { Answers, RecommendationResult } from '../types/recommendation';
 
 type Phase = 'questions' | 'loading' | 'results';
 
@@ -13,7 +13,7 @@ export function RecommendationPage() {
   const [answers, setAnswers] = useState<Answers>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('questions');
-  const [result, setResult] = useState<{ trees: RecommendedTree[]; eliminated_count: number; criteriaSummary: CriteriaSummary } | null>(null);
+  const [result, setResult] = useState<RecommendationResult | null>(null);
   const [totalAnalyzed, setTotalAnalyzed] = useState(0);
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
@@ -66,8 +66,11 @@ export function RecommendationPage() {
     setPhase('loading');
     try {
       const data = await recommendation.mutateAsync(answers);
-      setTotalAnalyzed(data.trees.length + data.eliminated_count);
-      setResult(data);
+      // Durante a janela de deploy, a function antiga (sem a lista de pendentes) pode responder ao front novo.
+      const pending = data.pending_review ?? [];
+      const pendingCount = data.pending_count ?? pending.length;
+      setTotalAnalyzed(data.trees.length + data.eliminated_count + pendingCount);
+      setResult({ ...data, pending_review: pending, pending_count: pendingCount });
       setPhase('results');
     } catch {
       setPhase('questions');
@@ -221,6 +224,7 @@ export function RecommendationPage() {
       {phase === 'results' && result && (
         <ResultScreen
           trees={result.trees}
+          pendingTrees={result.pending_review}
           eliminatedCount={result.eliminated_count}
           totalCount={totalAnalyzed}
           criteriaSummary={result.criteriaSummary}
