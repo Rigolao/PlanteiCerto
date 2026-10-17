@@ -640,3 +640,259 @@ describe('TreeDetailModal photo', () => {
     expect(screen.queryByRole('img', { name: tree.nome_popular })).not.toBeInTheDocument();
   });
 });
+
+describe('TreeDetailModal provenance on every block', () => {
+  const morfologia: Arvore = {
+    ...staticTrees[0],
+    altura_adulta_max_m: 15,
+    porte_altura_classe: 'Grande',
+    diametro_copa_adulto_max_m: 12,
+    copa_classe: 'Grande',
+    forma_copa: 'Arredondada/Espalhada',
+    dap_adulto_max_cm: 80,
+    altura_primeira_bifurcacao_m: '2,0 - 3,0',
+  };
+
+  it('shows a seal with "Ver detalhes" on each morphology tile that has a record', () => {
+    withProvenance({
+      altura_adulta_max_m: prov('altura_adulta_max_m', { origem: 'estimated' }),
+      diametro_copa_adulto_max_m: prov('diametro_copa_adulto_max_m', { origem: 'estimated' }),
+      porte_altura_classe: prov('porte_altura_classe', { origem: 'retido_da_fase_anterior' }),
+      forma_copa: prov('forma_copa', { origem: 'consolidado_de_registro_inativo' }),
+      dap_adulto_max_cm: prov('dap_adulto_max_cm', { origem: 'estimated' }),
+      altura_primeira_bifurcacao_m: prov('altura_primeira_bifurcacao_m', { origem: 'retido_da_fase_anterior' }),
+    });
+
+    render(<TreeDetailModal arvore={morfologia} isOpen onClose={vi.fn()} />);
+
+    for (const label of ['Altura adulta', 'Copa', 'Porte', 'Forma da Copa', 'DAP (Diâmetro)', '1ª Bifurcação']) {
+      expect(within(row(label)).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+    }
+    expect(within(row('Altura adulta')).getByText('Estimado')).toBeInTheDocument();
+    expect(within(row('Porte')).getByText('Fase anterior')).toBeInTheDocument();
+    expect(within(row('Forma da Copa')).getByText('Copiado de registro consolidado')).toBeInTheDocument();
+    expect(within(row('1ª Bifurcação')).getByText('Fase anterior')).toBeInTheDocument();
+  });
+
+  it('shows the seal of the crown class when only copa_classe has a record', () => {
+    withProvenance({ copa_classe: prov('copa_classe', { origem: 'estimated_rubric', confianca: 'baixa' }) });
+
+    render(<TreeDetailModal arvore={morfologia} isOpen onClose={vi.fn()} />);
+
+    const copa = row('Copa');
+    expect(within(copa).getByText('Estimado (rubrica)')).toBeInTheDocument();
+    expect(within(copa).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+    expect(within(copa).queryByText('Origem não registrada')).not.toBeInTheDocument();
+  });
+
+  it('keeps the crown tile to a single "Origem não registrada" when neither crown field has a record', () => {
+    withProvenance({}, true);
+
+    render(<TreeDetailModal arvore={morfologia} isOpen onClose={vi.fn()} />);
+
+    expect(within(row('Copa')).getAllByText('Origem não registrada')).toHaveLength(1);
+    expect(within(row('Altura adulta')).getByText('Origem não registrada')).toBeInTheDocument();
+    expect(within(row('1ª Bifurcação')).getByText('Origem não registrada')).toBeInTheDocument();
+  });
+
+  it('does not say "Origem não registrada" for NULL or "Não encontrado" morphology values', () => {
+    const tree: Arvore = {
+      ...morfologia,
+      altura_adulta_max_m: null,
+      porte_altura_classe: null,
+      diametro_copa_adulto_max_m: null,
+      copa_classe: null,
+      forma_copa: null,
+      dap_adulto_max_cm: null,
+      altura_primeira_bifurcacao_m: 'Não encontrado',
+    };
+    withProvenance({}, true);
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    for (const label of ['Altura adulta', 'Copa', 'Porte', 'Forma da Copa', 'DAP (Diâmetro)', '1ª Bifurcação']) {
+      expect(row(label)).not.toHaveTextContent('Origem não registrada');
+    }
+  });
+
+  it('shows a seal with "Ver detalhes" on the phenology chips that have a record', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      decidua_perenifolia: 'Perenifólia',
+      epoca_floracao: 'Set-Nov',
+      epoca_frutificacao: 'Dez-Mar',
+    };
+    withProvenance({
+      decidua_perenifolia: prov('decidua_perenifolia', { origem: 'estimated' }),
+      epoca_floracao: prov('epoca_floracao', { origem: 'retido_da_fase_anterior' }),
+      epoca_frutificacao: prov('epoca_frutificacao', { origem: 'consolidado_de_registro_inativo' }),
+    });
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    for (const texto of ['Perenifólia', 'Floração: Set-Nov', 'Frutificação: Dez-Mar']) {
+      const chip = screen.getByText(texto).parentElement as HTMLElement;
+      expect(within(chip).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+    }
+    const floracao = screen.getByText('Floração: Set-Nov').parentElement as HTMLElement;
+    expect(within(floracao).getByText('Fase anterior')).toBeInTheDocument();
+  });
+
+  it('shows a seal with "Ver detalhes" on the Faixa, Berço and Vol. Solo pills that have a record', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      faixa_serv_min_m_recomendada: 1.8,
+      berco_area_min_m2_recomendada: 2,
+      volume_solo_min_m3_recomendado: 4,
+    };
+    withProvenance({
+      faixa_serv_min_m_recomendada: prov('faixa_serv_min_m_recomendada', { origem: 'estimated' }),
+      berco_area_min_m2_recomendada: prov('berco_area_min_m2_recomendada', { origem: 'retido_da_fase_anterior' }),
+      volume_solo_min_m3_recomendado: prov('volume_solo_min_m3_recomendado', { origem: 'consolidado_de_registro_inativo' }),
+    });
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    for (const texto of ['Faixa Serviço Mín: 1,8 m', 'Berço Mín: 2 m²', 'Vol. Solo Mín: 4 m³']) {
+      const pill = screen.getByText(texto).parentElement as HTMLElement;
+      expect(within(pill).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+    }
+    expect(within(screen.getByText('Vol. Solo Mín: 4 m³').parentElement as HTMLElement)
+      .getByText('Copiado de registro consolidado')).toBeInTheDocument();
+  });
+
+  it('shows a seal with "Ver detalhes" on the five carbon tiles that have a record, keeping the fixed texts', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      biomassa_aerea_10a_kg: 90.3,
+      carbono_armazenado_10a_kg: 42.4,
+      co2e_10a_kg: 155.7,
+      sobrevivencia_10a_pct: 85,
+      co2e_esperado_por_muda_10a_kg: 120.2,
+    };
+    withProvenance({
+      biomassa_aerea_10a_kg: prov('biomassa_aerea_10a_kg', { origem: 'estimated' }),
+      carbono_armazenado_10a_kg: prov('carbono_armazenado_10a_kg', { origem: 'retido_da_fase_anterior' }),
+      co2e_10a_kg: prov('co2e_10a_kg', { origem: 'consolidado_de_registro_inativo' }),
+      sobrevivencia_10a_pct: prov('sobrevivencia_10a_pct', { origem: 'estimated' }),
+      co2e_esperado_por_muda_10a_kg: prov('co2e_esperado_por_muda_10a_kg', { origem: 'retido_da_fase_anterior' }),
+    });
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    for (const label of [
+      'Biomassa aérea',
+      'Carbono armazenado',
+      'CO₂ equivalente armazenado na biomassa aérea',
+      'Sobrevivência (cenário)',
+      'CO₂e esperado por muda',
+    ]) {
+      expect(within(row(label)).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+    }
+    // O selo de procedência convive com o "Cálculo estimado" e com os textos fixos de cada tile.
+    expect(within(row('Biomassa aérea')).getByText('Cálculo estimado')).toBeInTheDocument();
+    expect(within(row('Biomassa aérea')).getByText('Estimado')).toBeInTheDocument();
+    expect(within(row('Carbono armazenado')).getByText('Fase anterior')).toBeInTheDocument();
+    expect(within(row('CO₂ equivalente armazenado na biomassa aérea')).getByText('Cálculo estimado')).toBeInTheDocument();
+    expect(within(row('CO₂ equivalente armazenado na biomassa aérea'))
+      .getByText('estoque aos 10 anos; não é remoção anual')).toBeInTheDocument();
+    expect(within(row('Sobrevivência (cenário)'))
+      .getByText('premissa do cenário, não taxa publicada da espécie')).toBeInTheDocument();
+    expect(within(row('Sobrevivência (cenário)')).queryByText('Cálculo estimado')).not.toBeInTheDocument();
+    expect(within(row('CO₂e esperado por muda'))
+      .getByText('(CO₂e aos 10 anos − CO₂e da muda inicial) × sobrevivência do cenário')).toBeInTheDocument();
+  });
+
+  it('says "Origem não registrada" on filled values of the new blocks without a record, once the query resolved', () => {
+    const tree: Arvore = {
+      ...morfologia,
+      decidua_perenifolia: 'Perenifólia',
+      epoca_floracao: 'Set-Nov',
+      epoca_frutificacao: 'Dez-Mar',
+      faixa_serv_min_m_recomendada: 1.8,
+      berco_area_min_m2_recomendada: 2,
+      volume_solo_min_m3_recomendado: 4,
+      biomassa_aerea_10a_kg: 90.3,
+      carbono_armazenado_10a_kg: 42.4,
+      co2e_10a_kg: 155.7,
+      sobrevivencia_10a_pct: 85,
+      co2e_esperado_por_muda_10a_kg: 120.2,
+    };
+    withProvenance({}, true);
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    for (const texto of [
+      'Perenifólia', 'Floração: Set-Nov', 'Frutificação: Dez-Mar',
+      'Faixa Serviço Mín: 1,8 m', 'Berço Mín: 2 m²', 'Vol. Solo Mín: 4 m³',
+    ]) {
+      expect(screen.getByText(texto).parentElement).toHaveTextContent('Origem não registrada');
+    }
+    for (const label of [
+      'Biomassa aérea', 'Carbono armazenado', 'CO₂ equivalente armazenado na biomassa aérea',
+      'Sobrevivência (cenário)', 'CO₂e esperado por muda',
+    ]) {
+      expect(row(label)).toHaveTextContent('Origem não registrada');
+    }
+  });
+
+  it('shows no seal and no "Origem não registrada" on the new blocks when provenance is unavailable', () => {
+    const tree: Arvore = {
+      ...morfologia,
+      biomassa_aerea_10a_kg: 90.3,
+      co2e_esperado_por_muda_10a_kg: 120.2,
+      faixa_serv_min_m_recomendada: 1.8,
+    };
+    withProvenance({}, false);
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(screen.queryByRole('button', { name: 'Ver detalhes' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Origem não registrada')).not.toBeInTheDocument();
+    expect(within(row('Altura adulta')).getByText('15 m')).toBeInTheDocument();
+    expect(within(row('Biomassa aérea')).getByText('90,3 kg')).toBeInTheDocument();
+  });
+
+  it('keeps the changed-value warning on a morphology tile', () => {
+    withProvenance({
+      altura_adulta_max_m: prov('altura_adulta_max_m', {
+        origem: 'published_table',
+        valor_alterado_em: '2026-10-01T12:00:00Z',
+      }),
+    });
+
+    render(<TreeDetailModal arvore={morfologia} isOpen onClose={vi.fn()} />);
+
+    expect(within(row('Altura adulta')).getByText('Valor alterado após o registro da fonte')).toBeInTheDocument();
+  });
+});
+
+describe('TreeDetailModal phenology gaps', () => {
+  it('shows the gap label for a NULL flowering or fruiting season instead of hiding the chip', () => {
+    const tree: Arvore = { ...staticTrees[0], epoca_floracao: null, epoca_frutificacao: null };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Floração: Não avaliado')).toBeInTheDocument();
+    expect(screen.getByText('Frutificação: Não avaliado')).toBeInTheDocument();
+  });
+
+  it('treats a blank season as a gap and keeps a filled season as is', () => {
+    const tree: Arvore = { ...staticTrees[0], epoca_floracao: '   ', epoca_frutificacao: 'Dez-Mar' };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Floração: Não avaliado')).toBeInTheDocument();
+    expect(screen.getByText('Frutificação: Dez-Mar')).toBeInTheDocument();
+  });
+
+  it('does not say "Origem não registrada" for a NULL season', () => {
+    const tree: Arvore = { ...staticTrees[0], epoca_floracao: null, epoca_frutificacao: null };
+    withProvenance({}, true);
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Floração: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Frutificação: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
+  });
+});

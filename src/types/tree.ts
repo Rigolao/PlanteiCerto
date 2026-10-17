@@ -4,7 +4,7 @@ export interface Arvore {
   nome_cientifico: string;
   nome_popular: string;
   origem: 'Nativa BR' | 'Exótica';
-  decidua_perenifolia: 'Perenifólia' | 'Decídua' | 'Semidecídua';
+  decidua_perenifolia: 'Perenifólia' | 'Decídua' | 'Semidecídua' | null;
   epoca_floracao: string | null;
   epoca_frutificacao: string | null;
   altura_adulta_max_m: number | null;

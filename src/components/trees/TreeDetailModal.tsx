@@ -51,12 +51,60 @@ function modoSelo(disponivel: boolean, valor: unknown): ModoSelo {
   return disponivel && valor != null ? 'detalhes' : 'tabela';
 }
 
-function ProjecaoTile({ label, valor, detalhe, calculoEstimado }: {
+/** Texto que a ficha exibe como lacuna (NULL, vazio, "Não encontrado") conta como NULL para o selo. */
+function textoOuNull(valor: string | null | undefined, formatado: string): string | null {
+  return formatado === ROTULO_SEM_DADO ? null : valor ?? null;
+}
+
+/**
+ * Selos de um tile, que pode juntar mais de um campo (ex.: diâmetro e classe da copa). Cada campo com
+ * registro ganha o seu selo; sem nenhum registro, um único "Origem não registrada" se algum dos
+ * valores estiver preenchido e a consulta de proveniência tiver resolvido.
+ */
+function SelosDoCampo({ campos, provenance, disponivel, className }: {
+  campos: { campo: keyof Arvore; valor: unknown }[];
+  provenance: ProvenanceMap;
+  disponivel: boolean;
+  className?: string;
+}) {
+  const comRegistro = campos.filter(({ campo }) => provenance[campo] != null);
+  if (comRegistro.length === 0) {
+    const algumValor = campos.some(({ valor }) => valor != null);
+    return <ProvenanceBadge modo={modoSelo(disponivel, algumValor ? true : null)} className={className} />;
+  }
+  return (
+    <>
+      {comRegistro.map(({ campo }) => (
+        <ProvenanceBadge key={campo} record={provenance[campo]} modo="detalhes" className={className} />
+      ))}
+    </>
+  );
+}
+
+function AtributoTile({ label, valor, campos, provenance, disponivel }: {
+  label: string;
+  valor: ReactNode;
+  campos: { campo: keyof Arvore; valor: unknown }[];
+  provenance: ProvenanceMap;
+  disponivel: boolean;
+}) {
+  return (
+    <div className="bg-muted rounded-md px-2 py-1.5">
+      <div className="text-[9px] text-muted-foreground">{label}</div>
+      <div className="text-xs font-semibold text-foreground">{valor}</div>
+      <SelosDoCampo campos={campos} provenance={provenance} disponivel={disponivel} />
+    </div>
+  );
+}
+
+function ProjecaoTile({ label, valor, detalhe, calculoEstimado, selos }: {
   label: string;
   valor: string;
   detalhe?: string;
   /** Biomassa, carbono e CO₂e são cálculos a partir de equação alométrica, não medições. */
   calculoEstimado?: boolean;
+  /** Selo de procedência do valor (registro, "Origem não registrada" ou nada). */
+  selos?: ReactNode;
 }) {
   return (
     <div className="bg-muted rounded-md px-2 py-1.5">
@@ -68,6 +116,7 @@ function ProjecaoTile({ label, valor, detalhe, calculoEstimado }: {
           Cálculo estimado
         </span>
       )}
+      {selos}
     </div>
   );
 }
@@ -202,6 +251,10 @@ function ProjecaoSection({ arvore, provenance, disponivel }: { arvore: Arvore; p
 
   if (!hasGrowthData && !has10YearIndicators && !hasBvocData) return null;
 
+  const selosDe = (campo: keyof Arvore) => (
+    <SelosDoCampo campos={[{ campo, valor: arvore[campo] }]} provenance={provenance} disponivel={disponivel} />
+  );
+
   return (
     <div className="py-3 px-3.5 border-b border-border last:border-b-0">
       <div className="flex items-center gap-1.5 mb-2">
@@ -223,6 +276,7 @@ function ProjecaoSection({ arvore, provenance, disponivel }: { arvore: Arvore; p
                 label="Biomassa aérea"
                 valor={formatMedida(arvore.biomassa_aerea_10a_kg, 'kg', 1)}
                 calculoEstimado
+                selos={selosDe('biomassa_aerea_10a_kg')}
               />
             )}
             {arvore.carbono_armazenado_10a_kg != null && (
@@ -230,6 +284,7 @@ function ProjecaoSection({ arvore, provenance, disponivel }: { arvore: Arvore; p
                 label="Carbono armazenado"
                 valor={formatMedida(arvore.carbono_armazenado_10a_kg, 'kg', 1)}
                 calculoEstimado
+                selos={selosDe('carbono_armazenado_10a_kg')}
               />
             )}
             {arvore.co2e_10a_kg != null && (
@@ -238,6 +293,7 @@ function ProjecaoSection({ arvore, provenance, disponivel }: { arvore: Arvore; p
                 valor={formatMedida(arvore.co2e_10a_kg, 'kg', 1)}
                 detalhe="estoque aos 10 anos; não é remoção anual"
                 calculoEstimado
+                selos={selosDe('co2e_10a_kg')}
               />
             )}
             {arvore.sobrevivencia_10a_pct != null && (
@@ -245,6 +301,7 @@ function ProjecaoSection({ arvore, provenance, disponivel }: { arvore: Arvore; p
                 label="Sobrevivência (cenário)"
                 valor={formatMedida(arvore.sobrevivencia_10a_pct, '%', 1)}
                 detalhe="premissa do cenário, não taxa publicada da espécie"
+                selos={selosDe('sobrevivencia_10a_pct')}
               />
             )}
             {arvore.co2e_esperado_por_muda_10a_kg != null && (
@@ -252,6 +309,7 @@ function ProjecaoSection({ arvore, provenance, disponivel }: { arvore: Arvore; p
                 label="CO₂e esperado por muda"
                 valor={formatMedida(arvore.co2e_esperado_por_muda_10a_kg, 'kg', 1)}
                 detalhe="(CO₂e aos 10 anos − CO₂e da muda inicial) × sobrevivência do cenário"
+                selos={selosDe('co2e_esperado_por_muda_10a_kg')}
               />
             )}
           </div>
@@ -363,6 +421,9 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
     { label: 'Tolerância à Poda', campo: 'tolerancia_poda_1a5', value: displayArvore.tolerancia_poda_1a5 },
   ];
 
+  const bifurcacaoBruta = displayArvore.altura_primeira_bifurcacao_m ?? displayArvore.altura_primeira_bifurcacao_faixa;
+  const bifurcacao = formatBifurcacao(bifurcacaoBruta);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="relative">
@@ -412,32 +473,51 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             </span>
           </div>
           <div className="grid grid-cols-2 gap-1.5">
-            <div className="bg-muted rounded-md px-2 py-1.5">
-              <div className="text-[9px] text-muted-foreground">Altura adulta</div>
-              <div className="text-xs font-semibold text-foreground">{formatMedida(displayArvore.altura_adulta_max_m, 'm')}</div>
-            </div>
-            <div className="bg-muted rounded-md px-2 py-1.5">
-              <div className="text-[9px] text-muted-foreground">Copa</div>
-              <div className="text-xs font-semibold text-foreground">{formatMedidaClasse(displayArvore.diametro_copa_adulto_max_m, 'm', displayArvore.copa_classe)}</div>
-            </div>
-            <div className="bg-muted rounded-md px-2 py-1.5">
-              <div className="text-[9px] text-muted-foreground">Porte</div>
-              <div className="text-xs font-semibold text-foreground">{displayArvore.porte_altura_classe ?? ROTULO_SEM_DADO}</div>
-            </div>
-            <div className="bg-muted rounded-md px-2 py-1.5">
-              <div className="text-[9px] text-muted-foreground">Forma da Copa</div>
-              <div className="text-xs font-semibold text-foreground">{formatTexto(displayArvore.forma_copa)}</div>
-            </div>
-            <div className="bg-muted rounded-md px-2 py-1.5">
-              <div className="text-[9px] text-muted-foreground">DAP (Diâmetro)</div>
-              <div className="text-xs font-semibold text-foreground">{formatMedida(displayArvore.dap_adulto_max_cm, 'cm')}</div>
-            </div>
-            <div className="bg-muted rounded-md px-2 py-1.5">
-              <div className="text-[9px] text-muted-foreground">1ª Bifurcação</div>
-              <div className="text-xs font-semibold text-foreground">
-                {formatBifurcacao(displayArvore.altura_primeira_bifurcacao_m ?? displayArvore.altura_primeira_bifurcacao_faixa)}
-              </div>
-            </div>
+            <AtributoTile
+              label="Altura adulta"
+              valor={formatMedida(displayArvore.altura_adulta_max_m, 'm')}
+              campos={[{ campo: 'altura_adulta_max_m', valor: displayArvore.altura_adulta_max_m }]}
+              provenance={provenance}
+              disponivel={disponivel}
+            />
+            <AtributoTile
+              label="Copa"
+              valor={formatMedidaClasse(displayArvore.diametro_copa_adulto_max_m, 'm', displayArvore.copa_classe)}
+              campos={[
+                { campo: 'diametro_copa_adulto_max_m', valor: displayArvore.diametro_copa_adulto_max_m },
+                { campo: 'copa_classe', valor: displayArvore.copa_classe },
+              ]}
+              provenance={provenance}
+              disponivel={disponivel}
+            />
+            <AtributoTile
+              label="Porte"
+              valor={displayArvore.porte_altura_classe ?? ROTULO_SEM_DADO}
+              campos={[{ campo: 'porte_altura_classe', valor: displayArvore.porte_altura_classe }]}
+              provenance={provenance}
+              disponivel={disponivel}
+            />
+            <AtributoTile
+              label="Forma da Copa"
+              valor={formatTexto(displayArvore.forma_copa)}
+              campos={[{ campo: 'forma_copa', valor: textoOuNull(displayArvore.forma_copa, formatTexto(displayArvore.forma_copa)) }]}
+              provenance={provenance}
+              disponivel={disponivel}
+            />
+            <AtributoTile
+              label="DAP (Diâmetro)"
+              valor={formatMedida(displayArvore.dap_adulto_max_cm, 'cm')}
+              campos={[{ campo: 'dap_adulto_max_cm', valor: displayArvore.dap_adulto_max_cm }]}
+              provenance={provenance}
+              disponivel={disponivel}
+            />
+            <AtributoTile
+              label="1ª Bifurcação"
+              valor={bifurcacao}
+              campos={[{ campo: 'altura_primeira_bifurcacao_m', valor: textoOuNull(bifurcacaoBruta, bifurcacao) }]}
+              provenance={provenance}
+              disponivel={disponivel}
+            />
           </div>
         </div>
 
@@ -470,19 +550,21 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+            <AttributeChip record={provenance.decidua_perenifolia} modo={modoSelo(disponivel, displayArvore.decidua_perenifolia)}>
               {displayArvore.decidua_perenifolia ?? ROTULO_SEM_DADO}
-            </span>
-            {displayArvore.epoca_floracao && (
-              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                Floração: {displayArvore.epoca_floracao}
-              </span>
-            )}
-            {displayArvore.epoca_frutificacao && (
-              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                Frutificação: {displayArvore.epoca_frutificacao}
-              </span>
-            )}
+            </AttributeChip>
+            <AttributeChip
+              record={provenance.epoca_floracao}
+              modo={modoSelo(disponivel, textoOuNull(displayArvore.epoca_floracao, formatTexto(displayArvore.epoca_floracao)))}
+            >
+              Floração: {formatTexto(displayArvore.epoca_floracao)}
+            </AttributeChip>
+            <AttributeChip
+              record={provenance.epoca_frutificacao}
+              modo={modoSelo(disponivel, textoOuNull(displayArvore.epoca_frutificacao, formatTexto(displayArvore.epoca_frutificacao)))}
+            >
+              Frutificação: {formatTexto(displayArvore.epoca_frutificacao)}
+            </AttributeChip>
           </div>
         </div>
 
@@ -498,15 +580,15 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             <AttributeChip record={provenance.compat_fiacao} modo={modoSelo(disponivel, displayArvore.compat_fiacao)}>
               Fiação: {compatFiacaoLabel(displayArvore.compat_fiacao)}
             </AttributeChip>
-            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+            <AttributeChip record={provenance.faixa_serv_min_m_recomendada} modo={modoSelo(disponivel, displayArvore.faixa_serv_min_m_recomendada)}>
               Faixa Serviço Mín: {formatMedida(displayArvore.faixa_serv_min_m_recomendada, 'm')}
-            </span>
-            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+            </AttributeChip>
+            <AttributeChip record={provenance.berco_area_min_m2_recomendada} modo={modoSelo(disponivel, displayArvore.berco_area_min_m2_recomendada)}>
               Berço Mín: {formatMedida(displayArvore.berco_area_min_m2_recomendada, 'm²')}
-            </span>
-            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+            </AttributeChip>
+            <AttributeChip record={provenance.volume_solo_min_m3_recomendado} modo={modoSelo(disponivel, displayArvore.volume_solo_min_m3_recomendado)}>
               Vol. Solo Mín: {formatMedida(displayArvore.volume_solo_min_m3_recomendado, 'm³')}
-            </span>
+            </AttributeChip>
             <AttributeChip record={provenance.presenca_espinhos} modo={modoSelo(disponivel, displayArvore.presenca_espinhos)}>
               Espinhos: {displayArvore.presenca_espinhos == null
                 ? ROTULO_SEM_DADO

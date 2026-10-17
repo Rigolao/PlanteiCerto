@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Ruler, Globe, Leaf, AlertTriangle, CheckCircle, Home, TrendingUp } from 'lucide-react';
+import { Ruler, Globe, Leaf, AlertTriangle, CheckCircle, CircleHelp, Home, TrendingUp } from 'lucide-react';
 import type { Arvore } from '../../types/tree';
 import { ROTULO_SEM_DADO } from '../../lib/provenance';
 import { formatMedida, formatMedidaClasse } from '../../lib/format';
@@ -167,16 +167,16 @@ export const TreeCard = memo(function TreeCard({ arvore, onClick, isFavorite, on
             </span>
           </div>
 
-          {arvore.presenca_espinhos !== null && (
-            <div className="flex justify-between items-center">
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                {arvore.presenca_espinhos ? <AlertTriangle size={12} /> : <CheckCircle size={12} />} Espinhos
-              </span>
-              <span className="bg-[#f0e8df] text-[#6b4226] rounded-full px-2 py-0.5 text-xs font-medium">
-                {arvore.presenca_espinhos ? 'Sim' : 'Não'}
-              </span>
-            </div>
-          )}
+          <div className="flex justify-between items-center">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              {arvore.presenca_espinhos == null
+                ? <CircleHelp size={12} />
+                : arvore.presenca_espinhos ? <AlertTriangle size={12} /> : <CheckCircle size={12} />} Espinhos
+            </span>
+            <span className="bg-[#f0e8df] text-[#6b4226] rounded-full px-2 py-0.5 text-xs font-medium">
+              {arvore.presenca_espinhos == null ? ROTULO_SEM_DADO : arvore.presenca_espinhos ? 'Sim' : 'Não'}
+            </span>
+          </div>
         </div>
 
         <GrowthProjection arvore={arvore} />

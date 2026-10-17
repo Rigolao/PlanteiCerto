@@ -96,7 +96,7 @@ describe('tree quality assessment', () => {
   it('keeps species origin and leaf behavior in the recommendation score rules', () => {
     const issues = getTreeQualityIssues(makeCompleteTree({
       origem: '' as Arvore['origem'],
-      decidua_perenifolia: null as unknown as Arvore['decidua_perenifolia'],
+      decidua_perenifolia: null,
     }));
 
     expect(issues.map(({ field, impacts }) => ({ field, impacts }))).toEqual([

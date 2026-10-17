@@ -50,7 +50,7 @@ const LACUNAS: Partial<Arvore> = {
   diametro_copa_adulto_max_m: null,
   copa_classe: null,
   potencial_dano_calcada_1a5: null,
-  decidua_perenifolia: null as unknown as Arvore['decidua_perenifolia'],
+  decidua_perenifolia: null,
   epoca_floracao: null,
   presenca_espinhos: null,
   tolerancia_sol_pleno: null,

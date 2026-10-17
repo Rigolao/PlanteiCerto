@@ -150,12 +150,30 @@ describe('TreeCard units and gaps', () => {
     expect(screen.getAllByText('Não avaliado').length).toBeGreaterThan(0);
   });
 
+  it('shows the gap label for NULL thorns instead of hiding the row', () => {
+    render(<TreeCard arvore={createMockTree({ presenca_espinhos: null })} onClick={() => {}} />);
+
+    const linha = screen.getByText('Espinhos').closest('div') as HTMLElement;
+    expect(within(linha).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(linha).queryByText('Sim')).not.toBeInTheDocument();
+    expect(within(linha).queryByText('Não')).not.toBeInTheDocument();
+  });
+
+  it('keeps showing Sim/Não for known thorns', () => {
+    const { unmount } = render(<TreeCard arvore={createMockTree({ presenca_espinhos: true })} onClick={() => {}} />);
+    expect(within(screen.getByText('Espinhos').closest('div') as HTMLElement).getByText('Sim')).toBeInTheDocument();
+    unmount();
+
+    render(<TreeCard arvore={createMockTree({ presenca_espinhos: false })} onClick={() => {}} />);
+    expect(within(screen.getByText('Espinhos').closest('div') as HTMLElement).getByText('Não')).toBeInTheDocument();
+  });
+
   it('shows no "N/A" or dash for NULL attributes', () => {
     const tree = createMockTree({
       altura_adulta_max_m: null,
       porte_altura_classe: null,
       presenca_espinhos: null,
-      decidua_perenifolia: null as unknown as Arvore['decidua_perenifolia'],
+      decidua_perenifolia: null,
     });
 
     const { container } = render(<TreeCard arvore={tree} onClick={() => {}} />);
