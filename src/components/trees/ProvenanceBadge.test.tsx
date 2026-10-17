@@ -103,4 +103,57 @@ describe('ProvenanceBadge', () => {
     expect(screen.getByText('Origem não registrada')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
+
+  describe('source links', () => {
+    async function openDetails(fonte: string | null) {
+      const user = userEvent.setup();
+      render(<ProvenanceBadge record={record({ origem: 'published_table', fonte })} />);
+      await user.click(screen.getByRole('button', { name: 'Ver detalhes' }));
+    }
+
+    it('turns a source that is an http(s) URL into a link that opens safely in a new tab', async () => {
+      await openDetails('https://doi.org/10.1000/xyz');
+
+      const link = screen.getByRole('link', { name: 'https://doi.org/10.1000/xyz' });
+      expect(link).toHaveAttribute('href', 'https://doi.org/10.1000/xyz');
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link.getAttribute('rel')?.split(' ')).toEqual(expect.arrayContaining(['noopener', 'noreferrer']));
+    });
+
+    it('links only the URL of a source that mixes text and URL', async () => {
+      await openDetails('Lorenzi (2002), disponível em https://example.com/a.');
+
+      const link = screen.getByRole('link');
+      expect(link).toHaveAttribute('href', 'https://example.com/a');
+      expect(link).toHaveTextContent('https://example.com/a');
+      const dd = link.closest('dd') as HTMLElement;
+      expect(dd).toHaveTextContent('Lorenzi (2002), disponível em https://example.com/a.');
+    });
+
+    it('links each URL of a source with more than one', async () => {
+      await openDetails('https://a.com/x e https://b.org/y');
+
+      const links = screen.getAllByRole('link');
+      expect(links.map((a) => a.getAttribute('href'))).toEqual(['https://a.com/x', 'https://b.org/y']);
+    });
+
+    it.each([
+      'javascript:alert(1)',
+      'data:text/html,<b>x</b>',
+      'ftp://example.com/a',
+      'mailto:alguem@example.com',
+    ])('never makes %s clickable', async (fonte) => {
+      await openDetails(fonte);
+
+      expect(screen.queryByRole('link')).not.toBeInTheDocument();
+      expect(screen.getByText(fonte)).toBeInTheDocument();
+    });
+
+    it('keeps a plain-text source as text without a link', async () => {
+      await openDetails('Lorenzi (2002), tab. 3');
+
+      expect(screen.getByText('Lorenzi (2002), tab. 3')).toBeInTheDocument();
+      expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    });
+  });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { OrigemValor, ProvenanceRecord } from '../types/provenance';
-import { ROTULO_SEM_DADO, formatProjection, origemClasse, origemLabel } from './provenance';
+import { ROTULO_SEM_DADO, formatProjection, origemClasse, origemLabel, segmentarLinks } from './provenance';
 
 function makeRecord(origem: OrigemValor, overrides: Partial<ProvenanceRecord> = {}): ProvenanceRecord {
   return {
@@ -135,5 +135,75 @@ describe('formatProjection', () => {
   it('rounds to at most two decimal places', () => {
     expect(formatProjection(9.2345, 7.5, 10.8451, 'm').valor).toBe('9,23 m');
     expect(formatProjection(9.2345, 7.5, 10.8451, 'm').faixa).toBe('7,5–10,85 m');
+  });
+});
+
+describe('segmentarLinks', () => {
+  it('returns plain text as a single text segment', () => {
+    expect(segmentarLinks('Lorenzi (2002), tab. 3')).toEqual([{ tipo: 'texto', valor: 'Lorenzi (2002), tab. 3' }]);
+  });
+
+  it('returns nothing for an empty text', () => {
+    expect(segmentarLinks('')).toEqual([]);
+  });
+
+  it('turns a lone http(s) URL into a link segment', () => {
+    expect(segmentarLinks('https://doi.org/10.1000/xyz')).toEqual([
+      { tipo: 'link', valor: 'https://doi.org/10.1000/xyz' },
+    ]);
+    expect(segmentarLinks('http://example.com/a')).toEqual([{ tipo: 'link', valor: 'http://example.com/a' }]);
+  });
+
+  it('keeps the text around a URL as text and leaves trailing punctuation out of the link', () => {
+    expect(segmentarLinks('Disponível em https://example.com/a. Acesso em 2026.')).toEqual([
+      { tipo: 'texto', valor: 'Disponível em ' },
+      { tipo: 'link', valor: 'https://example.com/a' },
+      { tipo: 'texto', valor: '. Acesso em 2026.' },
+    ]);
+    expect(segmentarLinks('(https://example.com/a)')).toEqual([
+      { tipo: 'texto', valor: '(' },
+      { tipo: 'link', valor: 'https://example.com/a' },
+      { tipo: 'texto', valor: ')' },
+    ]);
+  });
+
+  it('keeps balanced parentheses that belong to the URL', () => {
+    expect(segmentarLinks('https://pt.wikipedia.org/wiki/Ipe_(planta)')).toEqual([
+      { tipo: 'link', valor: 'https://pt.wikipedia.org/wiki/Ipe_(planta)' },
+    ]);
+  });
+
+  it('links every URL of a text with several of them', () => {
+    expect(segmentarLinks('https://a.com/x e https://b.org/y')).toEqual([
+      { tipo: 'link', valor: 'https://a.com/x' },
+      { tipo: 'texto', valor: ' e ' },
+      { tipo: 'link', valor: 'https://b.org/y' },
+    ]);
+  });
+
+  it.each([
+    'javascript:alert(1)',
+    'JAVASCRIPT:alert(document.cookie)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)',
+    'ftp://example.com/arquivo',
+    'file:///etc/passwd',
+    'mailto:alguem@example.com',
+    '//example.com/sem-esquema',
+    'www.example.com/sem-esquema',
+  ])('never links %s', (texto) => {
+    expect(segmentarLinks(texto)).toEqual([{ tipo: 'texto', valor: texto }]);
+  });
+
+  it('links only the http(s) stretch when it follows another scheme', () => {
+    expect(segmentarLinks('javascript:alert(1) e https://ok.example.com/p')).toEqual([
+      { tipo: 'texto', valor: 'javascript:alert(1) e ' },
+      { tipo: 'link', valor: 'https://ok.example.com/p' },
+    ]);
+  });
+
+  it('does not link a scheme without host', () => {
+    expect(segmentarLinks('https://')).toEqual([{ tipo: 'texto', valor: 'https://' }]);
+    expect(segmentarLinks('veja https:// depois')).toEqual([{ tipo: 'texto', valor: 'veja https:// depois' }]);
   });
 });

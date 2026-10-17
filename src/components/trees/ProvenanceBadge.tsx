@@ -1,6 +1,6 @@
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import type { OrigemValor, ProvenanceRecord } from '../../types/provenance';
-import { origemClasse, origemLabel, type OrigemClasse } from '../../lib/provenance';
+import { origemClasse, origemLabel, segmentarLinks, type OrigemClasse } from '../../lib/provenance';
 
 interface ProvenanceBadgeProps {
   record?: ProvenanceRecord;
@@ -49,6 +49,29 @@ function rotuloCurto(origem: OrigemValor): string | null {
   }
 }
 
+/** Texto da fonte: URLs http(s) viram link; o restante segue como texto. */
+function TextoComLinks({ texto }: { texto: string }) {
+  return (
+    <>
+      {segmentarLinks(texto).map((segmento, indice) =>
+        segmento.tipo === 'link' ? (
+          <a
+            key={indice}
+            href={segmento.valor}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline"
+          >
+            {segmento.valor}
+          </a>
+        ) : (
+          segmento.valor
+        ),
+      )}
+    </>
+  );
+}
+
 export function ProvenanceBadge({ record, modo = 'tabela', className = 'items-start' }: ProvenanceBadgeProps) {
   const [aberto, setAberto] = useState(false);
   const painelId = useId();
@@ -66,9 +89,9 @@ export function ProvenanceBadge({ record, modo = 'tabela', className = 'items-st
   const confiancaInline = record.origem === 'estimated_rubric' && record.confianca
     ? `confiança ${record.confianca}`
     : null;
-  const detalhes: { rotulo: string; valor: string }[] = [
+  const detalhes: { rotulo: string; valor: ReactNode }[] = [
     { rotulo: 'Origem', valor: origemLabel(record.origem) },
-    ...(record.fonte ? [{ rotulo: 'Fonte', valor: record.fonte }] : []),
+    ...(record.fonte ? [{ rotulo: 'Fonte', valor: <TextoComLinks texto={record.fonte} /> }] : []),
     ...(record.metodo ? [{ rotulo: 'Método', valor: record.metodo }] : []),
     ...(record.confianca ? [{ rotulo: 'Confiança', valor: record.confianca }] : []),
     ...(record.observacao ? [{ rotulo: 'Observação', valor: record.observacao }] : []),

@@ -82,3 +82,71 @@ export function formatProjection(
   if (max != null) return { valor, faixa: `máx. ${num(max)} ${unit}`, faixaTipo: 'operacional' };
   return { valor };
 }
+
+export interface SegmentoLink {
+  tipo: 'texto' | 'link';
+  valor: string;
+}
+
+const TRECHO_HTTP = /https?:\/\/[^\s<>"']+/gi;
+const PONTUACAO_FINAL = '.,;:!?';
+const FECHAMENTO_ABERTURA: Record<string, string> = { ')': '(', ']': '[', '}': '{' };
+
+function contar(texto: string, caractere: string): number {
+  return texto.split(caractere).length - 1;
+}
+
+/** Tira do fim da URL a pontuação da frase e os fechamentos sem abertura ("(https://x.com)" → "https://x.com"). */
+function aparar(trecho: string): string {
+  let url = trecho;
+  while (url.length > 0) {
+    const ultimo = url[url.length - 1];
+    const abertura = FECHAMENTO_ABERTURA[ultimo];
+    if (PONTUACAO_FINAL.includes(ultimo) || (abertura && contar(url, ultimo) > contar(url, abertura))) {
+      url = url.slice(0, -1);
+    } else {
+      break;
+    }
+  }
+  return url;
+}
+
+function ehHttp(url: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(url);
+    return (protocol === 'http:' || protocol === 'https:') && hostname !== '';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Separa um texto (ex.: a fonte de um registro de proveniência) em trechos de texto e links.
+ * Só URLs http(s) viram `link`; qualquer outro esquema (javascript:, data:, ftp:, mailto:...) e
+ * qualquer trecho que não valide como URL http(s) continua texto.
+ */
+export function segmentarLinks(texto: string): SegmentoLink[] {
+  const segmentos: SegmentoLink[] = [];
+  const acrescentarTexto = (valor: string) => {
+    if (valor === '') return;
+    const ultimo = segmentos[segmentos.length - 1];
+    if (ultimo?.tipo === 'texto') ultimo.valor += valor;
+    else segmentos.push({ tipo: 'texto', valor });
+  };
+
+  let cursor = 0;
+  for (const encontrado of texto.matchAll(TRECHO_HTTP)) {
+    const inicio = encontrado.index;
+    const url = aparar(encontrado[0]);
+    acrescentarTexto(texto.slice(cursor, inicio));
+    if (ehHttp(url)) {
+      segmentos.push({ tipo: 'link', valor: url });
+      acrescentarTexto(encontrado[0].slice(url.length));
+    } else {
+      acrescentarTexto(encontrado[0]);
+    }
+    cursor = inicio + encontrado[0].length;
+  }
+  acrescentarTexto(texto.slice(cursor));
+  return segmentos;
+}
