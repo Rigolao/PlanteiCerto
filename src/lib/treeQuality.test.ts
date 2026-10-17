@@ -10,6 +10,44 @@ import {
   TREE_QUALITY_RULES,
 } from './treeQuality';
 
+// Campos lidos por evaluateEliminatory (supabase/functions/recommend-trees/rules.ts).
+const CAMPOS_ELIMINATORIOS: Array<keyof Arvore> = [
+  'faixa_serv_min_m_recomendada',
+  'berco_area_min_m2_recomendada',
+  'compat_fiacao',
+  'copa_classe',
+  'porte_altura_classe',
+  'potencial_dano_calcada_1a5',
+  'tolerancia_sol_pleno',
+  'tolerancia_meia_sombra',
+  'tolerancia_sombra',
+  'tolerancia_seca_1a5',
+  'tolerancia_encharcamento_1a5',
+  'tolerancia_compactacao_solo_1a5',
+  'potencial_sujeira_1a5',
+  'presenca_espinhos',
+  'presenca_subst_irritantes',
+  'atracao_fauna_1a5',
+];
+
+// Campos lidos só por calculateScore (pontuação).
+const CAMPOS_SO_CLASSIFICATORIOS: Array<keyof Arvore> = [
+  'tolerancia_poda_1a5',
+  'tolerancia_poluicao_atmosferica_1a5',
+  'tolerancia_ventos_fortes_1a5',
+  'potencial_sombra_1a5',
+  'contribuicao_biodiversidade_1a5',
+  'decidua_perenifolia',
+  'origem',
+];
+
+const TEXTO_ELIMINATORIO = "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.";
+const TEXTO_SO_CLASSIFICATORIO = 'Não pontua e aparece como não avaliado.';
+
+function missingBehaviorOf(field: keyof Arvore): string | undefined {
+  return TREE_QUALITY_RULES.find((rule) => rule.field === field)?.missingBehavior;
+}
+
 function makeCompleteTree(overrides: Partial<Arvore> = {}): Arvore {
   return {
     ...staticTrees[0],
@@ -150,5 +188,25 @@ describe('tree quality assessment', () => {
 
     expect(new Set(informationFields).size).toBe(informationFields.length);
     expect(informationFields.some((field) => recommendationFields.has(field))).toBe(false);
+  });
+
+  it('describes missing values with the recommender behavior, without old defaults', () => {
+    for (const rule of TREE_QUALITY_RULES) {
+      expect(rule.missingBehavior, rule.field).not.toMatch(/3\/5|tratado como 0|pontuação neutra|ausência de espinhos/);
+    }
+  });
+
+  it('uses the approved missing-value text for eliminatory and score-only fields', () => {
+    for (const field of CAMPOS_ELIMINATORIOS) {
+      expect(missingBehaviorOf(field), field).toBe(TEXTO_ELIMINATORIO);
+    }
+    for (const field of CAMPOS_SO_CLASSIFICATORIOS) {
+      expect(missingBehaviorOf(field), field).toBe(TEXTO_SO_CLASSIFICATORIO);
+    }
+  });
+
+  it('classifies every recommendation field as eliminatory or score-only', () => {
+    const classificados = [...CAMPOS_ELIMINATORIOS, ...CAMPOS_SO_CLASSIFICATORIOS].sort();
+    expect(classificados).toEqual(TREE_QUALITY_RULES.map(({ field }) => field).sort());
   });
 });

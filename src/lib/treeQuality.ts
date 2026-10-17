@@ -50,7 +50,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility'],
     criteria: 'largura da faixa de serviço e faixa livre',
     expectedFormat: 'Medida em metros (m). Informe um número maior ou igual a zero.',
-    missingBehavior: 'A comparação com a faixa disponível é ignorada; a árvore pode passar sem essa checagem de espaço.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q2_2', 'q2_3'],
   },
   {
@@ -59,7 +59,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility'],
     criteria: 'área disponível para o berço de plantio',
     expectedFormat: 'Área em metros quadrados (m²). Informe um número maior ou igual a zero.',
-    missingBehavior: 'A comparação com a área do berço é ignorada; a árvore pode passar sem essa checagem de espaço.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q2_4'],
   },
   {
@@ -68,7 +68,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility'],
     criteria: 'presença e distância de fiação aérea',
     expectedFormat: 'N = incompatível, A = compatível com atenção, C = compatível.',
-    missingBehavior: 'Como o valor não é N, a incompatibilidade não é detectada e a árvore pode passar pela regra de fiação.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q2_5', 'q2_6'],
   },
   {
@@ -77,7 +77,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility'],
     criteria: 'recuo da edificação e distância de postes',
     expectedFormat: 'Grande, Média ou Pequena.',
-    missingBehavior: 'A regra que elimina copas grandes não é acionada para este atributo.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q2_7', 'q2_8b'],
   },
   {
@@ -86,7 +86,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility'],
     criteria: 'distância de esquinas e compatibilidade com fiação',
     expectedFormat: 'Grande, Médio ou Pequeno.',
-    missingBehavior: 'As regras que eliminam árvores altas não são acionadas para este atributo.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q2_6', 'q2_8a'],
   },
   {
@@ -95,7 +95,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'distância de bocas-de-lobo e adequação à calçada',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Na regra da boca-de-lobo, o valor ausente é tratado como 0; na pontuação de calçada, como 3/5.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q2_8d', 'q1_1'],
   },
   {
@@ -104,7 +104,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'insolação do local',
     expectedFormat: 'Sim (true) ou não (false).',
-    missingBehavior: 'Não elimina a árvore; quando a condição correspondente é pontuada, recebe a pontuação neutra de 10/20.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q3_1'],
   },
   {
@@ -113,7 +113,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'insolação do local',
     expectedFormat: 'Sim (true) ou não (false).',
-    missingBehavior: 'Não elimina a árvore; quando a condição correspondente é pontuada, recebe a pontuação neutra de 10/20.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q3_1'],
   },
   {
@@ -122,7 +122,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'insolação do local',
     expectedFormat: 'Sim (true) ou não (false).',
-    missingBehavior: 'Não elimina a árvore; quando a condição correspondente é pontuada, recebe a pontuação neutra de 10/20.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q3_1'],
   },
   {
@@ -131,7 +131,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'umidade do solo e disponibilidade de irrigação',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Não elimina por baixa tolerância e recebe o valor padrão 3/5 nas pontuações relacionadas.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q3_2', 'q3_4'],
   },
   {
@@ -140,7 +140,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'umidade do solo',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Não elimina por baixa tolerância e recebe o valor padrão 3/5 na pontuação de umidade.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q3_2'],
   },
   {
@@ -149,7 +149,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'qualidade do solo',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Não elimina por baixa tolerância e recebe o valor padrão 3/5 na pontuação de solo compactado.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q3_3'],
   },
   {
@@ -158,7 +158,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'preferência por pouca queda de folhas e frutos',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Não elimina por potencial de sujeira e recebe o valor padrão 3/5 na pontuação de manutenção.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q4_1', 'q1_2'],
   },
   {
@@ -167,7 +167,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'preferência sobre espinhos e substâncias irritantes',
     expectedFormat: 'Sim (true) ou não (false).',
-    missingBehavior: 'Não elimina a árvore; na pontuação, o campo ausente é tratado como ausência de espinhos.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q4_2'],
   },
   {
@@ -176,7 +176,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'preferência sobre espinhos e substâncias irritantes',
     expectedFormat: 'Sim (true) ou não (false).',
-    missingBehavior: 'Não elimina a árvore; na pontuação, o campo ausente é tratado como ausência de substâncias irritantes.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q4_2'],
   },
   {
@@ -185,7 +185,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['eligibility', 'ranking'],
     criteria: 'preferências por fauna e insetos',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Não elimina por atração de fauna e recebe o valor padrão 3/5 nas pontuações relacionadas.',
+    missingBehavior: "Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.",
     questionIds: ['q4_3', 'q1_1', 'q1_2', 'q5_2'],
   },
   {
@@ -194,7 +194,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['ranking'],
     criteria: 'disponibilidade de manutenção profissional',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Recebe o valor padrão 3/5 quando a resposta sobre poda profissional é pontuada.',
+    missingBehavior: "Não pontua e aparece como não avaliado.",
     questionIds: ['q4_4'],
   },
   {
@@ -203,7 +203,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['ranking'],
     criteria: 'tipo de local de plantio',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Recebe o valor padrão 3/5 na pontuação de canteiro central.',
+    missingBehavior: "Não pontua e aparece como não avaliado.",
     questionIds: ['q1_1'],
   },
   {
@@ -212,7 +212,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['ranking'],
     criteria: 'exposição ao vento e tipo de local',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Recebe o valor padrão 3/5 na pontuação de rotatória ou quando o local é muito exposto a ventos fortes.',
+    missingBehavior: "Não pontua e aparece como não avaliado.",
     questionIds: ['q1_1', 'q3_5'],
   },
   {
@@ -221,7 +221,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['ranking'],
     criteria: 'objetivo de sombra e ilha de calor',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Recebe o valor padrão 3/5 na pontuação do objetivo de sombra ou da necessidade de reduzir ilha de calor.',
+    missingBehavior: "Não pontua e aparece como não avaliado.",
     questionIds: ['q1_2', 'q3_6'],
   },
   {
@@ -230,7 +230,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['ranking'],
     criteria: 'objetivos ecológicos do plantio',
     expectedFormat: 'Escala de 1 a 5.',
-    missingBehavior: 'Recebe o valor padrão 3/5 na pontuação de qualidade do ar e biodiversidade.',
+    missingBehavior: "Não pontua e aparece como não avaliado.",
     questionIds: ['q1_2'],
   },
   {
@@ -239,7 +239,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['ranking'],
     criteria: 'objetivo de baixa manutenção',
     expectedFormat: 'Perenifólia, Decídua ou Semidecídua.',
-    missingBehavior: 'Não recebe o bônus de espécie perenifólia; a pontuação segue pela estimativa de sujeira.',
+    missingBehavior: "Não pontua e aparece como não avaliado.",
     questionIds: ['q1_2'],
   },
   {
@@ -248,7 +248,7 @@ export const TREE_QUALITY_RULES: TreeQualityRule[] = [
     impacts: ['ranking'],
     criteria: 'preferência por espécies nativas',
     expectedFormat: 'Nativa BR ou Exótica.',
-    missingBehavior: 'É tratada como não nativa e não recebe pontos quando a preferência por nativas é considerada.',
+    missingBehavior: "Não pontua e aparece como não avaliado.",
     questionIds: ['q1_2', 'q5_1'],
   },
 ];

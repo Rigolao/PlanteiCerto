@@ -147,7 +147,7 @@ describe('AdminTreeQualityPage', () => {
     const panel = screen.getByRole('dialog', { name: 'Manacá-da-serra' });
     expect(within(panel).getByText('faixa_serv_min_m_recomendada')).toBeInTheDocument();
     expect(within(panel).getAllByText('NULL no banco').length).toBeGreaterThanOrEqual(2);
-    expect(within(panel).getByText('A comparação com a faixa disponível é ignorada; a árvore pode passar sem essa checagem de espaço.')).toBeInTheDocument();
+    expect(within(panel).getByText("Vai para 'Requer avaliação técnica' quando a regra se aplica; não pontua.")).toBeInTheDocument();
     expect(within(panel).getByText('Qual a largura efetiva da faixa de serviço (m)?')).toBeInTheDocument();
     expect(within(panel).getByText('Foto')).toBeInTheDocument();
     expect(within(panel).getByText('Informativo')).toBeInTheDocument();
