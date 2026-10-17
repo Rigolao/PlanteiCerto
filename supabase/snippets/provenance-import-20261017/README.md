@@ -14,15 +14,41 @@ A planilha é `Plantei_Certo_Carga_152_Homologacao_Condicional.xlsx`. A carga n�
 
 ## Ordem em produção
 
-Execute cada passo em uma sessão separada do SQL Editor:
+Execute os três arquivos nesta ordem, um por sessão:
 
 1. `supabase/migrations/20261017000100_create_tree_value_provenance.sql`: tabela, CHECKs, RLS e trigger.
-2. `01-importar-proveniencia.sql`: carga dentro de `BEGIN … COMMIT`. Aborta sem gravar nada em quatro casos:
+2. `01-importar-proveniencia.sql`: carga dentro de `BEGIN … COMMIT`. Aborta sem gravar nada em cinco casos:
    - a tabela já tem linhas destas abas (trava de reexecução);
    - valor, mínimo ou máximo de alguma das 447 projeções difere de `public.trees` (comparação numérica exata);
+   - algum dos 1.033 valores da parametrização e da consolidação mudou em `public.trees` desde a exportação conferida pelo gerador (trava 2b). A comparação é numérica exata nos números; nos booleanos e textos, por igualdade exata do texto; nas linhas `sem_dado_admissivel`, o campo tem de estar NULL. O erro informa a contagem e até 10 exemplos `tree_id campo`. Sem esta trava, um valor editado no painel entre a exportação e a carga ficaria atrelado à fonte antiga sem `valor_alterado_em`;
    - `public.trees` não tem 192 árvores e 152 ativas, ou algum dos 152 IDs da carga está inativo;
    - a contagem inserida por aba difere do esperado.
 3. `02-posflight.sql`: somente leitura. Mostra as contagens e termina com o aviso `Pós-carga da proveniência: OK` ou com um erro que diz o que divergiu.
+
+### Forma recomendada: `psql -f` na VPS
+
+O `01` tem cerca de 580 KB, e o SQL Editor pode ficar lento ou travar com um arquivo desse tamanho. A forma recomendada é o `psql` dentro do container do banco, como no runbook de [`INFRAESTRUTURA.md`](../../../INFRAESTRUTURA.md):
+
+```bash
+# do Mac: enviar os três arquivos para a VPS (host em INFRAESTRUTURA.md)
+scp supabase/migrations/20261017000100_create_tree_value_provenance.sql \
+    supabase/snippets/provenance-import-20261017/01-importar-proveniencia.sql \
+    supabase/snippets/provenance-import-20261017/02-posflight.sql \
+    root@<host-da-vps>:/root/
+
+# na VPS, em /root/supabase/docker:
+for f in 20261017000100_create_tree_value_provenance.sql 01-importar-proveniencia.sql 02-posflight.sql; do
+  docker cp "/root/$f" supabase-db:/tmp/
+done
+docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f /tmp/20261017000100_create_tree_value_provenance.sql
+docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f /tmp/01-importar-proveniencia.sql
+docker exec -i supabase-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f /tmp/02-posflight.sql
+docker exec supabase-db rm /tmp/20261017000100_create_tree_value_provenance.sql /tmp/01-importar-proveniencia.sql /tmp/02-posflight.sql
+```
+
+`-v ON_ERROR_STOP=1` faz o `psql` parar no primeiro erro, como uma trava que dispara. Se o `01` falhar, a transação inteira é desfeita e nada fica gravado. Confira se o `01` termina com `COMMIT` e o aviso `Carga de proveniência: 1480 registros inseridos`, e se o `02` termina com `Pós-carga da proveniência: OK`.
+
+Alternativa: colar cada arquivo no SQL Editor do Studio, uma sessão por arquivo.
 
 Reversão: `DELETE FROM public.tree_value_provenance WHERE aba_origem IN ('Projeções e fontes', 'Parametrização 25', 'SQL 06 (03/10/2026)');`
 
@@ -88,8 +114,11 @@ O script usa o container `supabase_db_PlanteiCerto` e roda tudo dentro de `BEGIN
 
 - A: prelúdio → `01` (sem as linhas `BEGIN;`/`COMMIT;`) → `02` → `ROLLBACK`. Precisa sair com 0 e mostrar `Pós-carga da proveniência: OK`.
 - B: prelúdio → `01` → `01` de novo → `ROLLBACK`. Precisa falhar com a mensagem `Carga de proveniência já aplicada: … já contém 1480 linha(s)`.
+- C: prelúdio → `UPDATE` de quatro valores → `01` → `ROLLBACK`. Os valores cobrem quatro tipos: número da parametrização (217 `tolerancia_seca_1a5`), lacuna preenchida (217 `porte_altura_classe`), booleano (200 `tolerancia_sol_pleno`) e texto da consolidação (19 `epoca_floracao`). Precisa falhar pela trava 2b com `4 de 1033 valores … (exemplos: 19 epoca_floracao, 200 tolerancia_sol_pleno, 217 porte_altura_classe, 217 tolerancia_seca_1a5)`.
 
-O script sai com 0 só se A passar, B falhar pela trava de reexecução e o banco local terminar igual ao início. A comparação usa as contagens de `trees`, `points` e `user_favorites` e confere que não existe `tree_value_provenance`. No fim, ele remove `/tmp/trees_export.csv` do container.
+Antes de rodar, o script recusa qualquer controle de transação (`BEGIN`, `COMMIT`, `ROLLBACK`, `END;`…) nas duas migrations, no `01` (fora as linhas `BEGIN;`/`COMMIT;` que ele remove), no `02` e em cada execução montada. Um `COMMIT` no meio efetivaria o `TRUNCATE` no banco local. O `BEGIN`/`END` de blocos PL/pgSQL não conta.
+
+O script sai com 0 só se A passar, B e C falharem pelas travas esperadas e o banco local terminar igual ao início. A comparação usa as contagens de `trees`, `points`, `user_favorites` e `tree_value_provenance`; se a tabela não existir no banco local, verifica que continua sem existir. No fim, ele remove `/tmp/trees_export.csv` do container.
 
 ## Aviso: snippet de 03/10
 

@@ -608,6 +608,25 @@ def montar_consolidacao(v):
     return saida
 
 
+def esperado_no_banco(r, arvores):
+    """(tipo, valor) que a trava 2b espera encontrar em public.trees para o registro.
+
+    - sem_dado_admissivel ou NULL na exportação: 'nulo' (o campo tem de estar NULL);
+    - coluna numérica: 'numero', comparado como numeric com o valor registrado;
+    - booleano e texto: o texto bruto do banco na exportação conferida, comparado por
+      igualdade exata com `to_jsonb(t) ->> campo`.
+    """
+    bruto = arvores[r['tree_id']][r['campo']]
+    if r['origem'] == 'sem_dado_admissivel' or bruto == 'null':
+        return 'nulo', None
+    tipo = TIPOS_TREES[r['campo']]
+    if tipo == NUM:
+        return 'numero', r['valor_registrado']
+    if tipo == BOOL:
+        return 'booleano', bruto
+    return 'texto', bruto
+
+
 def conferir_conjunto(fontes, v):
     for aba, registros in fontes:
         if len(registros) != ESPERADO[aba]:
@@ -669,8 +688,9 @@ def bloco_insert(titulo, registros):
     return '\n'.join(linhas)
 
 
-def gerar_sql(projecoes, parametrizacao, consolidacao, planilha, export):
+def gerar_sql(projecoes, parametrizacao, consolidacao, arvores, planilha, export):
     todos = projecoes + parametrizacao + consolidacao
+    atributos = parametrizacao + consolidacao
     por_origem = Counter(r['origem'] for r in todos)
     ids_carga = sorted({r['tree_id'] for r in todos})
     abas = (ABA_PROJECOES, ABA_PARAMETRIZACAO, ABA_CONSOLIDACAO)
@@ -729,7 +749,8 @@ def gerar_sql(projecoes, parametrizacao, consolidacao, planilha, export):
 -- são gravadas como NULL; o significado já está na origem. min_operacional e
 -- max_operacional são bandas operacionais de incerteza, não intervalos de confiança.
 --
--- Ordem de execução em produção (SQL Editor, uma sessão por arquivo):
+-- Ordem de execução em produção (uma sessão por arquivo; recomendado
+-- `psql -v ON_ERROR_STOP=1 -f`, com o SQL Editor como alternativa; ver o README):
 --   1. supabase/migrations/20261017000100_create_tree_value_provenance.sql
 --   2. este arquivo (01-importar-proveniencia.sql)
 --   3. 02-posflight.sql
@@ -738,6 +759,9 @@ def gerar_sql(projecoes, parametrizacao, consolidacao, planilha, export):
 --   - reexecução: a tabela já tem linhas das abas desta carga;
 --   - projeções: valor, mínimo ou máximo de alguma das {milhar(len(projecoes))} projeções difere de
 --     public.trees (comparação numérica exata, IS DISTINCT FROM);
+--   - parametrização e consolidação: algum dos {milhar(len(atributos))} valores difere de public.trees
+--     como estava na exportação conferida (número: comparação numérica exata; booleano e
+--     texto: igualdade exata do texto; sem_dado_admissivel: o campo tem de estar NULL);
 --   - catálogo: public.trees diferente de 192 árvores e 152 ativas, ou algum dos
 --     {len(ids_carga)} IDs desta carga inativo;
 --   - conferência final das contagens inseridas por aba.
@@ -809,6 +833,50 @@ BEGIN
 END $$;
 """
 
+    tuplas_atributos = []
+    for r in atributos:
+        tipo_trava, valor_trava = esperado_no_banco(r, arvores)
+        tuplas_atributos.append(
+            f'      ({r["tree_id"]}, {sql_texto(r["campo"])}, {sql_texto(tipo_trava)}, '
+            f'{sql_texto(valor_trava)})'
+        )
+    tuplas_atributos_txt = ',\n'.join(tuplas_atributos)
+    trava_atributos = f"""\
+-- Trava 2b: os {milhar(len(atributos))} valores da parametrização e da consolidação têm de estar em
+-- public.trees como na exportação conferida pelo gerador. Sem esta trava, um valor
+-- editado entre a exportação e a carga ficaria atrelado à fonte antiga sem
+-- valor_alterado_em.
+DO $$
+DECLARE
+  divergencias integer;
+  exemplos text;
+BEGIN
+  WITH esperado(tree_id, campo, tipo, valor) AS (
+    VALUES
+{tuplas_atributos_txt}
+  ),
+  divergentes AS (
+    SELECT e.tree_id, e.campo
+    FROM esperado e
+    LEFT JOIN public.trees t ON t.id = e.tree_id
+    WHERE t.id IS NULL
+       OR CASE e.tipo
+            WHEN 'nulo' THEN (to_jsonb(t) -> e.campo) IS DISTINCT FROM 'null'::jsonb
+            WHEN 'numero' THEN (to_jsonb(t) ->> e.campo)::numeric IS DISTINCT FROM e.valor::numeric
+            ELSE (to_jsonb(t) ->> e.campo) IS DISTINCT FROM e.valor
+          END
+  )
+  SELECT (SELECT count(*) FROM divergentes),
+         (SELECT string_agg(d.tree_id || ' ' || d.campo, ', ')
+            FROM (SELECT tree_id, campo FROM divergentes ORDER BY tree_id, campo LIMIT 10) AS d)
+    INTO divergencias, exemplos;
+
+  IF divergencias <> 0 THEN
+    RAISE EXCEPTION 'Carga de proveniência interrompida: % de {len(atributos)} valores da parametrização e da consolidação divergem de public.trees (exemplos: %). Nada foi gravado.', divergencias, exemplos;
+  END IF;
+END $$;
+"""
+
     ids_txt = ', '.join(str(i) for i in ids_carga)
     trava_catalogo = f"""\
 -- Trava 3: catálogo com 192 árvores e 152 ativas; os {len(ids_carga)} IDs desta carga ativos.
@@ -871,6 +939,7 @@ END $$;
         '',
         trava_reexecucao,
         trava_projecoes,
+        trava_atributos,
         trava_catalogo,
         bloco_insert(f'Aba "{ABA_PROJECOES}"', projecoes) + '\n',
         bloco_insert(f'Aba "{ABA_PARAMETRIZACAO}"', parametrizacao) + '\n',
@@ -932,7 +1001,9 @@ def main(argv=None):
     sql = None
     if not v.problemas:
         try:
-            sql = gerar_sql(projecoes, parametrizacao, consolidacao, args.planilha, args.export)
+            sql = gerar_sql(
+                projecoes, parametrizacao, consolidacao, arvores, args.planilha, args.export
+            )
         except FormatoInesperado as e:
             v.erro(f'SQL: {e}')
 
