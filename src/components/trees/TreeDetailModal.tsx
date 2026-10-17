@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Arvore } from '../../types/tree';
+import type { ProvenanceMap, ProvenanceRecord } from '../../types/provenance';
+import { formatProjection, ROTULO_SEM_DADO } from '../../lib/provenance';
+import { useTreeProvenance } from '../../hooks/useTreeProvenance';
 import { Modal } from '../ui/Modal';
+import { ProvenanceBadge } from './ProvenanceBadge';
 import { Sprout, ShieldCheck, CalendarDays, Building2, TrendingUp, Info } from 'lucide-react';
 
 interface TreeDetailModalProps {
@@ -15,7 +19,7 @@ function compatFiacaoLabel(v: 'N' | 'A' | 'C' | null): string {
   if (v === 'N') return 'Incompatível';
   if (v === 'A') return 'Compatível c/ Alta Tensão';
   if (v === 'C') return 'Compatível';
-  return '—';
+  return ROTULO_SEM_DADO;
 }
 
 const CLASSE_BVOC_LABEL: Record<string, string> = {
@@ -28,6 +32,8 @@ const CLASSE_BVOC_LABEL: Record<string, string> = {
 
 // Constantes da planilha de projeção do orientador — iguais para todas as espécies.
 const CENARIO_PROJECAO = 'Muda de DAP 3 cm e altura 1,5 m, plantada em boas condições.';
+
+const NOTA_FAIXA_OPERACIONAL = 'Faixa operacional de incerteza; não é intervalo de confiança estatístico.';
 
 /** Formata número em pt-BR com no máximo `casas` decimais, sem zeros à toa. */
 function num(valor: number, casas = 1): string {
@@ -74,18 +80,7 @@ const HORIZONTES_PROJECAO = [
   },
 ] as const;
 
-function projectionRange(min: number | null | undefined, max: number | null | undefined, unit: string, value: number | null | undefined): string | undefined {
-  if (min == null && max == null) return undefined;
-  if (min != null && max != null) {
-    if (min === max && min === value) return undefined;
-    return `${num(min, 2)}–${num(max, 2)} ${unit}`;
-  }
-  if (min != null) return `mín. ${num(min, 2)} ${unit}`;
-  if (max != null) return `máx. ${num(max, 2)} ${unit}`;
-  return undefined;
-}
-
-function GrowthProjectionTable({ arvore }: { arvore: Arvore }) {
+function GrowthProjectionTable({ arvore, provenance }: { arvore: Arvore; provenance: ProvenanceMap }) {
   const hasProjection = HORIZONTES_PROJECAO.some(periodo => [
     arvore[periodo.dap], arvore[periodo.dapMin], arvore[periodo.dapMax],
     arvore[periodo.altura], arvore[periodo.alturaMin], arvore[periodo.alturaMax],
@@ -93,50 +88,82 @@ function GrowthProjectionTable({ arvore }: { arvore: Arvore }) {
 
   if (!hasProjection) return null;
 
-  const cell = (value: number | null | undefined, min: number | null | undefined, max: number | null | undefined, unit: string) => {
-    const range = projectionRange(min, max, unit, value);
-    return (
-      <div>
-        <div className="text-xs font-semibold text-foreground">{value == null ? '—' : `${num(value, 2)} ${unit}`}</div>
-        {range && <div className="text-[9px] leading-tight text-muted-foreground">{range}</div>}
-      </div>
-    );
-  };
+  const linhas = [
+    {
+      rotulo: 'DAP',
+      unidade: 'cm',
+      campos: HORIZONTES_PROJECAO.map(periodo => ({
+        label: periodo.label, valor: periodo.dap, min: periodo.dapMin, max: periodo.dapMax,
+      })),
+    },
+    {
+      rotulo: 'Altura',
+      unidade: 'm',
+      campos: HORIZONTES_PROJECAO.map(periodo => ({
+        label: periodo.label, valor: periodo.altura, min: periodo.alturaMin, max: periodo.alturaMax,
+      })),
+    },
+  ].map(linha => ({
+    rotulo: linha.rotulo,
+    celulas: linha.campos.map(campo => {
+      const record = provenance[campo.valor];
+      return {
+        label: campo.label,
+        record,
+        semDado: arvore[campo.valor] == null,
+        formato: formatProjection(arvore[campo.valor], arvore[campo.min], arvore[campo.max], linha.unidade, record),
+      };
+    }),
+  }));
+
+  const temFaixaOperacional = linhas.some(linha =>
+    linha.celulas.some(celula => celula.formato.faixaTipo === 'operacional'));
 
   return (
-    <table aria-label="Projeção de crescimento" className="w-full table-fixed text-left">
-      <caption className="sr-only">DAP e altura projetados para cada horizonte, com faixas quando disponíveis</caption>
-      <thead>
-        <tr className="text-[9px] text-muted-foreground">
-          <th scope="col" className="w-[20%] pb-1 font-medium" />
-          {HORIZONTES_PROJECAO.map(periodo => (
-            <th key={periodo.label} scope="col" className="pb-1 text-center font-medium">{periodo.label}</th>
+    <>
+      <table aria-label="Projeção de crescimento" className="w-full table-fixed text-left">
+        <caption className="sr-only">DAP e altura projetados para cada horizonte, com faixas quando disponíveis</caption>
+        <thead>
+          <tr className="text-[9px] text-muted-foreground">
+            <th scope="col" className="w-[20%] pb-1 font-medium" />
+            {HORIZONTES_PROJECAO.map(periodo => (
+              <th key={periodo.label} scope="col" className="pb-1 text-center font-medium">{periodo.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {linhas.map(linha => (
+            <tr key={linha.rotulo}>
+              <th scope="row" className="py-1 pr-1 align-top text-[10px] font-medium text-muted-foreground">{linha.rotulo}</th>
+              {linha.celulas.map(celula => (
+                <td key={celula.label} className="px-0.5 py-1 text-center align-top">
+                  <div className={`text-xs font-semibold ${celula.semDado ? 'text-muted-foreground' : 'text-foreground'}`}>
+                    {celula.formato.valor}
+                  </div>
+                  {celula.formato.faixaTipo === 'ponto_publicado' && (
+                    <div className="text-[9px] leading-tight text-muted-foreground">ponto publicado</div>
+                  )}
+                  {celula.formato.faixaTipo === 'operacional' && (
+                    <>
+                      <div className="text-[9px] leading-tight text-muted-foreground">{celula.formato.faixa}</div>
+                      <div className="text-[9px] leading-tight text-muted-foreground">faixa operacional</div>
+                    </>
+                  )}
+                  <ProvenanceBadge record={celula.record} className="mt-0.5 items-center" />
+                </td>
+              ))}
+            </tr>
           ))}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th scope="row" className="py-1 pr-1 text-[10px] font-medium text-muted-foreground">DAP</th>
-          {HORIZONTES_PROJECAO.map(periodo => (
-            <td key={periodo.label} className="px-0.5 py-1 text-center">
-              {cell(arvore[periodo.dap], arvore[periodo.dapMin], arvore[periodo.dapMax], 'cm')}
-            </td>
-          ))}
-        </tr>
-        <tr>
-          <th scope="row" className="py-1 pr-1 text-[10px] font-medium text-muted-foreground">Altura</th>
-          {HORIZONTES_PROJECAO.map(periodo => (
-            <td key={periodo.label} className="px-0.5 py-1 text-center">
-              {cell(arvore[periodo.altura], arvore[periodo.alturaMin], arvore[periodo.alturaMax], 'm')}
-            </td>
-          ))}
-        </tr>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+      {temFaixaOperacional && (
+        <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">{NOTA_FAIXA_OPERACIONAL}</p>
+      )}
+    </>
   );
 }
 
-function ProjecaoSection({ arvore }: { arvore: Arvore }) {
+function ProjecaoSection({ arvore, provenance }: { arvore: Arvore; provenance: ProvenanceMap }) {
   const has10YearIndicators = [
     arvore.biomassa_aerea_10a_kg,
     arvore.carbono_armazenado_10a_kg,
@@ -160,7 +187,7 @@ function ProjecaoSection({ arvore }: { arvore: Arvore }) {
           Projeções de crescimento
         </span>
       </div>
-      <GrowthProjectionTable arvore={arvore} />
+      <GrowthProjectionTable arvore={arvore} provenance={provenance} />
 
       {has10YearIndicators && (
         <>
@@ -220,20 +247,54 @@ function ProjecaoSection({ arvore }: { arvore: Arvore }) {
   );
 }
 
-function BarIndicator({ label, value }: { label: string; value: number }) {
+function BarIndicator({ label, value, record }: { label: string; value: number | null; record?: ProvenanceRecord }) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-[11px] text-foreground/80">{label}</span>
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4, 5].map(i => (
-          <div
-            key={i}
-            className={`w-2.5 h-2.5 rounded-sm ${
-              i <= value ? 'bg-primary' : 'bg-border'
-            }`}
-          />
-        ))}
+    <div>
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] text-foreground/80">{label}</span>
+        {value == null ? (
+          <span className="text-[11px] text-muted-foreground">{ROTULO_SEM_DADO}</span>
+        ) : (
+          <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div
+                key={i}
+                className={`w-2.5 h-2.5 rounded-sm ${
+                  i <= value ? 'bg-primary' : 'bg-border'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
+      <ProvenanceBadge record={record} className="items-end" />
+    </div>
+  );
+}
+
+function LightIndicator({ label, value, record }: { label: string; value: boolean | null; record?: ProvenanceRecord }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] text-foreground/80">{label}</span>
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+            value == null ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'
+          }`}
+        >
+          {value == null ? ROTULO_SEM_DADO : value ? 'Sim' : 'Não'}
+        </span>
+      </div>
+      <ProvenanceBadge record={record} className="items-end" />
+    </div>
+  );
+}
+
+function AttributeChip({ children, record }: { children: ReactNode; record?: ProvenanceRecord }) {
+  return (
+    <div className="flex flex-col items-start gap-0.5">
+      <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">{children}</span>
+      <ProvenanceBadge record={record} />
     </div>
   );
 }
@@ -243,20 +304,22 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
   if (arvore && arvore !== lastArvore) setLastArvore(arvore);
 
   const displayArvore = arvore ?? lastArvore;
+  // Proveniência só é consultada com a ficha aberta; sem registro (ou sem Supabase) o mapa vem vazio.
+  const { provenance } = useTreeProvenance(isOpen && displayArvore ? displayArvore.id : null);
   if (!displayArvore) return null;
 
-  const toleranceFields: { label: string; value: number | null }[] = [
-    { label: 'Seca', value: displayArvore.tolerancia_seca_1a5 },
-    { label: 'Encharcamento', value: displayArvore.tolerancia_encharcamento_1a5 },
-    { label: 'Poluição Atmosférica', value: displayArvore.tolerancia_poluicao_atmosferica_1a5 },
-    { label: 'Compactação do Solo', value: displayArvore.tolerancia_compactacao_solo_1a5 },
-    { label: 'Ventos Fortes', value: displayArvore.tolerancia_ventos_fortes_1a5 },
-    { label: 'Potencial Sujeira', value: displayArvore.potencial_sujeira_1a5 },
-    { label: 'Potencial Dano Calçada', value: displayArvore.potencial_dano_calcada_1a5 },
-    { label: 'Atração de Fauna', value: displayArvore.atracao_fauna_1a5 },
-    { label: 'Potencial Sombra', value: displayArvore.potencial_sombra_1a5 },
-    { label: 'Contribuição Biodiversidade', value: displayArvore.contribuicao_biodiversidade_1a5 },
-    { label: 'Tolerância à Poda', value: displayArvore.tolerancia_poda_1a5 },
+  const toleranceFields: { label: string; campo: keyof Arvore; value: number | null }[] = [
+    { label: 'Seca', campo: 'tolerancia_seca_1a5', value: displayArvore.tolerancia_seca_1a5 },
+    { label: 'Encharcamento', campo: 'tolerancia_encharcamento_1a5', value: displayArvore.tolerancia_encharcamento_1a5 },
+    { label: 'Poluição Atmosférica', campo: 'tolerancia_poluicao_atmosferica_1a5', value: displayArvore.tolerancia_poluicao_atmosferica_1a5 },
+    { label: 'Compactação do Solo', campo: 'tolerancia_compactacao_solo_1a5', value: displayArvore.tolerancia_compactacao_solo_1a5 },
+    { label: 'Ventos Fortes', campo: 'tolerancia_ventos_fortes_1a5', value: displayArvore.tolerancia_ventos_fortes_1a5 },
+    { label: 'Potencial Sujeira', campo: 'potencial_sujeira_1a5', value: displayArvore.potencial_sujeira_1a5 },
+    { label: 'Potencial Dano Calçada', campo: 'potencial_dano_calcada_1a5', value: displayArvore.potencial_dano_calcada_1a5 },
+    { label: 'Atração de Fauna', campo: 'atracao_fauna_1a5', value: displayArvore.atracao_fauna_1a5 },
+    { label: 'Potencial Sombra', campo: 'potencial_sombra_1a5', value: displayArvore.potencial_sombra_1a5 },
+    { label: 'Contribuição Biodiversidade', campo: 'contribuicao_biodiversidade_1a5', value: displayArvore.contribuicao_biodiversidade_1a5 },
+    { label: 'Tolerância à Poda', campo: 'tolerancia_poda_1a5', value: displayArvore.tolerancia_poda_1a5 },
   ];
 
   return (
@@ -359,35 +422,14 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             </span>
           </div>
           <div className="space-y-1.5 mb-2">
-            {displayArvore.tolerancia_sol_pleno != null && (
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-foreground/80">Sol Pleno</span>
-                <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                  {displayArvore.tolerancia_sol_pleno ? 'Sim' : 'Não'}
-                </span>
-              </div>
-            )}
-            {displayArvore.tolerancia_meia_sombra != null && (
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-foreground/80">Meia Sombra</span>
-                <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                  {displayArvore.tolerancia_meia_sombra ? 'Sim' : 'Não'}
-                </span>
-              </div>
-            )}
-            {displayArvore.tolerancia_sombra != null && (
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-foreground/80">Sombra</span>
-                <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                  {displayArvore.tolerancia_sombra ? 'Sim' : 'Não'}
-                </span>
-              </div>
-            )}
+            <LightIndicator label="Sol Pleno" value={displayArvore.tolerancia_sol_pleno} record={provenance.tolerancia_sol_pleno} />
+            <LightIndicator label="Meia Sombra" value={displayArvore.tolerancia_meia_sombra} record={provenance.tolerancia_meia_sombra} />
+            <LightIndicator label="Sombra" value={displayArvore.tolerancia_sombra} record={provenance.tolerancia_sombra} />
           </div>
           <div className="space-y-1.5">
-            {toleranceFields.map(({ label, value }) =>
-              value != null ? <BarIndicator key={label} label={label} value={value} /> : null
-            )}
+            {toleranceFields.map(({ label, campo, value }) => (
+              <BarIndicator key={label} label={label} value={value} record={provenance[campo]} />
+            ))}
           </div>
         </div>
 
@@ -425,9 +467,9 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+            <AttributeChip record={provenance.compat_fiacao}>
               Fiação: {compatFiacaoLabel(displayArvore.compat_fiacao)}
-            </span>
+            </AttributeChip>
             {displayArvore.faixa_serv_min_m_recomendada != null && (
               <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
                 Faixa Serviço Mín: {displayArvore.faixa_serv_min_m_recomendada}m
@@ -443,20 +485,20 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
                 Vol. Solo Mín: {displayArvore.volume_solo_min_m3_recomendado}m³
               </span>
             )}
-            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+            <AttributeChip record={provenance.presenca_espinhos}>
               Espinhos: {displayArvore.presenca_espinhos == null
-                ? 'Não informado'
+                ? ROTULO_SEM_DADO
                 : displayArvore.presenca_espinhos ? 'Sim' : 'Não'}
-            </span>
-            {displayArvore.presenca_subst_irritantes != null && (
-              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                Subst. Irritantes: {displayArvore.presenca_subst_irritantes ? 'Sim' : 'Não'}
-              </span>
-            )}
+            </AttributeChip>
+            <AttributeChip record={provenance.presenca_subst_irritantes}>
+              Subst. Irritantes: {displayArvore.presenca_subst_irritantes == null
+                ? ROTULO_SEM_DADO
+                : displayArvore.presenca_subst_irritantes ? 'Sim' : 'Não'}
+            </AttributeChip>
           </div>
         </div>
 
-        <ProjecaoSection arvore={displayArvore} />
+        <ProjecaoSection arvore={displayArvore} provenance={provenance} />
 
       </div>
     </Modal>
