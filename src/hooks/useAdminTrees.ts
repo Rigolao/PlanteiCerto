@@ -45,9 +45,12 @@ export function useUpdateTree() {
       if (error) throw error;
       return data as Arvore;
     },
-    onSuccess: () => {
+    onSuccess: (_tree, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['trees'] });
       queryClient.invalidateQueries({ queryKey: ['admin-tree-quality'] });
+      // O trigger marca a proveniência como alterada; sem isto a ficha só mostraria
+      // "Valor alterado após o registro da fonte" depois do staleTime da consulta.
+      queryClient.invalidateQueries({ queryKey: ['tree-provenance', id] });
       toast.success('Árvore atualizada com sucesso!');
     },
     onError: (error: Error) => {
