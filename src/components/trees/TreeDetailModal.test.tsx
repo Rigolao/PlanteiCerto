@@ -14,8 +14,9 @@ vi.mock('../../hooks/useTreeProvenance', () => ({
 
 const NOTA_FAIXA = 'Faixa operacional de incerteza; não é intervalo de confiança estatístico.';
 
-function withProvenance(provenance: ProvenanceMap) {
-  mocks.useTreeProvenance.mockReturnValue({ provenance, loading: false });
+/** `disponivel` espelha o hook: true = consulta resolvida (mesmo sem registros); false = Supabase ausente/falha. */
+function withProvenance(provenance: ProvenanceMap, disponivel = true) {
+  mocks.useTreeProvenance.mockReturnValue({ provenance, loading: false, disponivel });
 }
 
 function prov(campo: string, overrides: Partial<ProvenanceRecord> = {}): ProvenanceRecord {
@@ -45,7 +46,7 @@ function row(label: string): HTMLElement {
 
 beforeEach(() => {
   mocks.useTreeProvenance.mockReset();
-  withProvenance({});
+  withProvenance({}, false);
 });
 
 describe('TreeDetailModal growth projections', () => {
@@ -251,7 +252,7 @@ describe('TreeDetailModal provenance', () => {
     expect(screen.queryByText('Valor alterado após o registro da fonte')).not.toBeInTheDocument();
   });
 
-  it('renders values without badges or errors when provenance is empty', async () => {
+  it('renders values without badges or errors when provenance is unavailable', async () => {
     const tree: Arvore = {
       ...staticTrees[0],
       dap_10a_cm: 12.17,
@@ -261,7 +262,7 @@ describe('TreeDetailModal provenance', () => {
       altura_10a_min_m: 6.18,
       altura_10a_max_m: 10.11,
     };
-    withProvenance({});
+    withProvenance({}, false);
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
@@ -273,6 +274,76 @@ describe('TreeDetailModal provenance', () => {
     expect(screen.queryByText('Estimado')).not.toBeInTheDocument();
     expect(screen.queryByText('ponto publicado')).not.toBeInTheDocument();
     expect(screen.queryByText('Origem não registrada')).not.toBeInTheDocument();
+  });
+
+  it('says "Origem não registrada" for filled values without a record once the query resolved', async () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      dap_10a_cm: 12.17,
+      dap_10a_min_cm: 12.17,
+      dap_10a_max_cm: 12.17,
+      tolerancia_sol_pleno: true,
+      tolerancia_seca_1a5: 4,
+      compat_fiacao: 'C',
+      presenca_espinhos: false,
+      presenca_subst_irritantes: false,
+    };
+    withProvenance({}, true);
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    const table = await screen.findByRole('table', { name: 'Projeção de crescimento' });
+    expect(within(table).getAllByText('Origem não registrada')).toHaveLength(1);
+    expect(screen.getByText('Sol Pleno').parentElement?.parentElement).toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Seca').parentElement?.parentElement).toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Fiação: Compatível').parentElement).toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Espinhos: Não').parentElement).toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Subst. Irritantes: Não').parentElement).toHaveTextContent('Origem não registrada');
+    expect(screen.queryByRole('button', { name: 'Ver detalhes' })).not.toBeInTheDocument();
+  });
+
+  it('does not say "Origem não registrada" for a field that has a record', () => {
+    const tree: Arvore = { ...staticTrees[0], tolerancia_seca_1a5: 4 };
+    withProvenance({ tolerancia_seca_1a5: prov('tolerancia_seca_1a5', { origem: 'published_table' }) }, true);
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Seca').parentElement?.parentElement).not.toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Seca').parentElement?.parentElement).toHaveTextContent('Publicado');
+  });
+
+  it('does not say "Origem não registrada" for a NULL field without a record, only "Não avaliado"', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      tolerancia_seca_1a5: null,
+      tolerancia_sombra: null,
+      compat_fiacao: null,
+      presenca_espinhos: null,
+      presenca_subst_irritantes: null,
+    };
+    withProvenance({}, true);
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    const seca = screen.getByText('Seca').parentElement?.parentElement;
+    expect(seca).toHaveTextContent('Não avaliado');
+    expect(seca).not.toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Sombra').parentElement?.parentElement).not.toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Fiação: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Espinhos: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
+    expect(screen.getByText('Subst. Irritantes: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
+  });
+
+  it('does not say "Origem não registrada" for a NULL projection cell', async () => {
+    const tree: Arvore = { ...staticTrees[0], dap_10a_cm: 12.17, dap_10a_min_cm: 12.17, dap_10a_max_cm: 12.17 };
+    withProvenance({}, true);
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    const table = await screen.findByRole('table', { name: 'Projeção de crescimento' });
+    // 1 célula preenchida (DAP 10a) sem registro; as 5 vazias só dizem "Não avaliado".
+    expect(within(table).getAllByText('Origem não registrada')).toHaveLength(1);
+    expect(within(table).getAllByText('Não avaliado')).toHaveLength(5);
   });
 });
 

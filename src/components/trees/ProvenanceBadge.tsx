@@ -6,7 +6,8 @@ interface ProvenanceBadgeProps {
   record?: ProvenanceRecord;
   /**
    * 'tabela' (padrão): sem registro não renderiza nada, para não poluir células e linhas.
-   * 'detalhes': sem registro renderiza "Origem não registrada".
+   * 'detalhes': sem registro renderiza "Origem não registrada" (usado pela ficha para valor preenchido,
+   * sem registro, com a consulta de proveniência resolvida).
    */
   modo?: 'tabela' | 'detalhes';
   /** Classes de alinhamento do contêiner (ex.: `items-center`). Padrão: `items-start`. */
@@ -54,7 +55,11 @@ export function ProvenanceBadge({ record, modo = 'tabela', className = 'items-st
 
   if (!record) {
     if (modo !== 'detalhes') return null;
-    return <span className="text-[9px] text-muted-foreground">Origem não registrada</span>;
+    return (
+      <div className={`flex min-w-0 max-w-full flex-col ${className}`}>
+        <span className="text-[9px] leading-tight text-muted-foreground">Origem não registrada</span>
+      </div>
+    );
   }
 
   const rotulo = rotuloCurto(record.origem);

@@ -16,8 +16,7 @@ vi.mock('../lib/supabase', () => ({
   isSupabaseConfigured: mocks.isSupabaseConfigured,
 }));
 
-function makeWrapper() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function makeWrapper(client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
   return function Wrapper({ children }: PropsWithChildren) {
     return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
   };
@@ -67,7 +66,8 @@ describe('useTreeProvenance', () => {
 
     const { result } = renderHook(() => useTreeProvenance(7), { wrapper: makeWrapper() });
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.disponivel).toBe(true));
+    expect(result.current.loading).toBe(false);
     expect(mocks.from).toHaveBeenCalledWith('tree_value_provenance');
     expect(mocks.select).toHaveBeenCalledWith(expect.stringContaining('campo'));
     expect(mocks.eq).toHaveBeenCalledWith('tree_id', 7);
@@ -79,6 +79,19 @@ describe('useTreeProvenance', () => {
       max_operacional: 12.17,
       fonte: 'Fonte A',
     });
+  });
+
+  it('treats empty or blank bound strings as null, never as 0', async () => {
+    mocks.eq.mockResolvedValue({
+      data: [{ ...dapRow, min_operacional: '', max_operacional: '   ' }],
+      error: null,
+    });
+
+    const { result } = renderHook(() => useTreeProvenance(7), { wrapper: makeWrapper() });
+
+    await waitFor(() => expect(result.current.disponivel).toBe(true));
+    expect(result.current.provenance.dap_10a_cm?.min_operacional).toBeNull();
+    expect(result.current.provenance.dap_10a_cm?.max_operacional).toBeNull();
   });
 
   it('coerces numeric bounds delivered as strings and keeps nulls as null', async () => {
@@ -93,24 +106,63 @@ describe('useTreeProvenance', () => {
     expect(result.current.provenance.dap_20a_cm?.max_operacional).toBeNull();
   });
 
-  it('returns an empty map when the query returns an error', async () => {
+  it('is available with an empty map when the query succeeds without rows', async () => {
+    mocks.eq.mockResolvedValue({ data: [], error: null });
+
+    const { result } = renderHook(() => useTreeProvenance(7), { wrapper: makeWrapper() });
+
+    await waitFor(() => expect(result.current.disponivel).toBe(true));
+    expect(result.current.loading).toBe(false);
+    expect(result.current.provenance).toEqual({});
+  });
+
+  it('is unavailable with an empty map when the query returns an error', async () => {
     mocks.eq.mockResolvedValue({ data: null, error: new Error('backend unavailable') });
 
     const { result } = renderHook(() => useTreeProvenance(7), { wrapper: makeWrapper() });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(mocks.eq).toHaveBeenCalled();
+    expect(result.current.disponivel).toBe(false);
     expect(result.current.provenance).toEqual({});
   });
 
-  it('returns an empty map when the query throws', async () => {
+  it('is unavailable with an empty map when the response has neither data nor error', async () => {
+    mocks.eq.mockResolvedValue({ data: null, error: null });
+
+    const { result } = renderHook(() => useTreeProvenance(7), { wrapper: makeWrapper() });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.disponivel).toBe(false);
+    expect(result.current.provenance).toEqual({});
+  });
+
+  it('is unavailable with an empty map when the query throws', async () => {
     mocks.eq.mockRejectedValue(new Error('network down'));
 
     const { result } = renderHook(() => useTreeProvenance(7), { wrapper: makeWrapper() });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(mocks.eq).toHaveBeenCalled();
+    expect(result.current.disponivel).toBe(false);
     expect(result.current.provenance).toEqual({});
+  });
+
+  it('does not cache a failure as a successful empty result', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    mocks.eq.mockRejectedValueOnce(new Error('network down'));
+
+    const first = renderHook(() => useTreeProvenance(7), { wrapper: makeWrapper(client) });
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    expect(first.result.current.disponivel).toBe(false);
+    first.unmount();
+
+    mocks.eq.mockResolvedValue({ data: [dapRow], error: null });
+    const second = renderHook(() => useTreeProvenance(7), { wrapper: makeWrapper(client) });
+
+    await waitFor(() => expect(second.result.current.disponivel).toBe(true));
+    expect(mocks.eq).toHaveBeenCalledTimes(2);
+    expect(Object.keys(second.result.current.provenance)).toEqual(['dap_10a_cm']);
   });
 
   it('does not call Supabase when it is not configured', () => {
@@ -118,14 +170,14 @@ describe('useTreeProvenance', () => {
 
     const { result } = renderHook(() => useTreeProvenance(7), { wrapper: makeWrapper() });
 
-    expect(result.current).toEqual({ provenance: {}, loading: false });
+    expect(result.current).toEqual({ provenance: {}, loading: false, disponivel: false });
     expect(mocks.from).not.toHaveBeenCalled();
   });
 
   it('does not call Supabase when there is no tree id', () => {
     const { result } = renderHook(() => useTreeProvenance(null), { wrapper: makeWrapper() });
 
-    expect(result.current).toEqual({ provenance: {}, loading: false });
+    expect(result.current).toEqual({ provenance: {}, loading: false, disponivel: false });
     expect(mocks.from).not.toHaveBeenCalled();
   });
 });

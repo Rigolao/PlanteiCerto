@@ -41,6 +41,16 @@ const NOTA_LINHA_DE_BASE =
   'A muda inicial (DAP 3 cm, altura 1,5 m) está abaixo da faixa de calibração da equação alométrica '
   + '(DAP ≥ 5 cm); o valor da linha de base é extrapolado.';
 
+type ModoSelo = 'tabela' | 'detalhes';
+
+/**
+ * "Origem não registrada" só aparece para valor preenchido, sem registro, quando a consulta de
+ * proveniência resolveu. Com a consulta indisponível (Supabase ausente ou falha) ou valor NULL, nada.
+ */
+function modoSelo(disponivel: boolean, valor: unknown): ModoSelo {
+  return disponivel && valor != null ? 'detalhes' : 'tabela';
+}
+
 function ProjecaoTile({ label, valor, detalhe, calculoEstimado }: {
   label: string;
   valor: string;
@@ -92,7 +102,7 @@ const HORIZONTES_PROJECAO = [
   },
 ] as const;
 
-function GrowthProjectionTable({ arvore, provenance }: { arvore: Arvore; provenance: ProvenanceMap }) {
+function GrowthProjectionTable({ arvore, provenance, disponivel }: { arvore: Arvore; provenance: ProvenanceMap; disponivel: boolean }) {
   const hasProjection = HORIZONTES_PROJECAO.some(periodo => [
     arvore[periodo.dap], arvore[periodo.dapMin], arvore[periodo.dapMax],
     arvore[periodo.altura], arvore[periodo.alturaMin], arvore[periodo.alturaMax],
@@ -123,6 +133,7 @@ function GrowthProjectionTable({ arvore, provenance }: { arvore: Arvore; provena
         label: campo.label,
         record,
         semDado: arvore[campo.valor] == null,
+        modo: modoSelo(disponivel, arvore[campo.valor]),
         formato: formatProjection(arvore[campo.valor], arvore[campo.min], arvore[campo.max], linha.unidade, record),
       };
     }),
@@ -161,7 +172,7 @@ function GrowthProjectionTable({ arvore, provenance }: { arvore: Arvore; provena
                       <div className="text-[9px] leading-tight text-muted-foreground">faixa operacional</div>
                     </>
                   )}
-                  <ProvenanceBadge record={celula.record} className="mt-0.5 items-center" />
+                  <ProvenanceBadge record={celula.record} modo={celula.modo} className="mt-0.5 items-center" />
                 </td>
               ))}
             </tr>
@@ -175,7 +186,7 @@ function GrowthProjectionTable({ arvore, provenance }: { arvore: Arvore; provena
   );
 }
 
-function ProjecaoSection({ arvore, provenance }: { arvore: Arvore; provenance: ProvenanceMap }) {
+function ProjecaoSection({ arvore, provenance, disponivel }: { arvore: Arvore; provenance: ProvenanceMap; disponivel: boolean }) {
   const has10YearIndicators = [
     arvore.biomassa_aerea_10a_kg,
     arvore.carbono_armazenado_10a_kg,
@@ -199,7 +210,7 @@ function ProjecaoSection({ arvore, provenance }: { arvore: Arvore; provenance: P
           Projeções de crescimento
         </span>
       </div>
-      <GrowthProjectionTable arvore={arvore} provenance={provenance} />
+      <GrowthProjectionTable arvore={arvore} provenance={provenance} disponivel={disponivel} />
 
       {has10YearIndicators && (
         <>
@@ -276,7 +287,7 @@ function ProjecaoSection({ arvore, provenance }: { arvore: Arvore; provenance: P
   );
 }
 
-function BarIndicator({ label, value, record }: { label: string; value: number | null; record?: ProvenanceRecord }) {
+function BarIndicator({ label, value, record, modo }: { label: string; value: number | null; record?: ProvenanceRecord; modo: ModoSelo }) {
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -296,12 +307,12 @@ function BarIndicator({ label, value, record }: { label: string; value: number |
           </div>
         )}
       </div>
-      <ProvenanceBadge record={record} className="items-end" />
+      <ProvenanceBadge record={record} modo={modo} className="items-end" />
     </div>
   );
 }
 
-function LightIndicator({ label, value, record }: { label: string; value: boolean | null; record?: ProvenanceRecord }) {
+function LightIndicator({ label, value, record, modo }: { label: string; value: boolean | null; record?: ProvenanceRecord; modo: ModoSelo }) {
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -314,16 +325,16 @@ function LightIndicator({ label, value, record }: { label: string; value: boolea
           {value == null ? ROTULO_SEM_DADO : value ? 'Sim' : 'Não'}
         </span>
       </div>
-      <ProvenanceBadge record={record} className="items-end" />
+      <ProvenanceBadge record={record} modo={modo} className="items-end" />
     </div>
   );
 }
 
-function AttributeChip({ children, record }: { children: ReactNode; record?: ProvenanceRecord }) {
+function AttributeChip({ children, record, modo }: { children: ReactNode; record?: ProvenanceRecord; modo: ModoSelo }) {
   return (
     <div className="flex flex-col items-start gap-0.5">
       <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">{children}</span>
-      <ProvenanceBadge record={record} />
+      <ProvenanceBadge record={record} modo={modo} />
     </div>
   );
 }
@@ -333,8 +344,9 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
   if (arvore && arvore !== lastArvore) setLastArvore(arvore);
 
   const displayArvore = arvore ?? lastArvore;
-  // Proveniência só é consultada com a ficha aberta; sem registro (ou sem Supabase) o mapa vem vazio.
-  const { provenance } = useTreeProvenance(isOpen && displayArvore ? displayArvore.id : null);
+  // Proveniência só é consultada com a ficha aberta. `disponivel` distingue "consulta resolvida (talvez
+  // sem registros)" de "Supabase ausente ou consulta falhou": só no primeiro caso há "Origem não registrada".
+  const { provenance, disponivel } = useTreeProvenance(isOpen && displayArvore ? displayArvore.id : null);
   if (!displayArvore) return null;
 
   const toleranceFields: { label: string; campo: keyof Arvore; value: number | null }[] = [
@@ -438,13 +450,13 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             </span>
           </div>
           <div className="space-y-1.5 mb-2">
-            <LightIndicator label="Sol Pleno" value={displayArvore.tolerancia_sol_pleno} record={provenance.tolerancia_sol_pleno} />
-            <LightIndicator label="Meia Sombra" value={displayArvore.tolerancia_meia_sombra} record={provenance.tolerancia_meia_sombra} />
-            <LightIndicator label="Sombra" value={displayArvore.tolerancia_sombra} record={provenance.tolerancia_sombra} />
+            <LightIndicator label="Sol Pleno" value={displayArvore.tolerancia_sol_pleno} record={provenance.tolerancia_sol_pleno} modo={modoSelo(disponivel, displayArvore.tolerancia_sol_pleno)} />
+            <LightIndicator label="Meia Sombra" value={displayArvore.tolerancia_meia_sombra} record={provenance.tolerancia_meia_sombra} modo={modoSelo(disponivel, displayArvore.tolerancia_meia_sombra)} />
+            <LightIndicator label="Sombra" value={displayArvore.tolerancia_sombra} record={provenance.tolerancia_sombra} modo={modoSelo(disponivel, displayArvore.tolerancia_sombra)} />
           </div>
           <div className="space-y-1.5">
             {toleranceFields.map(({ label, campo, value }) => (
-              <BarIndicator key={label} label={label} value={value} record={provenance[campo]} />
+              <BarIndicator key={label} label={label} value={value} record={provenance[campo]} modo={modoSelo(disponivel, value)} />
             ))}
           </div>
         </div>
@@ -483,7 +495,7 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <AttributeChip record={provenance.compat_fiacao}>
+            <AttributeChip record={provenance.compat_fiacao} modo={modoSelo(disponivel, displayArvore.compat_fiacao)}>
               Fiação: {compatFiacaoLabel(displayArvore.compat_fiacao)}
             </AttributeChip>
             <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
@@ -495,12 +507,12 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
               Vol. Solo Mín: {formatMedida(displayArvore.volume_solo_min_m3_recomendado, 'm³')}
             </span>
-            <AttributeChip record={provenance.presenca_espinhos}>
+            <AttributeChip record={provenance.presenca_espinhos} modo={modoSelo(disponivel, displayArvore.presenca_espinhos)}>
               Espinhos: {displayArvore.presenca_espinhos == null
                 ? ROTULO_SEM_DADO
                 : displayArvore.presenca_espinhos ? 'Sim' : 'Não'}
             </AttributeChip>
-            <AttributeChip record={provenance.presenca_subst_irritantes}>
+            <AttributeChip record={provenance.presenca_subst_irritantes} modo={modoSelo(disponivel, displayArvore.presenca_subst_irritantes)}>
               Subst. Irritantes: {displayArvore.presenca_subst_irritantes == null
                 ? ROTULO_SEM_DADO
                 : displayArvore.presenca_subst_irritantes ? 'Sim' : 'Não'}
@@ -508,7 +520,7 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
           </div>
         </div>
 
-        <ProjecaoSection arvore={displayArvore} provenance={provenance} />
+        <ProjecaoSection arvore={displayArvore} provenance={provenance} disponivel={disponivel} />
 
       </div>
     </Modal>
