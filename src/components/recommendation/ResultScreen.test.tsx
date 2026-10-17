@@ -224,7 +224,10 @@ describe('ResultScreen: destaques da árvore', () => {
     });
 
     expect(screen.getByText('Insolação (sol pleno)')).toBeInTheDocument();
-    expect(screen.queryByText(/não avaliado/)).not.toBeInTheDocument();
+    // Nenhuma barra para o item sem dado: só o item avaliado tem "pontos/máximo".
+    expect(screen.getByText('20/20')).toBeInTheDocument();
+    expect(screen.queryByText('0/20')).not.toBeInTheDocument();
+    expect(screen.queryByText('Tolerância à seca (não avaliado)')).not.toBeInTheDocument();
   });
 
   it('does not count a "não avaliado" item as scored', () => {
@@ -243,6 +246,97 @@ describe('ResultScreen: destaques da árvore', () => {
     });
 
     expect(screen.queryByText(/outros critérios pontuados/)).not.toBeInTheDocument();
+  });
+});
+
+describe('ResultScreen: critérios não avaliados no cartão aprovado', () => {
+  it('shows a discreet line with the count and 0 points, listing the unassessed criteria', () => {
+    renderScreen({
+      trees: [
+        approved({
+          scoreBreakdown: [
+            criterion({ label: 'Insolação (sol pleno)', points: 20, maxPoints: 20 }),
+            criterion({ label: 'Tolerância à seca (não avaliado)', points: 0, maxPoints: 20, status: 'nao_avaliado' }),
+            criterion({ label: 'Potencial de sombra (não avaliado)', points: 0, maxPoints: 20, status: 'nao_avaliado' }),
+          ],
+        }),
+      ],
+      pendingTrees: [],
+    });
+
+    const linha = within(approvedGrid()).getByText('2 critérios não avaliados — 0 ponto');
+    expect(linha).toHaveAttribute('title', 'Tolerância à seca, Potencial de sombra');
+    // Rótulos acessíveis também para leitor de tela, sem o sufixo repetido.
+    expect(linha).toHaveTextContent('Tolerância à seca, Potencial de sombra');
+  });
+
+  it('uses the singular for a single unassessed criterion', () => {
+    renderScreen({
+      trees: [
+        approved({
+          scoreBreakdown: [
+            criterion({ label: 'Insolação (sol pleno)', points: 20, maxPoints: 20 }),
+            criterion({ label: 'Tolerância à seca (não avaliado)', points: 0, maxPoints: 20, status: 'nao_avaliado' }),
+          ],
+        }),
+      ],
+      pendingTrees: [],
+    });
+
+    expect(screen.getByText('1 critério não avaliado — 0 ponto')).toBeInTheDocument();
+    expect(screen.queryByText(/critérios não avaliados/)).not.toBeInTheDocument();
+  });
+
+  it('does not show the line when every score item was assessed', () => {
+    renderScreen({
+      trees: [approved({ scoreBreakdown: [criterion({ status: 'avaliado' }), criterion({ label: 'B', status: 'estimado' })] })],
+      pendingTrees: [],
+    });
+
+    expect(screen.queryByText(/não avaliados?\b.*0 ponto/)).not.toBeInTheDocument();
+  });
+
+  it('keeps unassessed items out of the highlights and of the "outros critérios" count', () => {
+    renderScreen({
+      trees: [
+        approved({
+          scoreBreakdown: [
+            criterion({ label: 'A', points: 20 }),
+            criterion({ label: 'B', points: 16 }),
+            criterion({ label: 'C', points: 12 }),
+            criterion({ label: 'D (não avaliado)', points: 0, status: 'nao_avaliado' }),
+          ],
+        }),
+      ],
+      pendingTrees: [],
+    });
+
+    expect(screen.getByText('1 critério não avaliado — 0 ponto')).toBeInTheDocument();
+    expect(screen.queryByText('0/20')).not.toBeInTheDocument();
+    expect(screen.queryByText(/outros critérios pontuados/)).not.toBeInTheDocument();
+  });
+
+  it('counts the unassessed criteria of each approved card separately', () => {
+    renderScreen({
+      trees: [
+        approved({
+          id: 1,
+          scoreBreakdown: [criterion({ label: 'X (não avaliado)', points: 0, status: 'nao_avaliado' })],
+        }),
+        approved({
+          id: 3,
+          nome_popular: 'Jacarandá',
+          scoreBreakdown: [
+            criterion({ label: 'Y (não avaliado)', points: 0, status: 'nao_avaliado' }),
+            criterion({ label: 'Z (não avaliado)', points: 0, status: 'nao_avaliado' }),
+          ],
+        }),
+      ],
+      pendingTrees: [],
+    });
+
+    expect(screen.getByText('1 critério não avaliado — 0 ponto')).toBeInTheDocument();
+    expect(screen.getByText('2 critérios não avaliados — 0 ponto')).toBeInTheDocument();
   });
 });
 

@@ -35,6 +35,26 @@ function scoredCriteria(tree: RecommendedTree): ScoreCriterion[] {
   return tree.scoreBreakdown.filter((c) => c.points > 0 && c.status !== 'nao_avaliado');
 }
 
+const SUFIXO_NAO_AVALIADO = ' (não avaliado)';
+
+/** Rótulos dos itens de pontuação sem dado na espécie, sem o sufixo que o recomendador acrescenta. */
+function unassessedCriteria(tree: RecommendedTree): string[] {
+  return tree.scoreBreakdown
+    .filter((c) => c.status === 'nao_avaliado')
+    .map((c) => (c.label.endsWith(SUFIXO_NAO_AVALIADO) ? c.label.slice(0, -SUFIXO_NAO_AVALIADO.length) : c.label));
+}
+
+function UnassessedCriteriaNote({ labels }: { labels: string[] }) {
+  if (labels.length === 0) return null;
+  const lista = labels.join(', ');
+  return (
+    <p title={lista} className="text-[10px] text-muted-foreground">
+      {`${labels.length} ${labels.length === 1 ? 'critério não avaliado' : 'critérios não avaliados'} — 0 ponto`}
+      <span className="sr-only">: {lista}</span>
+    </p>
+  );
+}
+
 function ScoreBreakdownBar({ criterion }: { criterion: ScoreCriterion }) {
   const pct = criterion.maxPoints > 0 ? (criterion.points / criterion.maxPoints) * 100 : 0;
   const barColor = pct >= 75 ? 'bg-green-500' : pct >= 40 ? 'bg-yellow-400' : 'bg-red-400';
@@ -332,6 +352,7 @@ export function ResultScreen({ trees, pendingTrees, eliminatedCount, totalCount,
                     {scoredCriteria(tree).length > 3 && (
                       <p className="text-[10px] text-muted-foreground">+{scoredCriteria(tree).length - 3} outros critérios pontuados</p>
                     )}
+                    <UnassessedCriteriaNote labels={unassessedCriteria(tree)} />
                   </div>
                 )}
               </div>
