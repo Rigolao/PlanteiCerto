@@ -1,6 +1,9 @@
 import { memo } from 'react';
 import { Ruler, Globe, Leaf, AlertTriangle, CheckCircle, Home, TrendingUp } from 'lucide-react';
 import type { Arvore } from '../../types/tree';
+import { ROTULO_SEM_DADO } from '../../lib/provenance';
+import { formatMedida, formatMedidaClasse } from '../../lib/format';
+import { TreePhoto } from './TreePhoto';
 
 interface TreeCardProps {
   arvore: Arvore;
@@ -9,11 +12,6 @@ interface TreeCardProps {
   onToggleFavorite?: (e: React.MouseEvent) => void;
   isComparing?: boolean;
   onToggleCompare?: (e: React.MouseEvent) => void;
-}
-
-function formatProjection(value: number | null | undefined, unit: string): string {
-  if (value == null) return '—';
-  return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} ${unit}`;
 }
 
 function GrowthProjection({ arvore }: { arvore: Arvore }) {
@@ -49,15 +47,15 @@ function GrowthProjection({ arvore }: { arvore: Arvore }) {
         <tbody className="text-foreground">
           <tr>
             <th scope="row" className="py-1 text-left font-medium text-muted-foreground">DAP</th>
-            <td className="py-1 text-center">{formatProjection(arvore.dap_10a_cm, 'cm')}</td>
-            <td className="py-1 text-center">{formatProjection(arvore.dap_20a_cm, 'cm')}</td>
-            <td className="py-1 text-center">{formatProjection(arvore.dap_30a_cm, 'cm')}</td>
+            <td className="py-1 text-center">{formatMedida(arvore.dap_10a_cm, 'cm')}</td>
+            <td className="py-1 text-center">{formatMedida(arvore.dap_20a_cm, 'cm')}</td>
+            <td className="py-1 text-center">{formatMedida(arvore.dap_30a_cm, 'cm')}</td>
           </tr>
           <tr>
             <th scope="row" className="py-1 text-left font-medium text-muted-foreground">Altura</th>
-            <td className="py-1 text-center">{formatProjection(arvore.altura_10a_m, 'm')}</td>
-            <td className="py-1 text-center">{formatProjection(arvore.altura_20a_m, 'm')}</td>
-            <td className="py-1 text-center">{formatProjection(arvore.altura_30a_m, 'm')}</td>
+            <td className="py-1 text-center">{formatMedida(arvore.altura_10a_m, 'm')}</td>
+            <td className="py-1 text-center">{formatMedida(arvore.altura_20a_m, 'm')}</td>
+            <td className="py-1 text-center">{formatMedida(arvore.altura_30a_m, 'm')}</td>
           </tr>
         </tbody>
       </table>
@@ -74,25 +72,12 @@ export const TreeCard = memo(function TreeCard({ arvore, onClick, isFavorite, on
       `}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-        {arvore.foto ? (
-          <img
-            src={arvore.foto}
-            alt={arvore.nome_popular}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-          />
-        ) : (
-          <div className="aspect-[4/3] bg-gradient-to-br from-[#d4e6d5] to-[#a0c4a2] flex items-center justify-center w-full h-full">
-            <svg width="64" height="64" viewBox="0 0 48 48" fill="none" className="opacity-40">
-              <path d="M24 44V20" stroke="#1a4d2c" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="#226437"/>
-              <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="#2d7a40"/>
-              <path d="M24 28C24 28 17 24 13 17C17 14 24 19 24 28Z" fill="#1a5c30"/>
-              <path d="M24 28C24 28 31 24 35 17C31 14 24 19 24 28Z" fill="#226437"/>
-              <ellipse cx="24" cy="43" rx="5" ry="2" fill="#1a4d2c" opacity="0.2"/>
-            </svg>
-          </div>
-        )}
+        <TreePhoto
+          foto={arvore.foto}
+          alt={arvore.nome_popular}
+          lazy
+          className="w-full h-full transition-transform duration-500 hover:scale-105"
+        />
 
         {/* Compare Checkbox / Overlay */}
         {onToggleCompare && (
@@ -169,7 +154,7 @@ export const TreeCard = memo(function TreeCard({ arvore, onClick, isFavorite, on
               <Ruler size={12} className="text-muted-foreground" /> Altura
             </span>
             <span className="bg-[#e8ede9] text-[#2c4a2e] rounded-full px-2 py-0.5 text-xs font-medium">
-              {arvore.altura_adulta_max_m ? `${arvore.altura_adulta_max_m}m` : '—'} ({arvore.porte_altura_classe ?? 'N/A'})
+              {formatMedidaClasse(arvore.altura_adulta_max_m, 'm', arvore.porte_altura_classe)}
             </span>
           </div>
 
@@ -178,7 +163,7 @@ export const TreeCard = memo(function TreeCard({ arvore, onClick, isFavorite, on
               <Leaf size={12} className="text-muted-foreground" /> Folhagem
             </span>
             <span className="bg-[#f0e8df] text-[#6b4226] rounded-full px-2 py-0.5 text-xs font-medium">
-              {arvore.decidua_perenifolia ?? '—'}
+              {arvore.decidua_perenifolia ?? ROTULO_SEM_DADO}
             </span>
           </div>
 

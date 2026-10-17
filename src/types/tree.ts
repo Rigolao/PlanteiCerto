@@ -12,7 +12,8 @@ export interface Arvore {
   diametro_copa_adulto_max_m: number | null;
   copa_classe: 'Grande' | 'Média' | 'Pequena' | null;
   dap_adulto_max_cm: number | null;
-  altura_primeira_bifurcacao_m: number | null;
+  // `text` no banco: faixa ("2,0 - 3,0"), número ou "Não encontrado". Exibir com formatBifurcacao.
+  altura_primeira_bifurcacao_m: string | null;
   // Presentation-only legacy range retained for static fallback records.
   altura_primeira_bifurcacao_faixa?: string;
   forma_copa: string | null;

@@ -233,7 +233,16 @@ export function TreeFormModal({ isOpen, onClose, tree }: TreeFormModalProps) {
 
             <NumberField label="DAP Máximo (cm)" register={register} name="dap_adulto_max_cm" />
 
-            <NumberField label="Alt. 1ª Bifurcação (m)" register={register} name="altura_primeira_bifurcacao_m" />
+            {/* Texto, não número: o banco guarda faixas como "0,5 - 1,0" */}
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Alt. 1ª Bifurcação (m)</label>
+              <input
+                maxLength={100}
+                placeholder="Ex: 2,0 - 3,0"
+                {...register('altura_primeira_bifurcacao_m', { setValueAs: (v: string) => v.trim() === '' ? null : v })}
+                className="w-full px-3 py-2 rounded-lg border border-border text-sm text-foreground bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+              />
+            </div>
 
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Forma da Copa</label>

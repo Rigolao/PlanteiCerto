@@ -2,9 +2,11 @@ import { useState, type ReactNode } from 'react';
 import type { Arvore } from '../../types/tree';
 import type { ProvenanceMap, ProvenanceRecord } from '../../types/provenance';
 import { formatProjection, ROTULO_SEM_DADO } from '../../lib/provenance';
+import { formatBifurcacao, formatMedida, formatMedidaClasse, formatTexto } from '../../lib/format';
 import { useTreeProvenance } from '../../hooks/useTreeProvenance';
 import { Modal } from '../ui/Modal';
 import { ProvenanceBadge } from './ProvenanceBadge';
+import { TreePhoto } from './TreePhoto';
 import { Sprout, ShieldCheck, CalendarDays, Building2, TrendingUp, Info } from 'lucide-react';
 
 interface TreeDetailModalProps {
@@ -35,17 +37,27 @@ const CENARIO_PROJECAO = 'Muda de DAP 3 cm e altura 1,5 m, plantada em boas cond
 
 const NOTA_FAIXA_OPERACIONAL = 'Faixa operacional de incerteza; não é intervalo de confiança estatístico.';
 
-/** Formata número em pt-BR com no máximo `casas` decimais, sem zeros à toa. */
-function num(valor: number, casas = 1): string {
-  return valor.toLocaleString('pt-BR', { maximumFractionDigits: casas });
-}
+const NOTA_LINHA_DE_BASE =
+  'A muda inicial (DAP 3 cm, altura 1,5 m) está abaixo da faixa de calibração da equação alométrica '
+  + '(DAP ≥ 5 cm); o valor da linha de base é extrapolado.';
 
-function ProjecaoTile({ label, valor, detalhe }: { label: string; valor: string; detalhe?: string }) {
+function ProjecaoTile({ label, valor, detalhe, calculoEstimado }: {
+  label: string;
+  valor: string;
+  detalhe?: string;
+  /** Biomassa, carbono e CO₂e são cálculos a partir de equação alométrica, não medições. */
+  calculoEstimado?: boolean;
+}) {
   return (
     <div className="bg-muted rounded-md px-2 py-1.5">
       <div className="text-[9px] text-muted-foreground">{label}</div>
       <div className="text-xs font-semibold text-foreground">{valor}</div>
       {detalhe && <div className="text-[9px] text-muted-foreground">{detalhe}</div>}
+      {calculoEstimado && (
+        <span className="mt-0.5 inline-block rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+          Cálculo estimado
+        </span>
+      )}
     </div>
   );
 }
@@ -195,29 +207,46 @@ function ProjecaoSection({ arvore, provenance }: { arvore: Arvore; provenance: P
             Indicadores em 10 anos
           </div>
           <div className="grid grid-cols-2 gap-1.5">
+            {arvore.biomassa_aerea_10a_kg != null && (
+              <ProjecaoTile
+                label="Biomassa aérea"
+                valor={formatMedida(arvore.biomassa_aerea_10a_kg, 'kg', 1)}
+                calculoEstimado
+              />
+            )}
+            {arvore.carbono_armazenado_10a_kg != null && (
+              <ProjecaoTile
+                label="Carbono armazenado"
+                valor={formatMedida(arvore.carbono_armazenado_10a_kg, 'kg', 1)}
+                calculoEstimado
+              />
+            )}
             {arvore.co2e_10a_kg != null && (
-              <ProjecaoTile label="CO₂e capturado" valor={`${num(arvore.co2e_10a_kg)} kg`} />
+              <ProjecaoTile
+                label="CO₂ equivalente armazenado na biomassa aérea"
+                valor={formatMedida(arvore.co2e_10a_kg, 'kg', 1)}
+                detalhe="estoque aos 10 anos; não é remoção anual"
+                calculoEstimado
+              />
+            )}
+            {arvore.sobrevivencia_10a_pct != null && (
+              <ProjecaoTile
+                label="Sobrevivência (cenário)"
+                valor={formatMedida(arvore.sobrevivencia_10a_pct, '%', 1)}
+                detalhe="premissa do cenário, não taxa publicada da espécie"
+              />
             )}
             {arvore.co2e_esperado_por_muda_10a_kg != null && (
               <ProjecaoTile
                 label="CO₂e esperado por muda"
-                valor={`${num(arvore.co2e_esperado_por_muda_10a_kg)} kg`}
-                detalhe="já descontada a mortalidade"
-              />
-            )}
-            {arvore.sobrevivencia_10a_pct != null && (
-              <ProjecaoTile label="Sobrevivência" valor={`${num(arvore.sobrevivencia_10a_pct)}%`} />
-            )}
-            {arvore.biomassa_aerea_10a_kg != null && (
-              <ProjecaoTile
-                label="Biomassa aérea"
-                valor={`${num(arvore.biomassa_aerea_10a_kg)} kg`}
-                detalhe={arvore.carbono_armazenado_10a_kg != null
-                  ? `${num(arvore.carbono_armazenado_10a_kg)} kg de carbono`
-                  : undefined}
+                valor={formatMedida(arvore.co2e_esperado_por_muda_10a_kg, 'kg', 1)}
+                detalhe="(CO₂e aos 10 anos − CO₂e da muda inicial) × sobrevivência do cenário"
               />
             )}
           </div>
+          {arvore.co2e_esperado_por_muda_10a_kg != null && (
+            <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">{NOTA_LINHA_DE_BASE}</p>
+          )}
         </>
       )}
 
@@ -325,24 +354,11 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="relative">
-        {displayArvore.foto ? (
-          <img
-            src={displayArvore.foto}
-            alt={displayArvore.nome_popular}
-            className="w-full h-64 object-cover rounded-t-2xl"
-          />
-        ) : (
-          <div className="w-full h-64 bg-gradient-to-br from-[#d4e6d5] to-[#a0c4a2] flex items-center justify-center rounded-t-2xl">
-            <svg width="80" height="80" viewBox="0 0 48 48" fill="none" className="opacity-40">
-              <path d="M24 44V20" stroke="#1a4d2c" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="#226437"/>
-              <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="#2d7a40"/>
-              <path d="M24 28C24 28 17 24 13 17C17 14 24 19 24 28Z" fill="#1a5c30"/>
-              <path d="M24 28C24 28 31 24 35 17C31 14 24 19 24 28Z" fill="#226437"/>
-              <ellipse cx="24" cy="43" rx="5" ry="2" fill="#1a4d2c" opacity="0.2"/>
-            </svg>
-          </div>
-        )}
+        <TreePhoto
+          foto={displayArvore.foto}
+          alt={displayArvore.nome_popular}
+          className="w-full h-64 rounded-t-2xl"
+        />
         {/* Favorite Button */}
         {onToggleFavorite && (
           <button
@@ -386,28 +402,28 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
           <div className="grid grid-cols-2 gap-1.5">
             <div className="bg-muted rounded-md px-2 py-1.5">
               <div className="text-[9px] text-muted-foreground">Altura adulta</div>
-              <div className="text-xs font-semibold text-foreground">{displayArvore.altura_adulta_max_m ? `${displayArvore.altura_adulta_max_m}m` : '—'}</div>
+              <div className="text-xs font-semibold text-foreground">{formatMedida(displayArvore.altura_adulta_max_m, 'm')}</div>
             </div>
             <div className="bg-muted rounded-md px-2 py-1.5">
               <div className="text-[9px] text-muted-foreground">Copa</div>
-              <div className="text-xs font-semibold text-foreground">{displayArvore.diametro_copa_adulto_max_m ? `${displayArvore.diametro_copa_adulto_max_m}m` : '—'} ({displayArvore.copa_classe ?? '—'})</div>
+              <div className="text-xs font-semibold text-foreground">{formatMedidaClasse(displayArvore.diametro_copa_adulto_max_m, 'm', displayArvore.copa_classe)}</div>
             </div>
             <div className="bg-muted rounded-md px-2 py-1.5">
               <div className="text-[9px] text-muted-foreground">Porte</div>
-              <div className="text-xs font-semibold text-foreground">{displayArvore.porte_altura_classe ?? '—'}</div>
+              <div className="text-xs font-semibold text-foreground">{displayArvore.porte_altura_classe ?? ROTULO_SEM_DADO}</div>
             </div>
             <div className="bg-muted rounded-md px-2 py-1.5">
               <div className="text-[9px] text-muted-foreground">Forma da Copa</div>
-              <div className="text-xs font-semibold text-foreground">{displayArvore.forma_copa ?? '—'}</div>
+              <div className="text-xs font-semibold text-foreground">{formatTexto(displayArvore.forma_copa)}</div>
             </div>
             <div className="bg-muted rounded-md px-2 py-1.5">
               <div className="text-[9px] text-muted-foreground">DAP (Diâmetro)</div>
-              <div className="text-xs font-semibold text-foreground">{displayArvore.dap_adulto_max_cm ? `${displayArvore.dap_adulto_max_cm}cm` : '—'}</div>
+              <div className="text-xs font-semibold text-foreground">{formatMedida(displayArvore.dap_adulto_max_cm, 'cm')}</div>
             </div>
             <div className="bg-muted rounded-md px-2 py-1.5">
               <div className="text-[9px] text-muted-foreground">1ª Bifurcação</div>
               <div className="text-xs font-semibold text-foreground">
-                {displayArvore.altura_primeira_bifurcacao_m ?? displayArvore.altura_primeira_bifurcacao_faixa ?? '—'}
+                {formatBifurcacao(displayArvore.altura_primeira_bifurcacao_m ?? displayArvore.altura_primeira_bifurcacao_faixa)}
               </div>
             </div>
           </div>
@@ -443,7 +459,7 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
           </div>
           <div className="flex flex-wrap gap-1.5">
             <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-              {displayArvore.decidua_perenifolia ?? '—'}
+              {displayArvore.decidua_perenifolia ?? ROTULO_SEM_DADO}
             </span>
             {displayArvore.epoca_floracao && (
               <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
@@ -470,21 +486,15 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
             <AttributeChip record={provenance.compat_fiacao}>
               Fiação: {compatFiacaoLabel(displayArvore.compat_fiacao)}
             </AttributeChip>
-            {displayArvore.faixa_serv_min_m_recomendada != null && (
-              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                Faixa Serviço Mín: {displayArvore.faixa_serv_min_m_recomendada}m
-              </span>
-            )}
-            {displayArvore.berco_area_min_m2_recomendada != null && (
-              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                Berço Mín: {displayArvore.berco_area_min_m2_recomendada}m²
-              </span>
-            )}
-            {displayArvore.volume_solo_min_m3_recomendado != null && (
-              <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
-                Vol. Solo Mín: {displayArvore.volume_solo_min_m3_recomendado}m³
-              </span>
-            )}
+            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+              Faixa Serviço Mín: {formatMedida(displayArvore.faixa_serv_min_m_recomendada, 'm')}
+            </span>
+            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+              Berço Mín: {formatMedida(displayArvore.berco_area_min_m2_recomendada, 'm²')}
+            </span>
+            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+              Vol. Solo Mín: {formatMedida(displayArvore.volume_solo_min_m3_recomendado, 'm³')}
+            </span>
             <AttributeChip record={provenance.presenca_espinhos}>
               Espinhos: {displayArvore.presenca_espinhos == null
                 ? ROTULO_SEM_DADO

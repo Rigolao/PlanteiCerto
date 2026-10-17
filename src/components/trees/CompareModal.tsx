@@ -1,6 +1,9 @@
 import { useState, memo } from 'react';
 import type { Arvore } from '../../types/tree';
 import { Modal } from '../ui/Modal';
+import { TreePhoto } from './TreePhoto';
+import { ROTULO_SEM_DADO } from '../../lib/provenance';
+import { formatMedida, formatTexto } from '../../lib/format';
 import { Droplets, Wind, MoveHorizontal, Ruler, Leaf, Sun, Building2, Home } from 'lucide-react';
 
 interface CompareModalProps {
@@ -11,7 +14,14 @@ interface CompareModalProps {
 
 // Helper to render check or cross
 function CheckText({ value, label }: { value: boolean | null | undefined, label: string }) {
-  if (value == null) return <span className="text-muted-foreground">—</span>;
+  if (value == null) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+        <span>{label}</span>
+        <span>{ROTULO_SEM_DADO}</span>
+      </span>
+    );
+  }
   return (
     <span className={`inline-flex items-center gap-1.5 ${value ? 'text-green-600 dark:text-green-500 font-medium' : 'text-red-500/80 dark:text-red-400/80'}`}>
       {value ? (
@@ -25,14 +35,32 @@ function CheckText({ value, label }: { value: boolean | null | undefined, label:
 }
 
 // Helper for 1-5 scale rating bar
+// O valor já aparece ao lado (ou o rótulo de lacuna, quando NULL); sem valor não há barras.
 function ScaleRating({ value }: { value: number | null | undefined }) {
-  if (!value) return <span className="text-muted-foreground">—</span>;
+  if (value == null) return null;
   return (
     <div className="flex gap-0.5 mt-1">
       {[1, 2, 3, 4, 5].map(i => (
         <div key={i} className={`h-1.5 w-full rounded-sm ${i <= value ? 'bg-primary' : 'bg-muted'}`} />
       ))}
     </div>
+  );
+}
+
+// Medida em duas partes: valor com unidade e, ao lado, a classe entre parênteses.
+function MedidaClasse({ valor, unidade, classe }: {
+  valor: number | null | undefined;
+  unidade: 'm' | 'cm';
+  classe: string | null | undefined;
+}) {
+  if (valor == null && classe == null) {
+    return <span className="font-semibold text-muted-foreground">{ROTULO_SEM_DADO}</span>;
+  }
+  return (
+    <>
+      <span className="font-semibold text-foreground">{formatMedida(valor, unidade)}</span>
+      <span className="text-muted-foreground ml-1">({classe ?? ROTULO_SEM_DADO})</span>
+    </>
   );
 }
 
@@ -62,18 +90,7 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
             {trees.map(tree => (
               <div key={`header-${tree.id}`} className="flex flex-col gap-2">
                 <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-muted border">
-                  {tree.foto ? (
-                    <img src={tree.foto} alt={tree.nome_popular} className="w-full h-full object-cover" loading="lazy" />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-primary/5 text-primary">
-                      <svg width="32" height="32" viewBox="0 0 48 48" fill="none" className="opacity-40">
-                        <path d="M24 44V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="currentColor" opacity="0.6"/>
-                        <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="currentColor" opacity="0.4"/>
-                      </svg>
-                      <span className="text-xs font-medium opacity-60">Sem foto</span>
-                    </div>
-                  )}
+                  <TreePhoto foto={tree.foto} alt={tree.nome_popular} lazy className="w-full h-full" />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm text-foreground font-display leading-tight">{tree.nome_popular}</h3>
@@ -92,17 +109,15 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
               <div key={`dim-${tree.id}`} className="bg-card border rounded-lg p-3 flex flex-col gap-2 text-sm">
                 <div>
                   <span className="text-muted-foreground block text-xs mb-0.5">Altura Máxima</span>
-                  <span className="font-semibold text-foreground">{tree.altura_adulta_max_m ? `${tree.altura_adulta_max_m}m` : '—'}</span>
-                  <span className="text-muted-foreground ml-1">({tree.porte_altura_classe || 'N/A'})</span>
+                  <MedidaClasse valor={tree.altura_adulta_max_m} unidade="m" classe={tree.porte_altura_classe} />
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-xs mb-0.5">Diâmetro da Copa</span>
-                  <span className="font-semibold text-foreground">{tree.diametro_copa_adulto_max_m ? `${tree.diametro_copa_adulto_max_m}m` : '—'}</span>
-                  <span className="text-muted-foreground ml-1">({tree.copa_classe || 'N/A'})</span>
+                  <MedidaClasse valor={tree.diametro_copa_adulto_max_m} unidade="m" classe={tree.copa_classe} />
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-xs mb-0.5">Raízes / Dano à Calçada</span>
-                  <span className="font-semibold text-foreground">{tree.potencial_dano_calcada_1a5 ? `${tree.potencial_dano_calcada_1a5}/5 Risco` : '—'}</span>
+                  <span className="font-semibold text-foreground">{tree.potencial_dano_calcada_1a5 == null ? ROTULO_SEM_DADO : `${tree.potencial_dano_calcada_1a5}/5 Risco`}</span>
                   <ScaleRating value={tree.potencial_dano_calcada_1a5} />
                 </div>
               </div>
@@ -122,15 +137,15 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                 </div>
                 <div className="flex justify-between items-center border-b pb-1.5 border-border/50">
                   <span className="text-muted-foreground">Folhagem</span>
-                  <span className="font-semibold text-foreground">{tree.decidua_perenifolia || '—'}</span>
+                  <span className="font-semibold text-foreground">{formatTexto(tree.decidua_perenifolia)}</span>
                 </div>
                 <div className="flex justify-between items-center border-b pb-1.5 border-border/50">
                   <span className="text-muted-foreground">Floração</span>
-                  <span className="font-semibold text-foreground truncate max-w-[120px]" title={tree.epoca_floracao || ''}>{tree.epoca_floracao || '—'}</span>
+                  <span className="font-semibold text-foreground truncate max-w-[120px]" title={tree.epoca_floracao || ''}>{formatTexto(tree.epoca_floracao)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Espinhos</span>
-                  <span className="font-semibold text-foreground">{tree.presenca_espinhos == null ? 'Não informado' : tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
+                  <span className="font-semibold text-foreground">{tree.presenca_espinhos == null ? ROTULO_SEM_DADO : tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
                 </div>
               </div>
             ))}
@@ -148,12 +163,12 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-xs mb-0.5 flex items-center gap-1"><Droplets className="w-3 h-3"/> Tolerância a Seca (1-5)</span>
-                  <span className="font-semibold text-foreground">{tree.tolerancia_seca_1a5 || '—'}</span>
+                  <span className="font-semibold text-foreground">{tree.tolerancia_seca_1a5 ?? ROTULO_SEM_DADO}</span>
                   <ScaleRating value={tree.tolerancia_seca_1a5} />
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-xs mb-0.5 flex items-center gap-1"><Wind className="w-3 h-3"/> Ventos Fortes (1-5)</span>
-                  <span className="font-semibold text-foreground">{tree.tolerancia_ventos_fortes_1a5 || '—'}</span>
+                  <span className="font-semibold text-foreground">{tree.tolerancia_ventos_fortes_1a5 ?? ROTULO_SEM_DADO}</span>
                   <ScaleRating value={tree.tolerancia_ventos_fortes_1a5} />
                 </div>
               </div>
@@ -177,17 +192,17 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                   }`}>
                     {tree.compat_fiacao === 'C' ? 'Total' :
                      tree.compat_fiacao === 'A' ? 'Apenas Alta Tensão' :
-                     tree.compat_fiacao === 'N' ? 'Incompatível' : '—'}
+                     tree.compat_fiacao === 'N' ? 'Incompatível' : ROTULO_SEM_DADO}
                   </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-xs mb-0.5">Potencial de Sombra (1-5)</span>
-                  <span className="font-semibold text-foreground">{tree.potencial_sombra_1a5 || '—'}</span>
+                  <span className="font-semibold text-foreground">{tree.potencial_sombra_1a5 ?? ROTULO_SEM_DADO}</span>
                   <ScaleRating value={tree.potencial_sombra_1a5} />
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-xs mb-0.5">Berço Mínimo (m²)</span>
-                  <span className="font-semibold text-foreground">{tree.berco_area_min_m2_recomendada || '—'}</span>
+                  <span className="font-semibold text-foreground">{formatMedida(tree.berco_area_min_m2_recomendada, 'm²')}</span>
                 </div>
               </div>
             ))}
@@ -226,13 +241,7 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                 {/* Tree Identity */}
                 <div className="flex items-center gap-3">
                   <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-muted border flex items-center justify-center text-xl">
-                    {tree.foto ? <img src={tree.foto} alt={tree.nome_popular} className="w-full h-full object-cover" loading="lazy" /> : (
-                      <svg width="24" height="24" viewBox="0 0 48 48" fill="none" className="opacity-40">
-                        <path d="M24 44V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M24 20C24 20 18 16 14 10C18 8 24 12 24 20Z" fill="currentColor" opacity="0.6"/>
-                        <path d="M24 20C24 20 30 16 34 10C30 8 24 12 24 20Z" fill="currentColor" opacity="0.4"/>
-                      </svg>
-                    )}
+                    <TreePhoto foto={tree.foto} alt={tree.nome_popular} compact lazy className="w-full h-full" />
                   </div>
                   <div>
                     <h3 className="font-bold text-base text-foreground font-display leading-tight">{tree.nome_popular}</h3>
@@ -247,17 +256,15 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                     <>
                       <div>
                         <span className="text-muted-foreground block text-xs mb-0.5">Altura Máxima</span>
-                        <span className="font-semibold text-foreground">{tree.altura_adulta_max_m ? `${tree.altura_adulta_max_m}m` : '—'}</span>
-                        <span className="text-muted-foreground ml-1">({tree.porte_altura_classe || 'N/A'})</span>
+                        <MedidaClasse valor={tree.altura_adulta_max_m} unidade="m" classe={tree.porte_altura_classe} />
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-xs mb-0.5">Diâmetro da Copa</span>
-                        <span className="font-semibold text-foreground">{tree.diametro_copa_adulto_max_m ? `${tree.diametro_copa_adulto_max_m}m` : '—'}</span>
-                        <span className="text-muted-foreground ml-1">({tree.copa_classe || 'N/A'})</span>
+                        <MedidaClasse valor={tree.diametro_copa_adulto_max_m} unidade="m" classe={tree.copa_classe} />
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-xs mb-0.5">Raízes / Dano à Calçada</span>
-                        <span className="font-semibold text-foreground">{tree.potencial_dano_calcada_1a5 ? `${tree.potencial_dano_calcada_1a5}/5 Risco` : '—'}</span>
+                        <span className="font-semibold text-foreground">{tree.potencial_dano_calcada_1a5 == null ? ROTULO_SEM_DADO : `${tree.potencial_dano_calcada_1a5}/5 Risco`}</span>
                         <ScaleRating value={tree.potencial_dano_calcada_1a5} />
                       </div>
                     </>
@@ -271,15 +278,15 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                       </div>
                       <div className="flex justify-between items-center border-b pb-1.5 border-border/50">
                         <span className="text-muted-foreground">Folhagem</span>
-                        <span className="font-semibold text-foreground">{tree.decidua_perenifolia || '—'}</span>
+                        <span className="font-semibold text-foreground">{formatTexto(tree.decidua_perenifolia)}</span>
                       </div>
                       <div className="flex justify-between items-center border-b pb-1.5 border-border/50">
                         <span className="text-muted-foreground">Floração</span>
-                        <span className="font-semibold text-foreground truncate max-w-[120px]" title={tree.epoca_floracao || ''}>{tree.epoca_floracao || '—'}</span>
+                        <span className="font-semibold text-foreground truncate max-w-[120px]" title={tree.epoca_floracao || ''}>{formatTexto(tree.epoca_floracao)}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Espinhos</span>
-                        <span className="font-semibold text-foreground">{tree.presenca_espinhos == null ? 'Não informado' : tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
+                        <span className="font-semibold text-foreground">{tree.presenca_espinhos == null ? ROTULO_SEM_DADO : tree.presenca_espinhos ? 'Sim' : 'Não'}</span>
                       </div>
                     </div>
                   )}
@@ -291,12 +298,12 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-xs mb-0.5 flex items-center gap-1"><Droplets className="w-3 h-3"/> Tolerância a Seca (1-5)</span>
-                        <span className="font-semibold text-foreground">{tree.tolerancia_seca_1a5 || '—'}</span>
+                        <span className="font-semibold text-foreground">{tree.tolerancia_seca_1a5 ?? ROTULO_SEM_DADO}</span>
                         <ScaleRating value={tree.tolerancia_seca_1a5} />
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-xs mb-0.5 flex items-center gap-1"><Wind className="w-3 h-3"/> Ventos Fortes (1-5)</span>
-                        <span className="font-semibold text-foreground">{tree.tolerancia_ventos_fortes_1a5 || '—'}</span>
+                        <span className="font-semibold text-foreground">{tree.tolerancia_ventos_fortes_1a5 ?? ROTULO_SEM_DADO}</span>
                         <ScaleRating value={tree.tolerancia_ventos_fortes_1a5} />
                       </div>
                     </>
@@ -314,17 +321,17 @@ export const CompareModal = memo(function CompareModal({ trees, isOpen, onClose 
                         }`}>
                           {tree.compat_fiacao === 'C' ? 'Total' :
                            tree.compat_fiacao === 'A' ? 'Apenas Alta Tensão' :
-                           tree.compat_fiacao === 'N' ? 'Incompatível' : '—'}
+                           tree.compat_fiacao === 'N' ? 'Incompatível' : ROTULO_SEM_DADO}
                         </span>
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-xs mb-0.5">Potencial de Sombra (1-5)</span>
-                        <span className="font-semibold text-foreground">{tree.potencial_sombra_1a5 || '—'}</span>
+                        <span className="font-semibold text-foreground">{tree.potencial_sombra_1a5 ?? ROTULO_SEM_DADO}</span>
                         <ScaleRating value={tree.potencial_sombra_1a5} />
                       </div>
                       <div>
                         <span className="text-muted-foreground block text-xs mb-0.5">Berço Mínimo (m²)</span>
-                        <span className="font-semibold text-foreground">{tree.berco_area_min_m2_recomendada || '—'}</span>
+                        <span className="font-semibold text-foreground">{formatMedida(tree.berco_area_min_m2_recomendada, 'm²')}</span>
                       </div>
                     </>
                   )}

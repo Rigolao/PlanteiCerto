@@ -68,6 +68,12 @@ describe('TreeCard', () => {
     expect(svg).toBeInTheDocument();
   });
 
+  it('identifies the generic image when the species has no photo', () => {
+    const tree = createMockTree({ foto: null });
+    render(<TreeCard arvore={tree} onClick={() => {}} />);
+    expect(screen.getByText('Imagem ilustrativa — espécie sem foto')).toBeInTheDocument();
+  });
+
   it('calls onClick when card is clicked', () => {
     const onClick = vi.fn();
     const tree = createMockTree();
@@ -109,12 +115,53 @@ describe('TreeCard', () => {
     expect(within(table).getByText('16,84 cm')).toBeInTheDocument();
     expect(within(table).getByText('12 m')).toBeInTheDocument();
     expect(within(table).getByText('21,13 cm')).toBeInTheDocument();
-    expect(within(table).getByText('—')).toBeInTheDocument();
+    expect(within(table).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(table).queryByText('—')).not.toBeInTheDocument();
   });
 
   it('hides the growth matrix when the tree has no central projections', () => {
     const tree = createMockTree();
     render(<TreeCard arvore={tree} onClick={() => {}} />);
     expect(screen.queryByRole('table', { name: 'Projeção de crescimento' })).not.toBeInTheDocument();
+  });
+});
+
+describe('TreeCard units and gaps', () => {
+  it('writes the adult height with unit and class', () => {
+    render(<TreeCard arvore={createMockTree({ altura_adulta_max_m: 15, porte_altura_classe: 'Grande' })} onClick={() => {}} />);
+    expect(screen.getByText('15 m (Grande)')).toBeInTheDocument();
+  });
+
+  it('does not turn a zero height into a gap', () => {
+    render(<TreeCard arvore={createMockTree({ altura_adulta_max_m: 0, porte_altura_classe: 'Pequeno' })} onClick={() => {}} />);
+    expect(screen.getByText('0 m (Pequeno)')).toBeInTheDocument();
+  });
+
+  it('labels a NULL class and a NULL height with the single gap label', () => {
+    const { unmount } = render(
+      <TreeCard arvore={createMockTree({ altura_adulta_max_m: 15, porte_altura_classe: null })} onClick={() => {}} />,
+    );
+    expect(screen.getByText('15 m (Não avaliado)')).toBeInTheDocument();
+    unmount();
+
+    render(
+      <TreeCard arvore={createMockTree({ altura_adulta_max_m: null, porte_altura_classe: null })} onClick={() => {}} />,
+    );
+    expect(screen.getAllByText('Não avaliado').length).toBeGreaterThan(0);
+  });
+
+  it('shows no "N/A" or dash for NULL attributes', () => {
+    const tree = createMockTree({
+      altura_adulta_max_m: null,
+      porte_altura_classe: null,
+      presenca_espinhos: null,
+      decidua_perenifolia: null as unknown as Arvore['decidua_perenifolia'],
+    });
+
+    const { container } = render(<TreeCard arvore={tree} onClick={() => {}} />);
+
+    expect(container).not.toHaveTextContent('N/A');
+    expect(container).not.toHaveTextContent('—');
+    expect(screen.getAllByText('Não avaliado').length).toBeGreaterThan(0);
   });
 });

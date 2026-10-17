@@ -85,9 +85,9 @@ describe('TreeDetailModal growth projections', () => {
     expect(within(table).getByText('21,13 cm')).toBeInTheDocument();
     expect(within(table).getByText('Não avaliado')).toBeInTheDocument();
     expect(within(table).queryByText('—')).not.toBeInTheDocument();
-    expect(screen.getByText('CO₂e capturado')).toBeInTheDocument();
+    expect(screen.getByText('CO₂ equivalente armazenado na biomassa aérea')).toBeInTheDocument();
     expect(screen.getByText('45,1 kg')).toBeInTheDocument();
-    expect(screen.getByText('2,5 - 3,5')).toBeInTheDocument();
+    expect(screen.getByText('2,5–3,5 m')).toBeInTheDocument();
   });
 
   it('does not render a growth table when no growth values or ranges exist', async () => {
@@ -356,5 +356,216 @@ describe('TreeDetailModal unassessed attributes', () => {
     ]) {
       expect(within(row(label)).getByText('Não avaliado')).toBeInTheDocument();
     }
+  });
+});
+
+describe('TreeDetailModal carbon indicators', () => {
+  const comCarbono: Arvore = {
+    ...staticTrees[0],
+    biomassa_aerea_10a_kg: 90.3,
+    carbono_armazenado_10a_kg: 42.4,
+    co2e_10a_kg: 155.7,
+    sobrevivencia_10a_pct: 85,
+    co2e_esperado_por_muda_10a_kg: 120.2,
+  };
+
+  it('names the stock as CO₂ equivalent stored in aboveground biomass, not as annual removal', () => {
+    render(<TreeDetailModal arvore={comCarbono} isOpen onClose={vi.fn()} />);
+
+    const co2e = row('CO₂ equivalente armazenado na biomassa aérea');
+    expect(within(co2e).getByText('155,7 kg')).toBeInTheDocument();
+    expect(within(co2e).getByText('estoque aos 10 anos; não é remoção anual')).toBeInTheDocument();
+    expect(screen.queryByText('CO₂e capturado')).not.toBeInTheDocument();
+    expect(screen.queryByText(/capturad/i)).not.toBeInTheDocument();
+  });
+
+  it('marks biomass, carbon and CO₂e as estimated calculations', () => {
+    render(<TreeDetailModal arvore={comCarbono} isOpen onClose={vi.fn()} />);
+
+    for (const label of ['Biomassa aérea', 'Carbono armazenado', 'CO₂ equivalente armazenado na biomassa aérea']) {
+      expect(within(row(label)).getByText('Cálculo estimado')).toBeInTheDocument();
+    }
+    expect(within(row('Biomassa aérea')).getByText('90,3 kg')).toBeInTheDocument();
+    expect(within(row('Carbono armazenado')).getByText('42,4 kg')).toBeInTheDocument();
+  });
+
+  it('presents survival as a scenario assumption, not a published species rate', () => {
+    render(<TreeDetailModal arvore={comCarbono} isOpen onClose={vi.fn()} />);
+
+    const sobrevivencia = row('Sobrevivência (cenário)');
+    expect(within(sobrevivencia).getByText('85%')).toBeInTheDocument();
+    expect(within(sobrevivencia).getByText('premissa do cenário, não taxa publicada da espécie')).toBeInTheDocument();
+    expect(within(sobrevivencia).queryByText('Cálculo estimado')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sobrevivência')).not.toBeInTheDocument();
+  });
+
+  it('explains the baseline and the extrapolation of the expected CO₂e per seedling', () => {
+    render(<TreeDetailModal arvore={comCarbono} isOpen onClose={vi.fn()} />);
+
+    const esperado = row('CO₂e esperado por muda');
+    expect(within(esperado).getByText('120,2 kg')).toBeInTheDocument();
+    expect(
+      within(esperado).getByText('(CO₂e aos 10 anos − CO₂e da muda inicial) × sobrevivência do cenário'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('já descontada a mortalidade')).not.toBeInTheDocument();
+    expect(screen.getByText(
+      'A muda inicial (DAP 3 cm, altura 1,5 m) está abaixo da faixa de calibração da equação alométrica '
+      + '(DAP ≥ 5 cm); o valor da linha de base é extrapolado.',
+    )).toBeInTheDocument();
+  });
+
+  it('hides each carbon tile whose value is NULL and the baseline note without an expected CO₂e', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      biomassa_aerea_10a_kg: null,
+      carbono_armazenado_10a_kg: null,
+      co2e_10a_kg: 155.7,
+      sobrevivencia_10a_pct: null,
+      co2e_esperado_por_muda_10a_kg: null,
+    };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('CO₂ equivalente armazenado na biomassa aérea')).toBeInTheDocument();
+    expect(screen.queryByText('Biomassa aérea')).not.toBeInTheDocument();
+    expect(screen.queryByText('Carbono armazenado')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sobrevivência (cenário)')).not.toBeInTheDocument();
+    expect(screen.queryByText('CO₂e esperado por muda')).not.toBeInTheDocument();
+    expect(screen.queryByText(/linha de base é extrapolado/)).not.toBeInTheDocument();
+    expect(screen.getAllByText('Cálculo estimado')).toHaveLength(1);
+  });
+
+  it('keeps a zero survival or biomass as a value instead of hiding the tile', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      biomassa_aerea_10a_kg: 0,
+      co2e_10a_kg: null,
+      sobrevivencia_10a_pct: 0,
+    };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(within(row('Biomassa aérea')).getByText('0 kg')).toBeInTheDocument();
+    expect(within(row('Sobrevivência (cenário)')).getByText('0%')).toBeInTheDocument();
+  });
+});
+
+describe('TreeDetailModal units and gaps', () => {
+  it('writes every adult measure with its unit and a space', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      altura_adulta_max_m: 15,
+      diametro_copa_adulto_max_m: 12,
+      copa_classe: 'Grande',
+      dap_adulto_max_cm: 80,
+      faixa_serv_min_m_recomendada: 1.8,
+      berco_area_min_m2_recomendada: 2,
+      volume_solo_min_m3_recomendado: 4,
+    };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(within(row('Altura adulta')).getByText('15 m')).toBeInTheDocument();
+    expect(within(row('Copa')).getByText('12 m (Grande)')).toBeInTheDocument();
+    expect(within(row('DAP (Diâmetro)')).getByText('80 cm')).toBeInTheDocument();
+    expect(screen.getByText('Faixa Serviço Mín: 1,8 m')).toBeInTheDocument();
+    expect(screen.getByText('Berço Mín: 2 m²')).toBeInTheDocument();
+    expect(screen.getByText('Vol. Solo Mín: 4 m³')).toBeInTheDocument();
+  });
+
+  it('formats the first fork range with unit and en dash', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      altura_primeira_bifurcacao_m: null,
+      altura_primeira_bifurcacao_faixa: '2,5 - 3,5',
+    };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(within(row('1ª Bifurcação')).getByText('2,5–3,5 m')).toBeInTheDocument();
+  });
+
+  it('prefers the database text of the first fork over the static range', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      altura_primeira_bifurcacao_m: '0,5 - 1,0',
+      altura_primeira_bifurcacao_faixa: '2,5 - 3,5',
+    };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(within(row('1ª Bifurcação')).getByText('0,5–1,0 m')).toBeInTheDocument();
+  });
+
+  it('shows the gap label for a missing or "Não encontrado" first fork', () => {
+    const faltando: Arvore = {
+      ...staticTrees[0],
+      altura_primeira_bifurcacao_m: null,
+      altura_primeira_bifurcacao_faixa: undefined,
+    };
+    const { unmount } = render(<TreeDetailModal arvore={faltando} isOpen onClose={vi.fn()} />);
+    expect(within(row('1ª Bifurcação')).getByText('Não avaliado')).toBeInTheDocument();
+    unmount();
+
+    const naoEncontrado: Arvore = { ...faltando, altura_primeira_bifurcacao_m: 'Não encontrado' };
+    render(<TreeDetailModal arvore={naoEncontrado} isOpen onClose={vi.fn()} />);
+    expect(within(row('1ª Bifurcação')).getByText('Não avaliado')).toBeInTheDocument();
+  });
+
+  it('labels NULL adult attributes with the single gap label instead of dashes', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      altura_adulta_max_m: null,
+      porte_altura_classe: null,
+      diametro_copa_adulto_max_m: null,
+      copa_classe: null,
+      dap_adulto_max_cm: null,
+      forma_copa: null,
+      faixa_serv_min_m_recomendada: null,
+      berco_area_min_m2_recomendada: null,
+      volume_solo_min_m3_recomendado: null,
+    };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(within(row('Altura adulta')).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(row('Porte')).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(row('Copa')).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(row('Forma da Copa')).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(row('DAP (Diâmetro)')).getByText('Não avaliado')).toBeInTheDocument();
+    expect(screen.getByText('Faixa Serviço Mín: Não avaliado')).toBeInTheDocument();
+    expect(screen.getByText('Berço Mín: Não avaliado')).toBeInTheDocument();
+    expect(screen.getByText('Vol. Solo Mín: Não avaliado')).toBeInTheDocument();
+    expect(screen.queryByText(/^—$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/N\/A/)).not.toBeInTheDocument();
+  });
+
+  it('does not turn a zero measure into a gap', () => {
+    const tree: Arvore = { ...staticTrees[0], altura_adulta_max_m: 0, dap_adulto_max_cm: 0 };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(within(row('Altura adulta')).getByText('0 m')).toBeInTheDocument();
+    expect(within(row('DAP (Diâmetro)')).getByText('0 cm')).toBeInTheDocument();
+  });
+});
+
+describe('TreeDetailModal photo', () => {
+  it('shows the photo when it exists', () => {
+    const tree: Arvore = { ...staticTrees[0], foto: 'https://example.com/oiti.jpg' };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByRole('img', { name: tree.nome_popular })).toHaveAttribute('src', 'https://example.com/oiti.jpg');
+    expect(screen.queryByText('Imagem ilustrativa — espécie sem foto')).not.toBeInTheDocument();
+  });
+
+  it('identifies the generic image when the species has no photo', () => {
+    const tree: Arvore = { ...staticTrees[0], foto: null };
+
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Imagem ilustrativa — espécie sem foto')).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: tree.nome_popular })).not.toBeInTheDocument();
   });
 });

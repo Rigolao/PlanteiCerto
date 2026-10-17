@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
 const nullableNumber = z.number().nullable().optional();
+// Texto livre (faixa como "2,0 - 3,0"); campo vazio vira NULL, nunca ''.
+const nullableText = z.preprocess(
+  value => (typeof value === 'string' && value.trim() === '' ? null : value),
+  z.string().max(100).nullable().optional(),
+);
 const rating1to5 = z.number().min(1).max(5).nullable().optional();
 
 export const treeSchema = z.object({
@@ -16,7 +21,7 @@ export const treeSchema = z.object({
   diametro_copa_adulto_max_m: nullableNumber,
   copa_classe: z.enum(['Grande', 'Média', 'Pequena']).nullable().optional(),
   dap_adulto_max_cm: nullableNumber,
-  altura_primeira_bifurcacao_m: nullableNumber,
+  altura_primeira_bifurcacao_m: nullableText,
   forma_copa: z.string().max(100).nullable().optional(),
   faixa_serv_min_m_recomendada: nullableNumber,
   berco_area_min_m2_recomendada: nullableNumber,
