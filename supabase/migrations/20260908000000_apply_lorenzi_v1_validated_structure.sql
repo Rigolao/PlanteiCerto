@@ -8,12 +8,23 @@
 -- Nomes taxonômicos e duplicidades permanecem para uma migration editorial.
 --
 -- Reversão: restaure os valores `expected_*` abaixo para os respectivos IDs.
+--
+-- Banco vazio (17/10/2026): no `npx supabase db reset` as migrations rodam antes
+-- do seed.sql, então `public.trees` ainda está vazia e esta migration não tem o
+-- que corrigir. Nesse caso ela termina sem alterar nada; o seed.sql já traz o
+-- catálogo de produção com estas correções aplicadas. Em produção a migration já
+-- foi executada em 08/09/2026 e não roda de novo.
 
 DO $$
 DECLARE
   updated_heights integer;
   updated_habits integer;
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.trees) THEN
+    RAISE NOTICE 'Migration Lorenzi V1: public.trees vazia (db reset antes do seed); nada a corrigir.';
+    RETURN;
+  END IF;
+
   WITH corrections (id, expected_height_m, corrected_height_m, corrected_porte) AS (
     VALUES
       (18,  30::numeric, 12::numeric, 'Médio'::text),    -- Andira fraxinifolia, p. 193

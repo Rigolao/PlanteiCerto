@@ -85,7 +85,11 @@ Mailpit → clique no link de confirmação.
 - **Migrations**: `supabase/migrations/*.sql`, aplicadas em ordem de nome.
   A baseline `20260702000000_baseline_from_prod.sql` reproduz o schema de produção
   (tabelas, RLS, triggers); `..0001` cobre auth/storage; `..0002` a RPC `email_exists`.
-- **Seed**: `supabase/seed.sql` insere as 167 árvores reais (roda após as migrations).
+- **Seed**: `supabase/seed.sql` insere o catálogo de produção de 17/10/2026: 192 árvores, 152 ativas e 63 colunas. Roda depois das migrations. As migrations de dados (Lorenzi e inativação dos casos especiais) não fazem nada com `trees` vazia, porque o seed já traz o resultado delas.
+  Para atualizar o seed depois de sincronizar o banco local com produção:
+  `docker exec supabase_db_PlanteiCerto pg_dump -U postgres -d postgres --data-only --column-inserts --rows-per-insert=100000 --quote-all-identifiers -t public.trees -t public.trees_id_seq`
+  Mantenha a primeira linha `SET session_replication_role = replica;`, comente as linhas `\restrict`/`\unrestrict` e termine com `RESET ALL;`.
+  Valide o `db reset` num projeto descartável, com outro `project_id` e outras portas, para não apagar as contas demo do banco local.
 - **Arquivo morto**: `supabase/_archive/` guarda as migrations antigas e o schema/seed
   pré-migração de março — só histórico, não roda.
 
@@ -97,7 +101,7 @@ npx supabase migration new nome  # cria supabase/migrations/<timestamp>_nome.sql
 ```
 
 Fluxo para mudar o schema: `migration new` → escrever SQL → `db reset` → testar.
-Nunca edite migration já aplicada em produção; crie uma nova.
+Nunca edite migration já aplicada em produção; crie uma nova. Única exceção registrada: em 17/10/2026, a migration Lorenzi (`20260908000000`) ganhou uma guarda para terminar sem alterar nada quando `trees` está vazia. Isso só afeta o `db reset`, porque em produção ela não roda de novo.
 
 ## Studio (painel admin)
 
