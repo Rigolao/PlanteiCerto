@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5173"],
       "port": 5173
+    },
+    {
+      "name": "supabase-functions",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["supabase", "functions", "serve"],
+      "port": 54321
     }
   ]
 }

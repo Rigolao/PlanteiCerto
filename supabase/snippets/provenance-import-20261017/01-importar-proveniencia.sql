@@ -12,7 +12,7 @@
 --       (41 campos × 25 espécies novas, IDs 199–223)
 --   SQL 06 de 03/10/2026 (trees-catalog-import-20261003/06-complementar-fichas-arvores.sql):
 --     8 campos copiados de registros inativados (82→11, 97→19, 120→79)
---   Conferido pelo gerador contra a exportação de produção Supabase Snippet Untitled query 220-2.csv
+--   Conferido pelo gerador contra a exportação de produção Supabase Snippet Untitled query 220-3.csv
 --   (SELECT * FROM trees): 0 divergências de valor, mínimo e máximo; as
 --   488 linhas sem_dado_admissivel estão NULL em public.trees.
 --
