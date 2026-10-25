@@ -5,7 +5,7 @@ import { formatMedida } from '../../lib/format';
 import { TreeDetailModal } from '../trees/TreeDetailModal';
 import { TreePhoto } from '../trees/TreePhoto';
 import { TreePine } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useFavorites } from '../../hooks/useFavorites';
 import { toast } from 'sonner';
 

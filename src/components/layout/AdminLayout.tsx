@@ -1,7 +1,7 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Trees, Users, ClipboardCheck, ArrowLeft, Menu, X } from 'lucide-react';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 
 const navItems = [
   { label: 'Árvores', path: '/admin/arvores', icon: Trees },

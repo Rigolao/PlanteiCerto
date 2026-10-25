@@ -22,7 +22,7 @@ vi.mock('../hooks/useFavorites', () => ({
   }),
 }));
 
-vi.mock('../contexts/AuthContext', () => ({
+vi.mock('../hooks/useAuth', () => ({
   useAuth: () => ({ user: null }),
 }));
 

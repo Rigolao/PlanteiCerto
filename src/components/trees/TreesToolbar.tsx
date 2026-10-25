@@ -1,5 +1,6 @@
 import type { UserProfile } from '../../types/auth';
 import { Home, Shield, Zap, PersonStanding, Search } from 'lucide-react';
+import { defaultAdvancedFilters } from './advancedFilters';
 
 export interface AdvancedFilters {
   porte: string;
@@ -10,10 +11,6 @@ export interface AdvancedFilters {
   compat_fiacao: boolean;
   calcada_segura: boolean;
 }
-
-export const defaultAdvancedFilters: AdvancedFilters = {
-  porte: '', copa: '', folhagem: '', nativas: false, sem_espinhos: false, compat_fiacao: false, calcada_segura: false,
-};
 
 interface TreesToolbarProps {
   termoBusca: string;

@@ -1,10 +1,10 @@
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthModal } from '../auth/AuthModal';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 import { Shield, ChevronDown, User as UserIcon, FolderGit2, LogOut } from 'lucide-react';
 import { MobileDrawer } from './MobileDrawer';
 
