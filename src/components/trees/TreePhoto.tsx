@@ -45,7 +45,7 @@ export function TreePhoto({ foto, alt, className = '', compact = false, lazy = f
         <path d="M24 28C24 28 31 24 35 17C31 14 24 19 24 28Z" fill="#226437"/>
         <ellipse cx="24" cy="43" rx="5" ry="2" fill="#1a4d2c" opacity="0.2"/>
       </svg>
-      <span className={compact ? 'sr-only' : 'px-3 text-center text-xs font-medium text-[#1a4d2c]'}>
+      <span className={compact ? 'sr-only' : 'px-3 text-center text-xs font-medium italic text-[#1a4d2c]'}>
         {LEGENDA_SEM_FOTO}
       </span>
     </div>

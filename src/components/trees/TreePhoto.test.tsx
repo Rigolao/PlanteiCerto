@@ -54,4 +54,16 @@ describe('TreePhoto', () => {
     expect(screen.getByText(LEGENDA)).not.toHaveClass('sr-only');
     expect(container.firstElementChild).not.toHaveAttribute('title');
   });
+
+  it('shows the visible caption in italics, keeping font-medium', () => {
+    render(<TreePhoto foto={null} alt="Ipê" />);
+    expect(screen.getByText(LEGENDA)).toHaveClass('italic', 'font-medium');
+  });
+
+  it('keeps the compact caption screen-reader only, without italics', () => {
+    render(<TreePhoto foto={null} alt="Ipê" compact />);
+    const legenda = screen.getByText(LEGENDA);
+    expect(legenda).toHaveClass('sr-only');
+    expect(legenda).not.toHaveClass('italic');
+  });
 });
