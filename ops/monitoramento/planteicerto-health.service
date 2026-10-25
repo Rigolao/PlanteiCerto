@@ -1,0 +1,12 @@
+[Unit]
+Description=Verificação de saúde do PlanteiCerto (só leitura)
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/planteicerto-health/healthcheck.py
+# Exit 1 = há falhas; não é erro do serviço.
+SuccessExitStatus=0 1
+TimeoutStartSec=300
+Nice=10
