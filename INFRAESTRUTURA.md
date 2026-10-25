@@ -166,9 +166,84 @@ não é superuser aqui).
 
 - `ufw`: só 22/80/443 públicos (resto dos serviços já em `127.0.0.1`)
 - SSH: `PermitRootLogin prohibit-password` + `PasswordAuthentication no` — só chave
+  - **Atenção (25/10/2026):** o `/etc/ssh/sshd_config.d/50-cloud-init.conf` religava
+    `PasswordAuthentication yes`, e o `sshd_config` tinha `PermitRootLogin yes`. A correção
+    está em `/etc/ssh/sshd_config.d/00-hardening.conf`, que vale sobre os dois por ser lido
+    antes. Para conferir: `sshd -T | grep -E "^(passwordauthentication|permitrootlogin)"`
+    (esperado: `no` e `without-password`).
 - `fail2ban` ativo (jail `sshd`)
 - Swap 2GB
 - `unattended-upgrades` ativo
+- MinIO com `restart: unless-stopped` no `docker-compose.s3.yml` (desde 25/10/2026). Sem isso,
+  ele não voltava depois de reiniciar a VPS e as fotos davam HTTP 500; ver
+  `docs/runbook-storage-minio.md`.
+
+## Monitoramento (desde 25/10/2026)
+
+Os arquivos ficam em `ops/monitoramento/` no repositório e são instalados na VPS com
+`ALERT_TO=<email> bash install.sh`. O script é idempotente.
+
+- **Verificação:** `/opt/planteicerto-health/healthcheck.py` roda a cada 15 minutos pelo
+  `planteicerto-health.timer` e também depois de cada boot. É só leitura e confere:
+  - site, API REST, banco (contagens) e Edge Function;
+  - fotos: uma de amostra a cada rodada e todas a cada 24 h;
+  - containers parados, `unhealthy` ou sem reinício automático;
+  - disco abaixo de 85%, certificados com mais de 14 dias de validade;
+  - SSH sem senha e fail2ban ativo;
+  - idade do último backup, que deve ser menor que 26 h.
+- **Estado:** `/var/lib/planteicerto-health/latest.json` e `history.jsonl` (30 dias).
+- **Alertas:** e-mail pelo SMTP do Brevo quando um check falha ou volta ao normal. O destinatário
+  está em `/etc/planteicerto-health.conf` (fora do git). Teste:
+  `python3 /opt/planteicerto-health/healthcheck.py --test-email`.
+- **Backup:** a última linha do `/root/backup.sh` grava `last-backup`. Cópia do script anterior:
+  `backup.sh.bak-20261025`.
+- **Grok bot:** a chave `grok-bot-monitor` em `authorized_keys` tem
+  `command="/opt/planteicerto-health/report.sh",from="172.16.1.0/24",restrict`. Ela só devolve
+  o relatório. O prompt da tarefa diária das 8h está em `ops/monitoramento/prompt-grok-diario.md`.
+- **Rodar à mão:** `systemctl start planteicerto-health.service`, seguido de
+  `cat /var/lib/planteicerto-health/latest.json`.
+
+## Túnel SSH por HTTPS para o Grok bot
+
+A VM do Grok bot só consegue sair por HTTPS, porque a porta 22 é bloqueada pelo sandbox. O acesso
+SSH dela passa por um túnel WebSocket dentro do HTTPS da própria API:
+
+```
+VM (ssh + wstunnel client) ──wss://api.planteicerto.com.br/<prefixo-secreto>/…──▶ Caddy
+   (basic auth) ──▶ container ssh-tunnel (wstunnel server, rede supabase_default)
+   ──▶ 172.16.1.1:22 (sshd do host)
+```
+
+- **Servidor:** container `ssh-tunnel`. A imagem é `ghcr.io/erebe/wstunnel` 11.1.0, fixada por
+  digest `sha256:e2b62fac…`. Tem `--restart unless-stopped`, `--restrict-to 172.16.1.1:22` e
+  `--restrict-http-upgrade-path-prefix <prefixo>`. Não publica nenhuma porta: só o Caddy chega
+  nele, pela rede interna.
+- **Caddy:** no `/root/supabase/docker/Caddyfile`, o bloco `@sshtunnel path /<prefixo>/*` com
+  `basic_auth` repassa para `ssh-tunnel:8080`. Todo o resto continua indo para `kong:8000`.
+  Backup do Caddyfile anterior: `Caddyfile.bak-20261025`.
+- **Segredos:** `/root/ssh-tunnel/credentials.env` (permissão 600; guarda o prefixo, o usuário
+  e a senha). Rotacionados em 25/10/2026, logo depois da configuração inicial.
+- **Chave do bot:** a linha `... grok-bot` em `/root/.ssh/authorized_keys` tem
+  `from="172.16.1.0/24"`. Ela só vale para conexões que chegam pelo túnel, nunca direto da
+  internet. Backup do arquivo: `authorized_keys.bak-20261025`.
+- **Na VM:** o cliente fica em `~/.local/bin/wstunnel` (11.1.0) e a senha em
+  `~/.ssh/planteicerto-tunnel.headers`. O `~/.ssh/config` define o `Host planteicerto-vps` com
+  `HostName 172.16.1.1` e um `ProxyCommand` que chama o wstunnel com `NO_COLOR=true`, porque a
+  VM exporta `NO_COLOR=1`, valor que o wstunnel recusa.
+
+**Rotacionar a senha e o prefixo sem derrubar o bot:**
+1. Gere os novos valores na VPS, sem ativar.
+2. O bot busca o script de atualização pelo túnel atual e aplica na VM.
+3. Recrie o `ssh-tunnel` com o prefixo novo e recarregue o Caddy com o hash novo.
+
+**Revogar só o bot:** `sed -i '/ grok-bot$/d' /root/.ssh/authorized_keys`.
+
+**Desmontar o túnel:**
+```bash
+docker rm -f ssh-tunnel
+cat Caddyfile.bak-20261025 > Caddyfile
+docker exec supabase-caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+```
 
 ## Segredos gerados/rotacionados
 

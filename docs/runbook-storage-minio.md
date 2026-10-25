@@ -26,6 +26,18 @@ TimeoutError: Socket timed out without establishing a connection within 5000 ms
 
 Não foi corrupção dos arquivos nem falta de memória (`OOM=false`).
 
+## Reincidência em 2026-10-25 (causa raiz)
+
+As fotos sumiram de novo: 124 das 127 fotos de espécies ativas davam HTTP 500, e só as 3 hospedadas fora do Storage apareciam. O `supabase-minio-1` estava `Exited (0)` desde 17/10/2026 17:48 UTC, com `RestartPolicy=no`. A VPS reiniciou em 17/10 e em 23/10. Todos os outros serviços voltaram sozinhos, porque têm `restart: unless-stopped`. O MinIO não voltou, porque o `docker-compose.s3.yml` não definia `restart`.
+
+Correção permanente: acrescentado `restart: unless-stopped` ao serviço `minio` em `/root/supabase/docker/docker-compose.s3.yml` (backup em `docker-compose.s3.yml.bak-20261025`), seguido de `up -d minio`. Depois de qualquer reinício da VPS, confira:
+
+```bash
+docker inspect supabase-minio-1 --format 'Status={{.State.Status}} Restart={{.HostConfig.RestartPolicy.Name}}'
+```
+
+O esperado é `Status=running Restart=unless-stopped`.
+
 ## Diagnóstico rápido
 
 ```bash
