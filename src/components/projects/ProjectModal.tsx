@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import type { Projeto } from '../../types/project';
 
@@ -14,17 +14,17 @@ export function ProjectModal({ isOpen, onClose, onSave, projectToEdit }: Project
   const [descricao, setDescricao] = useState('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  // Reinicia o formulário ao abrir ou trocar o projeto editado (ajuste de estado durante o render)
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevProject, setPrevProject] = useState(projectToEdit);
+  if (prevIsOpen !== isOpen || prevProject !== projectToEdit) {
+    setPrevIsOpen(isOpen);
+    setPrevProject(projectToEdit);
     if (isOpen) {
-      if (projectToEdit) {
-        setNome(projectToEdit.nome);
-        setDescricao(projectToEdit.descricao || '');
-      } else {
-        setNome('');
-        setDescricao('');
-      }
+      setNome(projectToEdit ? projectToEdit.nome : '');
+      setDescricao(projectToEdit ? projectToEdit.descricao || '' : '');
     }
-  }, [isOpen, projectToEdit]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
