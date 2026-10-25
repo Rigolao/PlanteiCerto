@@ -86,7 +86,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(JSON.stringify({ exists: data === true }), { status: 200, headers });
-  } catch (_err) {
+  } catch {
     return new Response(
       JSON.stringify({ error: 'Requisição inválida.' }),
       { status: 400, headers },
