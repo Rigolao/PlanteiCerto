@@ -12,31 +12,39 @@ export function Modal({ isOpen, onClose, children, maxWidth = 'max-w-2xl', cente
   const [visible, setVisible] = useState(false);
   const [animating, setAnimating] = useState(false);
 
+  // Ajusta o estado derivado de isOpen durante o render (sem setState em effect)
+  if (isOpen && !visible) setVisible(true);
+  if (!isOpen && animating) setAnimating(false);
+
   useEffect(() => {
+    if (!isOpen) return;
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-
-    if (isOpen) {
-      setVisible(true);
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-      // Dispara a animação de entrada no próximo frame
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setAnimating(true));
-      });
-    } else {
-      setAnimating(false);
-      // Aguarda a animação de saída antes de desmontar
-      const timer = setTimeout(() => setVisible(false), 300);
-      return () => clearTimeout(timer);
-    }
-
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Dispara a animação de entrada no próximo frame
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setAnimating(true));
+      });
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
+    // Aguarda a animação de saída antes de desmontar
+    const timer = setTimeout(() => setVisible(false), 300);
+    return () => clearTimeout(timer);
+  }, [isOpen]);
 
   if (!visible) return null;
 
