@@ -9,28 +9,15 @@ const navItems = [
   { label: 'Equipe', path: '/admin/equipe', icon: Users },
 ];
 
-export function AdminLayout() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { theme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+interface SidebarProps {
+  mobile?: boolean;
+  onClose?: () => void;
+  pathname: string;
+  onNavigate: (path: string) => void;
+}
 
-  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    if (sidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [sidebarOpen]);
-
-  const Sidebar = ({ mobile = false, onClose }: { mobile?: boolean; onClose?: () => void }) => (
+function Sidebar({ mobile = false, onClose, pathname, onNavigate }: SidebarProps) {
+  return (
     <aside className={`${mobile ? 'w-full' : 'w-64'} flex flex-col bg-card border-r border-border h-full`}>
       {/* Logo */}
       <div className="flex items-center justify-between px-6 h-16 border-b border-border">
@@ -51,12 +38,12 @@ export function AdminLayout() {
       {/* Nav */}
       <nav className="flex-1 flex flex-col gap-1 p-3">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = pathname === item.path;
           const Icon = item.icon;
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => onNavigate(item.path)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all border-none cursor-pointer text-left w-full ${
                 isActive
                   ? 'bg-primary/10 text-primary'
@@ -73,7 +60,7 @@ export function AdminLayout() {
       {/* Voltar ao site */}
       <div className="p-3 border-t border-border">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => onNavigate('/')}
           className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted transition-all bg-transparent border-none cursor-pointer text-left w-full"
         >
           <ArrowLeft size={20} />
@@ -82,12 +69,37 @@ export function AdminLayout() {
       </div>
     </aside>
   );
+}
+
+export function AdminLayout() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { theme } = useTheme();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+
+  const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  // Fecha a sidebar ao mudar de rota (ajuste de estado durante o render)
+  if (prevPathname !== location.pathname) {
+    setPrevPathname(location.pathname);
+    setSidebarOpen(false);
+  }
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [sidebarOpen]);
 
   return (
     <div className={`min-h-screen flex bg-background ${isDarkMode ? 'dark' : ''}`}>
       {/* Desktop Sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
-        <Sidebar />
+        <Sidebar pathname={location.pathname} onNavigate={navigate} />
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -98,7 +110,7 @@ export function AdminLayout() {
             onClick={() => setSidebarOpen(false)}
           />
           <div className="absolute top-0 right-0 bottom-0 w-[280px] bg-background shadow-2xl animate-in slide-in-from-right duration-300">
-            <Sidebar mobile onClose={() => setSidebarOpen(false)} />
+            <Sidebar mobile onClose={() => setSidebarOpen(false)} pathname={location.pathname} onNavigate={navigate} />
           </div>
         </div>
       )}
