@@ -74,6 +74,12 @@ describe('TreeCard', () => {
     expect(screen.getByText('Imagem ilustrativa — espécie sem foto')).toBeInTheDocument();
   });
 
+  it('shows the no-photo caption in italics', () => {
+    const tree = createMockTree({ foto: null });
+    render(<TreeCard arvore={tree} onClick={() => {}} />);
+    expect(screen.getByText('Imagem ilustrativa — espécie sem foto')).toHaveClass('italic');
+  });
+
   it('calls onClick when card is clicked', () => {
     const onClick = vi.fn();
     const tree = createMockTree();
