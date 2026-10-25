@@ -31,11 +31,11 @@ function GrowthProjection({ arvore }: { arvore: Arvore }) {
       <div className="flex items-center gap-1.5 mb-2">
         <TrendingUp size={12} className="text-primary" />
         <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-          Crescimento estimado
+          Projeções de crescimento
         </span>
       </div>
       <table aria-label="Projeção de crescimento" className="w-full table-fixed text-[11px] tabular-nums">
-        <caption className="sr-only">DAP e altura estimados aos 10, 20 e 30 anos</caption>
+        <caption className="sr-only">DAP e altura projetados aos 10, 20 e 30 anos</caption>
         <thead>
           <tr className="text-muted-foreground">
             <th scope="col" className="w-[22%] text-left font-medium" />

@@ -119,6 +119,14 @@ describe('TreeCard', () => {
     expect(within(table).queryByText('—')).not.toBeInTheDocument();
   });
 
+  it('titles the matrix as projections, not as estimated growth', () => {
+    const tree = createMockTree({ dap_10a_cm: 13.34, altura_10a_m: 7.02 });
+    render(<TreeCard arvore={tree} onClick={() => {}} />);
+    expect(screen.getByText('Projeções de crescimento')).toBeInTheDocument();
+    expect(screen.queryByText(/crescimento estimado/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/estimados aos/i)).not.toBeInTheDocument();
+  });
+
   it('hides the growth matrix when the tree has no central projections', () => {
     const tree = createMockTree();
     render(<TreeCard arvore={tree} onClick={() => {}} />);
