@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Pencil, Trash2, ChevronLeft, ChevronRight, TreePine, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useTreeUsageCount } from '../../hooks/useAdminTrees';
@@ -44,7 +44,7 @@ function DeleteConfirmDialog({
 }
 
 export function TreeDataTable({ trees, searchQuery, onEdit, onDelete, onToggleActive }: TreeDataTableProps) {
-  const [page, setPage] = useState(0);
+  const [requestedPage, setPage] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [treeToDelete, setTreeToDelete] = useState<Arvore | null>(null);
 
@@ -119,13 +119,9 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete, onToggleAc
   });
 
   const totalPages = Math.ceil(sorted.length / itemsPerPage);
+  // Página válida derivada no render: se a página pedida saiu do intervalo (ex.: busca reduziu os resultados), volta para a primeira
+  const page = requestedPage >= totalPages && totalPages > 0 ? 0 : requestedPage;
   const paginated = sorted.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
-
-  useEffect(() => {
-    if (page >= totalPages && totalPages > 0) {
-      setPage(0);
-    }
-  }, [page, totalPages]);
 
   const handleConfirmDelete = () => {
     if (treeToDelete) {
@@ -248,7 +244,7 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete, onToggleAc
           {totalPages > 1 && (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                onClick={() => setPage(Math.max(0, page - 1))}
                 disabled={page === 0}
                 className="p-2 rounded-lg hover:bg-muted text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors bg-transparent border-none cursor-pointer"
               >
@@ -258,7 +254,7 @@ export function TreeDataTable({ trees, searchQuery, onEdit, onDelete, onToggleAc
                 {page + 1} / {totalPages}
               </span>
               <button
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                 disabled={page >= totalPages - 1}
                 className="p-2 rounded-lg hover:bg-muted text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors bg-transparent border-none cursor-pointer"
               >
