@@ -15,7 +15,7 @@ export function ProjectModal({ isOpen, onClose, onSave, projectToEdit }: Project
   const [loading, setLoading] = useState(false);
 
   // Reinicia o formulário ao abrir ou trocar o projeto editado (ajuste de estado durante o render)
-  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevIsOpen, setPrevIsOpen] = useState(false);
   const [prevProject, setPrevProject] = useState(projectToEdit);
   if (prevIsOpen !== isOpen || prevProject !== projectToEdit) {
     setPrevIsOpen(isOpen);

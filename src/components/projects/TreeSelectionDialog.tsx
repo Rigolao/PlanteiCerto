@@ -30,7 +30,7 @@ export function TreeSelectionDialog({
   const listboxRef = useRef<HTMLUListElement>(null);
 
   // Reinicia o diálogo ao abrir (ou ao mudar os valores iniciais) — ajuste de estado durante o render
-  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevIsOpen, setPrevIsOpen] = useState(false);
   const [prevInitialTreeId, setPrevInitialTreeId] = useState(initialTreeId);
   const [prevInitialObservacao, setPrevInitialObservacao] = useState(initialObservacao);
   if (
