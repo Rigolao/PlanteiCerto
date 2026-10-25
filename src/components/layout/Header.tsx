@@ -36,10 +36,12 @@ export function Header() {
   const isArvores = location.pathname === '/';
   const isQuemSomos = location.pathname === '/quem-somos';
 
-  // Fecha o drawer ao mudar de rota
-  useEffect(() => {
+  // Fecha o drawer ao mudar de rota (ajuste de estado durante o render)
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  if (prevPathname !== location.pathname) {
+    setPrevPathname(location.pathname);
     setDrawerOpen(false);
-  }, [location.pathname]);
+  }
 
   // Bloqueia scroll quando drawer está aberto
   useEffect(() => {
