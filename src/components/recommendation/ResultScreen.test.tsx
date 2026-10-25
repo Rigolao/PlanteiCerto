@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   useTreeProvenance: vi.fn(),
 }));
 
-vi.mock('../../contexts/AuthContext', () => ({ useAuth: mocks.useAuth }));
+vi.mock('../../hooks/useAuth', () => ({ useAuth: mocks.useAuth }));
 vi.mock('../../hooks/useFavorites', () => ({ useFavorites: mocks.useFavorites }));
 vi.mock('../../hooks/useTreeProvenance', () => ({
   useTreeProvenance: mocks.useTreeProvenance,

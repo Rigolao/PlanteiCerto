@@ -27,6 +27,7 @@ export function useProjectPoints(projectId: string | null) {
   }, [projectId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- buscar dados em effect é legítimo; migrar para React Query em caso próprio
     fetchPoints();
   }, [fetchPoints]);
 

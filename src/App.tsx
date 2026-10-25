@@ -6,7 +6,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { Toaster } from 'sonner';
-import { useTheme } from './contexts/ThemeContext';
+import { useTheme } from './hooks/useTheme';
 import { InstallPWABanner } from './components/ui/InstallPWABanner';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { IPProtectionGate } from './components/auth/IPProtectionGate';

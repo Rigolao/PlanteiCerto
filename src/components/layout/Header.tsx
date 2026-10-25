@@ -1,10 +1,10 @@
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthModal } from '../auth/AuthModal';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 import { Shield, ChevronDown, User as UserIcon, FolderGit2, LogOut } from 'lucide-react';
 import { MobileDrawer } from './MobileDrawer';
 
@@ -36,10 +36,12 @@ export function Header() {
   const isArvores = location.pathname === '/';
   const isQuemSomos = location.pathname === '/quem-somos';
 
-  // Fecha o drawer ao mudar de rota
-  useEffect(() => {
+  // Fecha o drawer ao mudar de rota (ajuste de estado durante o render)
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  if (prevPathname !== location.pathname) {
+    setPrevPathname(location.pathname);
     setDrawerOpen(false);
-  }, [location.pathname]);
+  }
 
   // Bloqueia scroll quando drawer está aberto
   useEffect(() => {

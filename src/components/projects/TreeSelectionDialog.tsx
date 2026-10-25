@@ -26,11 +26,21 @@ export function TreeSelectionDialog({
   const [animating, setAnimating] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const lastIsOpen = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxRef = useRef<HTMLUListElement>(null);
 
-  useEffect(() => {
+  // Reinicia o diálogo ao abrir (ou ao mudar os valores iniciais) — ajuste de estado durante o render
+  const [prevIsOpen, setPrevIsOpen] = useState(false);
+  const [prevInitialTreeId, setPrevInitialTreeId] = useState(initialTreeId);
+  const [prevInitialObservacao, setPrevInitialObservacao] = useState(initialObservacao);
+  if (
+    prevIsOpen !== isOpen ||
+    prevInitialTreeId !== initialTreeId ||
+    prevInitialObservacao !== initialObservacao
+  ) {
+    setPrevIsOpen(isOpen);
+    setPrevInitialTreeId(initialTreeId);
+    setPrevInitialObservacao(initialObservacao);
     if (isOpen) {
       setSelectedTreeId(initialTreeId || null);
       setObservacao(initialObservacao || '');
@@ -38,14 +48,26 @@ export function TreeSelectionDialog({
       setDropdownOpen(false);
       setHighlightedIndex(-1);
       setVisible(true);
-      requestAnimationFrame(() => requestAnimationFrame(() => setAnimating(true)));
     } else {
       setAnimating(false);
-      const t = setTimeout(() => setVisible(false), 280);
-      return () => clearTimeout(t);
     }
-    lastIsOpen.current = isOpen;
-  }, [isOpen, initialTreeId, initialObservacao]);
+  }
+
+  // Animação de entrada/saída: só timers e frames aqui
+  useEffect(() => {
+    if (isOpen) {
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setAnimating(true));
+      });
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
+    const t = setTimeout(() => setVisible(false), 280);
+    return () => clearTimeout(t);
+  }, [isOpen]);
 
   // Bloqueio de scroll
   useEffect(() => {

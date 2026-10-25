@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Mail, Info } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { toast } from 'sonner';
 import { AvatarUpload } from '../components/profile/AvatarUpload';
 import { PasswordChangeForm } from '../components/profile/PasswordChangeForm';

@@ -164,7 +164,7 @@ export async function generateProjectPDF(
                    el.classList.contains('absolute');
           }
           return false;
-        } catch (e) {
+        } catch {
           return false;
         }
       }

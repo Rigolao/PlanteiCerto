@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Trees, FolderOpen, Info } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { SearchInput } from '../ui/SearchInput';
 import { FilterButton } from '../ui/FilterButton';
 import type { FiltroAtributo } from '../../types/tree';

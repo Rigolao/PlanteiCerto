@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Upload, X, Image } from 'lucide-react';
 
 const MAX_SIZE_MB = 5;
@@ -24,14 +24,14 @@ export function ImageUpload({ currentUrl, onFileSelect, previewFile }: ImageUplo
     onFileSelect(file);
   };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
       validateAndSelect(file);
     }
-  }, [onFileSelect]);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

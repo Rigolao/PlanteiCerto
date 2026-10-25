@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Users, ShieldCheck, ShieldOff } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { useAdminUsers, useUpdateRole } from '../hooks/useAdminUsers';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import type { Profile } from '../types/auth';

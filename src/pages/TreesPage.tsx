@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Arvore } from '../types/tree';
 import { useTrees } from '../hooks/useTrees';
 import { useFavorites } from '../hooks/useFavorites';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { TreeGrid } from '../components/trees/TreeGrid';
 import { TreeDetailModal } from '../components/trees/TreeDetailModal';
 import { CompareModal } from '../components/trees/CompareModal';
@@ -11,7 +11,8 @@ import { TreeCardSkeleton } from '../components/ui/Skeleton';
 import { AuthModal } from '../components/auth/AuthModal';
 import { EmptyStateFilters } from '../components/ui/EmptyStateFilters';
 import type { ActiveFilter } from '../components/ui/EmptyStateFilters';
-import { TreesToolbar, defaultAdvancedFilters } from '../components/trees/TreesToolbar';
+import { TreesToolbar } from '../components/trees/TreesToolbar';
+import { defaultAdvancedFilters } from '../components/trees/advancedFilters';
 import type { AdvancedFilters } from '../components/trees/TreesToolbar';
 import { TreesCompareBar } from '../components/trees/TreesCompareBar';
 import { toast } from 'sonner';
@@ -122,12 +123,23 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   }, [trees, termoBusca, advancedFilters, showFavoritesOnly, user, favoriteIds, ordenacao]);
 
   // Reset visible count whenever filters or sorting change
-  useEffect(() => {
+  // (ajuste de estado durante o render, comparando os valores anteriores)
+  const [prevFilters, setPrevFilters] = useState({ termoBusca, advancedFilters, showFavoritesOnly, ordenacao });
+  if (
+    prevFilters.termoBusca !== termoBusca ||
+    prevFilters.advancedFilters !== advancedFilters ||
+    prevFilters.showFavoritesOnly !== showFavoritesOnly ||
+    prevFilters.ordenacao !== ordenacao
+  ) {
+    setPrevFilters({ termoBusca, advancedFilters, showFavoritesOnly, ordenacao });
     setVisibleCount(ITEMS_PER_PAGE);
-  }, [termoBusca, advancedFilters, showFavoritesOnly, ordenacao]);
+  }
 
   const filteredVisible = filtered.slice(0, visibleCount);
-  filteredLengthRef.current = filtered.length;
+
+  useLayoutEffect(() => {
+    filteredLengthRef.current = filtered.length;
+  }, [filtered.length]);
 
   // Cleanup observer on unmount
   useEffect(() => {

@@ -9,7 +9,12 @@ interface Props {
   url: string;
 }
 
+// key={url} remonta o visualizador ao trocar de PDF, reiniciando o estado sem setState em effect
 export function PdfViewer({ url }: Props) {
+  return <PdfDocument key={url} url={url} />;
+}
+
+function PdfDocument({ url }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const pdfRef = useRef<PDFDocumentProxy | null>(null);
@@ -21,10 +26,6 @@ export function PdfViewer({ url }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(false);
-    setCurrentPage(1);
-    setNumPages(0);
 
     const task = pdfjsLib.getDocument({ url });
     task.promise
