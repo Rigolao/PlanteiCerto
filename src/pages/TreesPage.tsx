@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Arvore } from '../types/tree';
 import { useTrees } from '../hooks/useTrees';
@@ -127,7 +127,10 @@ export function TreesPage({ trees: externalTrees }: TreesPageProps) {
   }, [termoBusca, advancedFilters, showFavoritesOnly, ordenacao]);
 
   const filteredVisible = filtered.slice(0, visibleCount);
-  filteredLengthRef.current = filtered.length;
+
+  useLayoutEffect(() => {
+    filteredLengthRef.current = filtered.length;
+  }, [filtered.length]);
 
   // Cleanup observer on unmount
   useEffect(() => {
