@@ -100,15 +100,27 @@ describe('TreeDetailModal tabs', () => {
     expect(item('compat_fiacao').closest('[role="tabpanel"]')).toHaveAttribute('hidden');
   });
 
-  it('keeps the chosen tab when another species is opened', async () => {
+  it('opens on Visão geral every time the sheet is opened, even for the same species', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+
+    await abrirAba(user, 'Benefícios');
+    // As páginas fecham a ficha com arvore=null e isOpen=false, e reabrem pelo clique no card.
+    rerender(<TreeDetailModal arvore={null} isOpen={false} onClose={vi.fn()} />);
+    rerender(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByRole('tab', { name: 'Visão geral' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Visão geral');
+  });
+
+  it('goes back to Visão geral when another species is shown', async () => {
     const user = userEvent.setup();
     const { rerender } = render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
 
     await abrirAba(user, 'Benefícios');
     rerender(<TreeDetailModal arvore={{ ...staticTrees[1] }} isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByRole('tab', { name: 'Benefícios' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Benefícios');
+    expect(screen.getByRole('tab', { name: 'Visão geral' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('shows the color legend only on tabs with 1–5 grades', () => {

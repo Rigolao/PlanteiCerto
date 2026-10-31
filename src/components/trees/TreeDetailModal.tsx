@@ -352,9 +352,18 @@ function contagemDaAba(aba: AbaFicha, arvore: Arvore, provenance: ProvenanceMap)
 
 export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleFavorite }: TreeDetailModalProps) {
   const [lastArvore, setLastArvore] = useState<Arvore | null>(arvore);
-  if (arvore && arvore !== lastArvore) setLastArvore(arvore);
-  // A aba escolhida continua quando outra espécie é aberta: o componente fica montado nas páginas.
   const [aba, setAba] = useState<AbaId>('geral');
+  const [estavaAberta, setEstavaAberta] = useState(isOpen);
+  // A ficha sempre começa na Visão geral: ao abrir (clique no card) e quando a espécie muda.
+  // O componente fica montado nas páginas, então o ajuste é feito durante o render.
+  if (arvore && arvore !== lastArvore) {
+    setLastArvore(arvore);
+    setAba('geral');
+  }
+  if (isOpen !== estavaAberta) {
+    setEstavaAberta(isOpen);
+    if (isOpen) setAba('geral');
+  }
   const idBase = useId();
 
   const displayArvore = arvore ?? lastArvore;
