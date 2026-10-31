@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { RecommendedTree, PendingTree, CriteriaSummary, ScoreCriterion } from '../../types/recommendation';
 import type { Arvore } from '../../types/tree';
 import { formatMedida } from '../../lib/format';
+import { CLASSES_NIVEL, nivelDaPontuacao, nivelDoPercentual } from '../../lib/escala';
 import { TreeDetailModal } from '../trees/TreeDetailModal';
 import { TreePhoto } from '../trees/TreePhoto';
 import { TreePine } from 'lucide-react';
@@ -18,12 +19,6 @@ interface ResultScreenProps {
   onRestart: () => void;
   onEdit: () => void;
   onClose: () => void;
-}
-
-function scoreBadgeColor(score: number): string {
-  if (score >= 70) return 'bg-green-500';
-  if (score >= 40) return 'bg-yellow-500';
-  return 'bg-red-400';
 }
 
 function scoreBarWidth(points: number, maxPoints: number): string {
@@ -55,9 +50,23 @@ function UnassessedCriteriaNote({ labels }: { labels: string[] }) {
   );
 }
 
+/** Selo de pontos sobre a foto: fundo claro do nível, anel na cor do nível e número em tom escuro. */
+function ScoreSeal({ score }: { score: number }) {
+  const nivel = CLASSES_NIVEL[nivelDaPontuacao(score)];
+  return (
+    <div
+      aria-label={`${score} pontos`}
+      className={`absolute top-3 right-3 z-10 flex h-12 w-12 flex-col items-center justify-center rounded-full shadow-lg ring-[3px] ${nivel.fundo} ${nivel.anel}`}
+    >
+      <span className={`text-sm font-bold leading-none ${nivel.texto}`}>{score}</span>
+      <span className={`text-[10px] leading-none opacity-80 ${nivel.texto}`}>pts</span>
+    </div>
+  );
+}
+
 function ScoreBreakdownBar({ criterion }: { criterion: ScoreCriterion }) {
   const pct = criterion.maxPoints > 0 ? (criterion.points / criterion.maxPoints) * 100 : 0;
-  const barColor = pct >= 75 ? 'bg-green-500' : pct >= 40 ? 'bg-yellow-400' : 'bg-red-400';
+  const barColor = CLASSES_NIVEL[nivelDoPercentual(pct)].barra;
   return (
     <div className="space-y-0.5">
       <div className="flex items-center justify-between text-[11px]">
@@ -66,7 +75,7 @@ function ScoreBreakdownBar({ criterion }: { criterion: ScoreCriterion }) {
           {criterion.status === 'estimado' && (
             <span
               title="A nota usa um valor estimado, não publicado"
-              className="flex-shrink-0 rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+              className="flex-shrink-0 rounded-full bg-amber-100 px-1.5 py-px text-[11px] font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
             >
               estimativa
             </span>
@@ -307,10 +316,7 @@ export function ResultScreen({ trees, pendingTrees, eliminatedCount, totalCount,
                 </button>
 
                 {/* Score badge */}
-                <div className={`absolute top-3 right-3 w-12 h-12 rounded-full ${scoreBadgeColor(tree.score)} flex flex-col items-center justify-center shadow-lg z-10`}>
-                  <span className="text-white text-sm font-bold leading-none">{tree.score}</span>
-                  <span className="text-white/80 text-[9px] leading-none">pts</span>
-                </div>
+                <ScoreSeal score={tree.score} />
               </div>
 
               {/* Content */}

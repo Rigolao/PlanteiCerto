@@ -44,9 +44,134 @@ function row(label: string): HTMLElement {
   return parent;
 }
 
+/** Tile, linha de escala ou célula de projeção pelo campo principal (`data-campo`), em qualquer aba. */
+function item(campo: keyof Arvore): HTMLElement {
+  const elemento = document.querySelector<HTMLElement>(`[data-campo="${campo}"]`);
+  if (!elemento) throw new Error(`Item "${campo}" não encontrado`);
+  return elemento;
+}
+
+/** Botões "Ver detalhes" de um trecho, inclusive em abas fechadas (montadas com `hidden`). */
+function botoesDetalhes(container: HTMLElement = document.body): HTMLElement[] {
+  return within(container).queryAllByRole('button', { name: 'Ver detalhes', hidden: true });
+}
+
+/** Os cinco painéis, na ordem das abas, abertos ou não. */
+function paineis(): HTMLElement[] {
+  return screen.getAllByRole('tabpanel', { hidden: true });
+}
+
+async function abrirAba(user: ReturnType<typeof userEvent.setup>, rotulo: string) {
+  await user.click(screen.getByRole('tab', { name: rotulo }));
+}
+
+function tabela(): Promise<HTMLElement> {
+  return screen.findByRole('table', { name: 'Projeção de crescimento', hidden: true });
+}
+
 beforeEach(() => {
   mocks.useTreeProvenance.mockReset();
   withProvenance({}, false);
+});
+
+describe('TreeDetailModal tabs', () => {
+  it('opens on Visão geral with the six main attributes', () => {
+    render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByRole('tab', { name: 'Visão geral' })).toHaveAttribute('aria-selected', 'true');
+    const visivel = screen.getByRole('tabpanel');
+    for (const rotulo of [
+      'Altura adulta (porte)', 'Copa (diâmetro e classe)', 'Forma da copa', 'Folhagem', 'Rede elétrica (fiação)', 'Espinhos',
+    ]) {
+      expect(within(visivel).getByText(rotulo)).toBeInTheDocument();
+    }
+  });
+
+  it('shows one panel at a time', async () => {
+    const user = userEvent.setup();
+    render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+
+    await abrirAba(user, 'Urbano');
+
+    expect(screen.getAllByRole('tabpanel')).toHaveLength(1);
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Urbano');
+    // O Modal entra com opacidade 0 (animação), então a visibilidade se prova pelo `hidden` do painel.
+    expect(item('faixa_serv_min_m_recomendada').closest('[role="tabpanel"]')).not.toHaveAttribute('hidden');
+    expect(item('compat_fiacao').closest('[role="tabpanel"]')).toHaveAttribute('hidden');
+  });
+
+  it('keeps the chosen tab when another species is opened', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+
+    await abrirAba(user, 'Benefícios');
+    rerender(<TreeDetailModal arvore={{ ...staticTrees[1] }} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByRole('tab', { name: 'Benefícios' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Benefícios');
+  });
+
+  it('shows the color legend only on tabs with 1–5 grades', () => {
+    render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+
+    expect(paineis().map(painel => within(painel).queryByText('Favorável') != null))
+      .toEqual([false, true, true, true, false]);
+  });
+
+  it('places the color legend right before the first group of 1–5 grades', () => {
+    render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+
+    const legenda = within(paineis()[2]).getByText('Favorável').closest('div');
+    expect(legenda?.nextElementSibling).toHaveTextContent('Riscos e manejo, de 1 a 5');
+  });
+
+  it('paints sidewalk damage 5 and drought 2 with the low level', () => {
+    const tree: Arvore = { ...staticTrees[0], potencial_dano_calcada_1a5: 5, tolerancia_seca_1a5: 2, tolerancia_ventos_fortes_1a5: 4 };
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(item('potencial_dano_calcada_1a5').querySelectorAll('.bg-nivel-baixo')).toHaveLength(5);
+    expect(item('tolerancia_seca_1a5').querySelectorAll('.bg-nivel-baixo')).toHaveLength(2);
+    expect(item('tolerancia_ventos_fortes_1a5').querySelectorAll('.bg-nivel-alto')).toHaveLength(4);
+  });
+
+  it('ends Visão geral with the origin summary only when provenance resolved', () => {
+    withProvenance({}, true);
+    const { unmount } = render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+    expect(within(paineis()[0]).getByText('Origem dos dados nesta ficha')).toBeInTheDocument();
+    unmount();
+
+    withProvenance({}, false);
+    render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+    expect(screen.queryByText('Origem dos dados nesta ficha')).not.toBeInTheDocument();
+  });
+
+  it('counts unassessed attributes in each tab header', () => {
+    const tree: Arvore = {
+      ...staticTrees[0],
+      tolerancia_sol_pleno: null,
+      tolerancia_meia_sombra: null,
+      tolerancia_sombra: null,
+      tolerancia_seca_1a5: null,
+      tolerancia_encharcamento_1a5: null,
+      tolerancia_poluicao_atmosferica_1a5: null,
+      tolerancia_compactacao_solo_1a5: null,
+      tolerancia_ventos_fortes_1a5: null,
+    };
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(within(paineis()[1]).getByText('8 atributos · 8 não avaliados')).toBeInTheDocument();
+  });
+
+  it('shows only photo, names and origin above the tabs', () => {
+    const tree: Arvore = { ...staticTrees[0], foto: 'https://example.com/oiti.jpg' };
+    render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByRole('heading', { level: 2, name: tree.nome_popular })).toBeInTheDocument();
+    expect(screen.getByText(tree.nome_cientifico)).toBeInTheDocument();
+    expect(screen.getByText(tree.origem === 'Nativa BR' ? 'Nativa BR' : 'Exótica')).toBeInTheDocument();
+    expect(screen.getByRole('tablist').compareDocumentPosition(screen.getByText('Altura adulta (porte)')))
+      .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
 });
 
 describe('TreeDetailModal growth projections', () => {
@@ -76,7 +201,7 @@ describe('TreeDetailModal growth projections', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    const table = await screen.findByRole('table', { name: 'Projeção de crescimento' });
+    const table = await tabela();
     expect(within(table).getByText('10 anos')).toBeInTheDocument();
     expect(within(table).getByText('20 anos')).toBeInTheDocument();
     expect(within(table).getByText('30 anos')).toBeInTheDocument();
@@ -91,12 +216,21 @@ describe('TreeDetailModal growth projections', () => {
     expect(screen.getByText('2,5–3,5 m')).toBeInTheDocument();
   });
 
-  it('does not render a growth table when no growth values or ranges exist', async () => {
+  it('shows the six projection cells as "Não avaliado" when no growth value exists, matching the tab count', async () => {
     const tree: Arvore = { ...staticTrees[0] };
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
     expect(await screen.findByRole('heading', { name: tree.nome_popular })).toBeInTheDocument();
-    expect(screen.queryByRole('table', { name: 'Projeção de crescimento' })).not.toBeInTheDocument();
+    const table = await tabela();
+    expect(within(table).getAllByText('Não avaliado')).toHaveLength(6);
+    expect(within(paineis()[4]).getByText(/^6 atributos · 6 não avaliados$/)).toBeInTheDocument();
+  });
+
+  it('describes the planting scenario once, as the Crescimento tab description', () => {
+    render(<TreeDetailModal arvore={staticTrees[0]} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getAllByText('Muda de DAP 3 cm e altura 1,5 m, plantada em boas condições.')).toHaveLength(1);
+    expect(within(paineis()[4]).getByText('Muda de DAP 3 cm e altura 1,5 m, plantada em boas condições.')).toBeInTheDocument();
   });
 });
 
@@ -133,7 +267,7 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={jequitiba} isOpen onClose={vi.fn()} />);
 
-    const table = await screen.findByRole('table', { name: 'Projeção de crescimento' });
+    const table = await tabela();
     expect(within(table).getByText('12,17 cm')).toBeInTheDocument();
     expect(within(table).getByText('Publicado')).toBeInTheDocument();
     expect(within(table).getByText('ponto publicado')).toBeInTheDocument();
@@ -159,7 +293,7 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    const table = await screen.findByRole('table', { name: 'Projeção de crescimento' });
+    const table = await tabela();
     expect(within(table).getByText('10,1–15,4 cm')).toBeInTheDocument();
     expect(within(table).getByText('6,18–10,11 m')).toBeInTheDocument();
     expect(within(table).getAllByText('faixa operacional')).toHaveLength(2);
@@ -182,6 +316,7 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
+    await abrirAba(user, 'Crescimento');
     const table = await screen.findByRole('table', { name: 'Projeção de crescimento' });
     expect(screen.queryByText('Lorenzi (2002), tab. 3')).not.toBeInTheDocument();
 
@@ -203,7 +338,7 @@ describe('TreeDetailModal provenance', () => {
 
     expect(screen.getByText('Estimado (rubrica)')).toBeInTheDocument();
     expect(screen.getByText('confiança baixa')).toBeInTheDocument();
-    expect(within(row('Seca')).queryByText('Não avaliado')).not.toBeInTheDocument();
+    expect(within(item('tolerancia_seca_1a5')).queryByText('Não avaliado')).not.toBeInTheDocument();
   });
 
   it('shows the short origin label for the other origin classes on light, wiring and thorns', () => {
@@ -223,10 +358,10 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByText('Publicado')).toBeInTheDocument();
-    expect(screen.getByText('Fase anterior')).toBeInTheDocument();
-    expect(screen.getByText('Copiado de registro consolidado')).toBeInTheDocument();
-    expect(screen.getByText('Calculado')).toBeInTheDocument();
+    expect(within(item('tolerancia_sol_pleno')).getByText('Publicado')).toBeInTheDocument();
+    expect(within(item('compat_fiacao')).getByText('Fase anterior')).toBeInTheDocument();
+    expect(within(item('presenca_espinhos')).getByText('Copiado de registro consolidado')).toBeInTheDocument();
+    expect(within(item('presenca_subst_irritantes')).getByText('Calculado')).toBeInTheDocument();
   });
 
   it('warns when the value changed after its source was recorded', () => {
@@ -240,7 +375,7 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByText('Valor alterado após o registro da fonte')).toBeInTheDocument();
+    expect(within(item('tolerancia_seca_1a5')).getByText('Valor alterado após o registro da fonte')).toBeInTheDocument();
   });
 
   it('does not warn when the value was not changed', () => {
@@ -266,14 +401,15 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    const table = await screen.findByRole('table', { name: 'Projeção de crescimento' });
+    const table = await tabela();
     expect(within(table).getByText('12,17 cm')).toBeInTheDocument();
     expect(within(table).getByText('6,18–10,11 m')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Ver detalhes' })).not.toBeInTheDocument();
+    expect(botoesDetalhes()).toHaveLength(0);
     expect(screen.queryByText('Publicado')).not.toBeInTheDocument();
     expect(screen.queryByText('Estimado')).not.toBeInTheDocument();
     expect(screen.queryByText('ponto publicado')).not.toBeInTheDocument();
     expect(screen.queryByText('Origem não registrada')).not.toBeInTheDocument();
+    expect(screen.queryByText('Origem dos dados nesta ficha')).not.toBeInTheDocument();
   });
 
   it('says "Origem não registrada" for filled values without a record once the query resolved', async () => {
@@ -292,14 +428,15 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    const table = await screen.findByRole('table', { name: 'Projeção de crescimento' });
+    const table = await tabela();
     expect(within(table).getAllByText('Origem não registrada')).toHaveLength(1);
-    expect(screen.getByText('Sol Pleno').parentElement?.parentElement).toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Seca').parentElement?.parentElement).toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Fiação: Compatível').parentElement).toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Espinhos: Não').parentElement).toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Subst. Irritantes: Não').parentElement).toHaveTextContent('Origem não registrada');
-    expect(screen.queryByRole('button', { name: 'Ver detalhes' })).not.toBeInTheDocument();
+    for (const campo of [
+      'tolerancia_sol_pleno', 'tolerancia_seca_1a5', 'compat_fiacao', 'presenca_espinhos', 'presenca_subst_irritantes',
+    ] as const) {
+      expect(item(campo)).toHaveTextContent('Origem não registrada');
+    }
+    expect(within(item('compat_fiacao')).getByText('Compatível')).toBeInTheDocument();
+    expect(botoesDetalhes()).toHaveLength(0);
   });
 
   it('does not say "Origem não registrada" for a field that has a record', () => {
@@ -308,8 +445,8 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByText('Seca').parentElement?.parentElement).not.toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Seca').parentElement?.parentElement).toHaveTextContent('Publicado');
+    expect(item('tolerancia_seca_1a5')).not.toHaveTextContent('Origem não registrada');
+    expect(item('tolerancia_seca_1a5')).toHaveTextContent('Publicado');
   });
 
   it('does not say "Origem não registrada" for a NULL field without a record, only "Não avaliado"', () => {
@@ -325,13 +462,12 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    const seca = screen.getByText('Seca').parentElement?.parentElement;
-    expect(seca).toHaveTextContent('Não avaliado');
-    expect(seca).not.toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Sombra').parentElement?.parentElement).not.toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Fiação: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Espinhos: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Subst. Irritantes: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
+    for (const campo of [
+      'tolerancia_seca_1a5', 'tolerancia_sombra', 'compat_fiacao', 'presenca_espinhos', 'presenca_subst_irritantes',
+    ] as const) {
+      expect(item(campo)).toHaveTextContent('Não avaliado');
+      expect(item(campo)).not.toHaveTextContent('Origem não registrada');
+    }
   });
 
   it('does not say "Origem não registrada" for a NULL projection cell', async () => {
@@ -340,7 +476,7 @@ describe('TreeDetailModal provenance', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    const table = await screen.findByRole('table', { name: 'Projeção de crescimento' });
+    const table = await tabela();
     // 1 célula preenchida (DAP 10a) sem registro; as 5 vazias só dizem "Não avaliado".
     expect(within(table).getAllByText('Origem não registrada')).toHaveLength(1);
     expect(within(table).getAllByText('Não avaliado')).toHaveLength(5);
@@ -359,11 +495,10 @@ describe('TreeDetailModal unassessed attributes', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByText('Fiação: Não avaliado')).toBeInTheDocument();
-    expect(screen.getByText('Subst. Irritantes: Não avaliado')).toBeInTheDocument();
-    expect(screen.getByText('Espinhos: Não avaliado')).toBeInTheDocument();
-    expect(within(row('Sombra')).getByText('Não avaliado')).toBeInTheDocument();
-    expect(screen.queryByText('Espinhos: Não informado')).not.toBeInTheDocument();
+    for (const campo of ['compat_fiacao', 'presenca_subst_irritantes', 'presenca_espinhos', 'tolerancia_sombra'] as const) {
+      expect(within(item(campo)).getByText('Não avaliado')).toBeInTheDocument();
+    }
+    expect(screen.queryByText('Não informado')).not.toBeInTheDocument();
   });
 
   it('keeps the known light and irritant values when they are present', () => {
@@ -378,13 +513,13 @@ describe('TreeDetailModal unassessed attributes', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(within(row('Sol Pleno')).getByText('Sim')).toBeInTheDocument();
-    expect(within(row('Meia Sombra')).getByText('Não')).toBeInTheDocument();
-    expect(screen.getByText('Subst. Irritantes: Sim')).toBeInTheDocument();
-    expect(screen.getByText('Fiação: Compatível c/ Alta Tensão')).toBeInTheDocument();
+    expect(within(item('tolerancia_sol_pleno')).getByText('Sim')).toBeInTheDocument();
+    expect(within(item('tolerancia_meia_sombra')).getByText('Não')).toBeInTheDocument();
+    expect(within(item('presenca_subst_irritantes')).getByText('Sim')).toBeInTheDocument();
+    expect(within(item('compat_fiacao')).getByText('Compatível c/ Alta Tensão')).toBeInTheDocument();
   });
 
-  it('replaces the bars of a NULL 1–5 grade with "Não avaliado" and keeps the label', () => {
+  it('replaces the squares of a NULL 1–5 grade with "Não avaliado" and keeps the label', () => {
     const tree: Arvore = {
       ...staticTrees[0],
       tolerancia_seca_1a5: null,
@@ -393,39 +528,30 @@ describe('TreeDetailModal unassessed attributes', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    const seca = row('Seca');
+    const seca = item('tolerancia_seca_1a5');
+    expect(within(seca).getByText('Seca')).toBeInTheDocument();
     expect(within(seca).getByText('Não avaliado')).toBeInTheDocument();
-    expect(seca.querySelectorAll('.rounded-sm')).toHaveLength(0);
+    expect(seca.querySelectorAll('[aria-hidden="true"] > span')).toHaveLength(0);
 
-    const encharcamento = row('Encharcamento');
+    const encharcamento = item('tolerancia_encharcamento_1a5');
     expect(within(encharcamento).queryByText('Não avaliado')).not.toBeInTheDocument();
-    expect(encharcamento.querySelectorAll('.rounded-sm')).toHaveLength(5);
+    expect(encharcamento.querySelectorAll('[aria-hidden="true"] > span')).toHaveLength(5);
+    expect(within(encharcamento).getByText('2/5')).toBeInTheDocument();
   });
 
   it('lists all eleven 1–5 grades even when every one is NULL', () => {
-    const tree: Arvore = {
-      ...staticTrees[0],
-      tolerancia_seca_1a5: null,
-      tolerancia_encharcamento_1a5: null,
-      tolerancia_poluicao_atmosferica_1a5: null,
-      tolerancia_compactacao_solo_1a5: null,
-      tolerancia_ventos_fortes_1a5: null,
-      potencial_sujeira_1a5: null,
-      potencial_dano_calcada_1a5: null,
-      atracao_fauna_1a5: null,
-      potencial_sombra_1a5: null,
-      contribuicao_biodiversidade_1a5: null,
-      tolerancia_poda_1a5: null,
-    };
+    const notas = [
+      'tolerancia_seca_1a5', 'tolerancia_encharcamento_1a5', 'tolerancia_poluicao_atmosferica_1a5',
+      'tolerancia_compactacao_solo_1a5', 'tolerancia_ventos_fortes_1a5', 'potencial_sujeira_1a5',
+      'potencial_dano_calcada_1a5', 'atracao_fauna_1a5', 'potencial_sombra_1a5',
+      'contribuicao_biodiversidade_1a5', 'tolerancia_poda_1a5',
+    ] as const;
+    const tree: Arvore = { ...staticTrees[0], ...Object.fromEntries(notas.map(campo => [campo, null])) };
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    for (const label of [
-      'Seca', 'Encharcamento', 'Poluição Atmosférica', 'Compactação do Solo', 'Ventos Fortes',
-      'Potencial Sujeira', 'Potencial Dano Calçada', 'Atração de Fauna', 'Potencial Sombra',
-      'Contribuição Biodiversidade', 'Tolerância à Poda',
-    ]) {
-      expect(within(row(label)).getByText('Não avaliado')).toBeInTheDocument();
+    for (const campo of notas) {
+      expect(within(item(campo)).getByText('Não avaliado')).toBeInTheDocument();
     }
   });
 });
@@ -526,6 +652,7 @@ describe('TreeDetailModal units and gaps', () => {
     const tree: Arvore = {
       ...staticTrees[0],
       altura_adulta_max_m: 15,
+      porte_altura_classe: 'Grande',
       diametro_copa_adulto_max_m: 12,
       copa_classe: 'Grande',
       dap_adulto_max_cm: 80,
@@ -536,12 +663,12 @@ describe('TreeDetailModal units and gaps', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(within(row('Altura adulta')).getByText('15 m')).toBeInTheDocument();
-    expect(within(row('Copa')).getByText('12 m (Grande)')).toBeInTheDocument();
-    expect(within(row('DAP (Diâmetro)')).getByText('80 cm')).toBeInTheDocument();
-    expect(screen.getByText('Faixa Serviço Mín: 1,8 m')).toBeInTheDocument();
-    expect(screen.getByText('Berço Mín: 2 m²')).toBeInTheDocument();
-    expect(screen.getByText('Vol. Solo Mín: 4 m³')).toBeInTheDocument();
+    expect(within(item('altura_adulta_max_m')).getByText('15 m (Grande)')).toBeInTheDocument();
+    expect(within(item('diametro_copa_adulto_max_m')).getByText('12 m (Grande)')).toBeInTheDocument();
+    expect(within(item('dap_adulto_max_cm')).getByText('80 cm')).toBeInTheDocument();
+    expect(within(item('faixa_serv_min_m_recomendada')).getByText('1,8 m')).toBeInTheDocument();
+    expect(within(item('berco_area_min_m2_recomendada')).getByText('2 m²')).toBeInTheDocument();
+    expect(within(item('volume_solo_min_m3_recomendado')).getByText('4 m³')).toBeInTheDocument();
   });
 
   it('formats the first fork range with unit and en dash', () => {
@@ -553,7 +680,7 @@ describe('TreeDetailModal units and gaps', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(within(row('1ª Bifurcação')).getByText('2,5–3,5 m')).toBeInTheDocument();
+    expect(within(item('altura_primeira_bifurcacao_m')).getByText('2,5–3,5 m')).toBeInTheDocument();
   });
 
   it('prefers the database text of the first fork over the static range', () => {
@@ -565,7 +692,7 @@ describe('TreeDetailModal units and gaps', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(within(row('1ª Bifurcação')).getByText('0,5–1,0 m')).toBeInTheDocument();
+    expect(within(item('altura_primeira_bifurcacao_m')).getByText('0,5–1,0 m')).toBeInTheDocument();
   });
 
   it('shows the gap label for a missing or "Não encontrado" first fork', () => {
@@ -575,12 +702,12 @@ describe('TreeDetailModal units and gaps', () => {
       altura_primeira_bifurcacao_faixa: undefined,
     };
     const { unmount } = render(<TreeDetailModal arvore={faltando} isOpen onClose={vi.fn()} />);
-    expect(within(row('1ª Bifurcação')).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(item('altura_primeira_bifurcacao_m')).getByText('Não avaliado')).toBeInTheDocument();
     unmount();
 
     const naoEncontrado: Arvore = { ...faltando, altura_primeira_bifurcacao_m: 'Não encontrado' };
     render(<TreeDetailModal arvore={naoEncontrado} isOpen onClose={vi.fn()} />);
-    expect(within(row('1ª Bifurcação')).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(item('altura_primeira_bifurcacao_m')).getByText('Não avaliado')).toBeInTheDocument();
   });
 
   it('labels NULL adult attributes with the single gap label instead of dashes', () => {
@@ -599,25 +726,23 @@ describe('TreeDetailModal units and gaps', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(within(row('Altura adulta')).getByText('Não avaliado')).toBeInTheDocument();
-    expect(within(row('Porte')).getByText('Não avaliado')).toBeInTheDocument();
-    expect(within(row('Copa')).getByText('Não avaliado')).toBeInTheDocument();
-    expect(within(row('Forma da Copa')).getByText('Não avaliado')).toBeInTheDocument();
-    expect(within(row('DAP (Diâmetro)')).getByText('Não avaliado')).toBeInTheDocument();
-    expect(screen.getByText('Faixa Serviço Mín: Não avaliado')).toBeInTheDocument();
-    expect(screen.getByText('Berço Mín: Não avaliado')).toBeInTheDocument();
-    expect(screen.getByText('Vol. Solo Mín: Não avaliado')).toBeInTheDocument();
+    for (const campo of [
+      'altura_adulta_max_m', 'diametro_copa_adulto_max_m', 'forma_copa', 'dap_adulto_max_cm',
+      'faixa_serv_min_m_recomendada', 'berco_area_min_m2_recomendada', 'volume_solo_min_m3_recomendado',
+    ] as const) {
+      expect(within(item(campo)).getByText('Não avaliado')).toBeInTheDocument();
+    }
     expect(screen.queryByText(/^—$/)).not.toBeInTheDocument();
     expect(screen.queryByText(/N\/A/)).not.toBeInTheDocument();
   });
 
   it('does not turn a zero measure into a gap', () => {
-    const tree: Arvore = { ...staticTrees[0], altura_adulta_max_m: 0, dap_adulto_max_cm: 0 };
+    const tree: Arvore = { ...staticTrees[0], altura_adulta_max_m: 0, porte_altura_classe: 'Pequeno', dap_adulto_max_cm: 0 };
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(within(row('Altura adulta')).getByText('0 m')).toBeInTheDocument();
-    expect(within(row('DAP (Diâmetro)')).getByText('0 cm')).toBeInTheDocument();
+    expect(within(item('altura_adulta_max_m')).getByText('0 m (Pequeno)')).toBeInTheDocument();
+    expect(within(item('dap_adulto_max_cm')).getByText('0 cm')).toBeInTheDocument();
   });
 });
 
@@ -665,13 +790,31 @@ describe('TreeDetailModal provenance on every block', () => {
 
     render(<TreeDetailModal arvore={morfologia} isOpen onClose={vi.fn()} />);
 
-    for (const label of ['Altura adulta', 'Copa', 'Porte', 'Forma da Copa', 'DAP (Diâmetro)', '1ª Bifurcação']) {
-      expect(within(row(label)).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+    for (const campo of [
+      'altura_adulta_max_m', 'diametro_copa_adulto_max_m', 'forma_copa', 'dap_adulto_max_cm', 'altura_primeira_bifurcacao_m',
+    ] as const) {
+      expect(botoesDetalhes(item(campo)).length).toBeGreaterThan(0);
     }
-    expect(within(row('Altura adulta')).getByText('Estimado')).toBeInTheDocument();
-    expect(within(row('Porte')).getByText('Fase anterior')).toBeInTheDocument();
-    expect(within(row('Forma da Copa')).getByText('Copiado de registro consolidado')).toBeInTheDocument();
-    expect(within(row('1ª Bifurcação')).getByText('Fase anterior')).toBeInTheDocument();
+    // Altura e porte dividem o tile: um selo para cada registro.
+    expect(botoesDetalhes(item('altura_adulta_max_m'))).toHaveLength(2);
+    expect(within(item('altura_adulta_max_m')).getByText('Estimado')).toBeInTheDocument();
+    expect(within(item('altura_adulta_max_m')).getByText('Fase anterior')).toBeInTheDocument();
+    expect(within(item('forma_copa')).getByText('Copiado de registro consolidado')).toBeInTheDocument();
+    expect(within(item('altura_primeira_bifurcacao_m')).getByText('Fase anterior')).toBeInTheDocument();
+  });
+
+  it('names the field of each seal in a two-field tile', () => {
+    withProvenance({
+      altura_adulta_max_m: prov('altura_adulta_max_m', { origem: 'estimated_rubric', confianca: 'baixa' }),
+      porte_altura_classe: prov('porte_altura_classe', { origem: 'estimated_rubric', confianca: 'baixa' }),
+    });
+
+    render(<TreeDetailModal arvore={morfologia} isOpen onClose={vi.fn()} />);
+
+    const altura = item('altura_adulta_max_m');
+    expect(within(altura).getByText('Altura adulta:')).toBeInTheDocument();
+    expect(within(altura).getByText('Porte:')).toBeInTheDocument();
+    expect(within(item('forma_copa')).queryByText('Forma da copa:')).not.toBeInTheDocument();
   });
 
   it('shows the seal of the crown class when only copa_classe has a record', () => {
@@ -679,9 +822,9 @@ describe('TreeDetailModal provenance on every block', () => {
 
     render(<TreeDetailModal arvore={morfologia} isOpen onClose={vi.fn()} />);
 
-    const copa = row('Copa');
+    const copa = item('diametro_copa_adulto_max_m');
     expect(within(copa).getByText('Estimado (rubrica)')).toBeInTheDocument();
-    expect(within(copa).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+    expect(botoesDetalhes(copa)).toHaveLength(1);
     expect(within(copa).queryByText('Origem não registrada')).not.toBeInTheDocument();
   });
 
@@ -690,9 +833,9 @@ describe('TreeDetailModal provenance on every block', () => {
 
     render(<TreeDetailModal arvore={morfologia} isOpen onClose={vi.fn()} />);
 
-    expect(within(row('Copa')).getAllByText('Origem não registrada')).toHaveLength(1);
-    expect(within(row('Altura adulta')).getByText('Origem não registrada')).toBeInTheDocument();
-    expect(within(row('1ª Bifurcação')).getByText('Origem não registrada')).toBeInTheDocument();
+    expect(within(item('diametro_copa_adulto_max_m')).getAllByText('Origem não registrada')).toHaveLength(1);
+    expect(within(item('altura_adulta_max_m')).getAllByText('Origem não registrada')).toHaveLength(1);
+    expect(within(item('altura_primeira_bifurcacao_m')).getByText('Origem não registrada')).toBeInTheDocument();
   });
 
   it('does not say "Origem não registrada" for NULL or "Não encontrado" morphology values', () => {
@@ -710,12 +853,14 @@ describe('TreeDetailModal provenance on every block', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    for (const label of ['Altura adulta', 'Copa', 'Porte', 'Forma da Copa', 'DAP (Diâmetro)', '1ª Bifurcação']) {
-      expect(row(label)).not.toHaveTextContent('Origem não registrada');
+    for (const campo of [
+      'altura_adulta_max_m', 'diametro_copa_adulto_max_m', 'forma_copa', 'dap_adulto_max_cm', 'altura_primeira_bifurcacao_m',
+    ] as const) {
+      expect(item(campo)).not.toHaveTextContent('Origem não registrada');
     }
   });
 
-  it('shows a seal with "Ver detalhes" on the phenology chips that have a record', () => {
+  it('shows a seal with "Ver detalhes" on the phenology tiles that have a record', () => {
     const tree: Arvore = {
       ...staticTrees[0],
       decidua_perenifolia: 'Perenifólia',
@@ -730,15 +875,15 @@ describe('TreeDetailModal provenance on every block', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    for (const texto of ['Perenifólia', 'Floração: Set-Nov', 'Frutificação: Dez-Mar']) {
-      const chip = screen.getByText(texto).parentElement as HTMLElement;
-      expect(within(chip).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+    for (const campo of ['decidua_perenifolia', 'epoca_floracao', 'epoca_frutificacao'] as const) {
+      expect(botoesDetalhes(item(campo))).toHaveLength(1);
     }
-    const floracao = screen.getByText('Floração: Set-Nov').parentElement as HTMLElement;
-    expect(within(floracao).getByText('Fase anterior')).toBeInTheDocument();
+    expect(within(item('decidua_perenifolia')).getByText('Perenifólia')).toBeInTheDocument();
+    expect(within(item('epoca_floracao')).getByText('Set-Nov')).toBeInTheDocument();
+    expect(within(item('epoca_floracao')).getByText('Fase anterior')).toBeInTheDocument();
   });
 
-  it('shows a seal with "Ver detalhes" on the Faixa, Berço and Vol. Solo pills that have a record', () => {
+  it('shows a seal with "Ver detalhes" on the Faixa, Berço and Volume de solo tiles that have a record', () => {
     const tree: Arvore = {
       ...staticTrees[0],
       faixa_serv_min_m_recomendada: 1.8,
@@ -753,12 +898,10 @@ describe('TreeDetailModal provenance on every block', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    for (const texto of ['Faixa Serviço Mín: 1,8 m', 'Berço Mín: 2 m²', 'Vol. Solo Mín: 4 m³']) {
-      const pill = screen.getByText(texto).parentElement as HTMLElement;
-      expect(within(pill).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+    for (const campo of ['faixa_serv_min_m_recomendada', 'berco_area_min_m2_recomendada', 'volume_solo_min_m3_recomendado'] as const) {
+      expect(botoesDetalhes(item(campo))).toHaveLength(1);
     }
-    expect(within(screen.getByText('Vol. Solo Mín: 4 m³').parentElement as HTMLElement)
-      .getByText('Copiado de registro consolidado')).toBeInTheDocument();
+    expect(within(item('volume_solo_min_m3_recomendado')).getByText('Copiado de registro consolidado')).toBeInTheDocument();
   });
 
   it('shows a seal with "Ver detalhes" on the five carbon tiles that have a record, keeping the fixed texts', () => {
@@ -787,7 +930,7 @@ describe('TreeDetailModal provenance on every block', () => {
       'Sobrevivência (cenário)',
       'CO₂e esperado por muda',
     ]) {
-      expect(within(row(label)).getByRole('button', { name: 'Ver detalhes' })).toBeInTheDocument();
+      expect(botoesDetalhes(row(label))).toHaveLength(1);
     }
     // O selo de procedência convive com o "Cálculo estimado" e com os textos fixos de cada tile.
     expect(within(row('Biomassa aérea')).getByText('Cálculo estimado')).toBeInTheDocument();
@@ -803,7 +946,7 @@ describe('TreeDetailModal provenance on every block', () => {
       .getByText('(CO₂e aos 10 anos − CO₂e da muda inicial) × sobrevivência do cenário')).toBeInTheDocument();
   });
 
-  it('says "Origem não registrada" on filled values of the new blocks without a record, once the query resolved', () => {
+  it('says "Origem não registrada" on filled values of the other blocks without a record, once the query resolved', () => {
     const tree: Arvore = {
       ...morfologia,
       decidua_perenifolia: 'Perenifólia',
@@ -822,11 +965,11 @@ describe('TreeDetailModal provenance on every block', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    for (const texto of [
-      'Perenifólia', 'Floração: Set-Nov', 'Frutificação: Dez-Mar',
-      'Faixa Serviço Mín: 1,8 m', 'Berço Mín: 2 m²', 'Vol. Solo Mín: 4 m³',
-    ]) {
-      expect(screen.getByText(texto).parentElement).toHaveTextContent('Origem não registrada');
+    for (const campo of [
+      'decidua_perenifolia', 'epoca_floracao', 'epoca_frutificacao',
+      'faixa_serv_min_m_recomendada', 'berco_area_min_m2_recomendada', 'volume_solo_min_m3_recomendado',
+    ] as const) {
+      expect(item(campo)).toHaveTextContent('Origem não registrada');
     }
     for (const label of [
       'Biomassa aérea', 'Carbono armazenado', 'CO₂ equivalente armazenado na biomassa aérea',
@@ -836,7 +979,7 @@ describe('TreeDetailModal provenance on every block', () => {
     }
   });
 
-  it('shows no seal and no "Origem não registrada" on the new blocks when provenance is unavailable', () => {
+  it('shows no seal and no "Origem não registrada" on any block when provenance is unavailable', () => {
     const tree: Arvore = {
       ...morfologia,
       biomassa_aerea_10a_kg: 90.3,
@@ -847,9 +990,9 @@ describe('TreeDetailModal provenance on every block', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(screen.queryByRole('button', { name: 'Ver detalhes' })).not.toBeInTheDocument();
+    expect(botoesDetalhes()).toHaveLength(0);
     expect(screen.queryByText('Origem não registrada')).not.toBeInTheDocument();
-    expect(within(row('Altura adulta')).getByText('15 m')).toBeInTheDocument();
+    expect(within(item('altura_adulta_max_m')).getByText('15 m (Grande)')).toBeInTheDocument();
     expect(within(row('Biomassa aérea')).getByText('90,3 kg')).toBeInTheDocument();
   });
 
@@ -863,18 +1006,18 @@ describe('TreeDetailModal provenance on every block', () => {
 
     render(<TreeDetailModal arvore={morfologia} isOpen onClose={vi.fn()} />);
 
-    expect(within(row('Altura adulta')).getByText('Valor alterado após o registro da fonte')).toBeInTheDocument();
+    expect(within(item('altura_adulta_max_m')).getByText('Valor alterado após o registro da fonte')).toBeInTheDocument();
   });
 });
 
 describe('TreeDetailModal phenology gaps', () => {
-  it('shows the gap label for a NULL flowering or fruiting season instead of hiding the chip', () => {
+  it('shows the gap label for a NULL flowering or fruiting season instead of hiding the tile', () => {
     const tree: Arvore = { ...staticTrees[0], epoca_floracao: null, epoca_frutificacao: null };
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByText('Floração: Não avaliado')).toBeInTheDocument();
-    expect(screen.getByText('Frutificação: Não avaliado')).toBeInTheDocument();
+    expect(within(item('epoca_floracao')).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(item('epoca_frutificacao')).getByText('Não avaliado')).toBeInTheDocument();
   });
 
   it('treats a blank season as a gap and keeps a filled season as is', () => {
@@ -882,8 +1025,8 @@ describe('TreeDetailModal phenology gaps', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByText('Floração: Não avaliado')).toBeInTheDocument();
-    expect(screen.getByText('Frutificação: Dez-Mar')).toBeInTheDocument();
+    expect(within(item('epoca_floracao')).getByText('Não avaliado')).toBeInTheDocument();
+    expect(within(item('epoca_frutificacao')).getByText('Dez-Mar')).toBeInTheDocument();
   });
 
   it('does not say "Origem não registrada" for a NULL season', () => {
@@ -892,7 +1035,7 @@ describe('TreeDetailModal phenology gaps', () => {
 
     render(<TreeDetailModal arvore={tree} isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByText('Floração: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
-    expect(screen.getByText('Frutificação: Não avaliado').parentElement).not.toHaveTextContent('Origem não registrada');
+    expect(item('epoca_floracao')).not.toHaveTextContent('Origem não registrada');
+    expect(item('epoca_frutificacao')).not.toHaveTextContent('Origem não registrada');
   });
 });

@@ -2,6 +2,9 @@
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/lora";
 
+/* O tema vem da classe .dark que o ThemeContext põe no <html>, não do sistema operacional. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* ===== Core Colors (Light Mode) ===== */
   --color-background: hsl(35 25% 97%);
@@ -40,6 +43,20 @@
   --color-ods-13: #437D46;
   --color-ods-11: #FD9D24;
 
+  /* ===== Nível de nota (ficha e resultado): alto, médio, baixo ===== */
+  --color-nivel-alto: #3f8f5a;
+  --color-nivel-alto-fundo: #e4f2e8;
+  --color-nivel-alto-texto: #1f5f36;
+  --color-nivel-medio: #d6a234;
+  --color-nivel-medio-fundo: #fbf0d2;
+  --color-nivel-medio-texto: #6f520a;
+  --color-nivel-baixo: #ee9d91;
+  --color-nivel-baixo-fundo: #fde8e4;
+  --color-nivel-baixo-texto: #9b3b2f;
+
+  /* Aba ativa da ficha: clara sobre a barra no tema claro, mais clara que a barra no escuro */
+  --color-aba-ativa: hsl(0 0% 100%);
+
   /* ===== Earthy Palette ===== */
   --color-input-bg: hsl(35 25% 97%);
   --color-border-subtle: hsl(35 15% 82%);
@@ -77,6 +94,18 @@
   --color-input-bg: hsl(150 10% 13%);
   --color-border-subtle: hsl(150 10% 22%);
   --color-separator: hsl(150 10% 14%);
+
+  --color-nivel-alto: #55b877;
+  --color-nivel-alto-fundo: hsl(150 10% 11%);
+  --color-nivel-alto-texto: #95dbad;
+  --color-nivel-medio: #d9b24e;
+  --color-nivel-medio-fundo: hsl(150 10% 11%);
+  --color-nivel-medio-texto: #ead08a;
+  --color-nivel-baixo: #e8968b;
+  --color-nivel-baixo-fundo: hsl(150 10% 11%);
+  --color-nivel-baixo-texto: #f5b8ae;
+
+  --color-aba-ativa: hsl(150 10% 21%);
 }
 
 /* ===== Base Styles ===== */

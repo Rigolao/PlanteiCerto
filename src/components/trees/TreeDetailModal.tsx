@@ -1,13 +1,19 @@
-import { useState, type ReactNode } from 'react';
+import { Fragment, useId, useState, type ReactNode } from 'react';
 import type { Arvore } from '../../types/tree';
-import type { ProvenanceMap, ProvenanceRecord } from '../../types/provenance';
+import type { ProvenanceMap } from '../../types/provenance';
 import { formatProjection, ROTULO_SEM_DADO } from '../../lib/provenance';
-import { formatBifurcacao, formatMedida, formatMedidaClasse, formatTexto } from '../../lib/format';
+import { formatMedida } from '../../lib/format';
+import { contarOrigens } from '../../lib/resumoOrigem';
 import { useTreeProvenance } from '../../hooks/useTreeProvenance';
 import { Modal } from '../ui/Modal';
 import { ProvenanceBadge } from './ProvenanceBadge';
 import { TreePhoto } from './TreePhoto';
-import { Sprout, ShieldCheck, CalendarDays, Building2, TrendingUp, Info } from 'lucide-react';
+import { ABAS_FICHA, HORIZONTES_PROJECAO, valorParaSelo, type AbaFicha, type AbaId, type CampoSelo, type GrupoFicha } from './ficha/abas';
+import { FichaAbas } from './ficha/FichaAbas';
+import { EscalaNota } from './ficha/EscalaNota';
+import { LegendaNiveis } from './ficha/LegendaNiveis';
+import { ResumoOrigem } from './ficha/ResumoOrigem';
+import { Globe, Home, Info } from 'lucide-react';
 
 interface TreeDetailModalProps {
   arvore: Arvore | null;
@@ -17,13 +23,6 @@ interface TreeDetailModalProps {
   onToggleFavorite?: () => void;
 }
 
-function compatFiacaoLabel(v: 'N' | 'A' | 'C' | null): string {
-  if (v === 'N') return 'Incompatível';
-  if (v === 'A') return 'Compatível c/ Alta Tensão';
-  if (v === 'C') return 'Compatível';
-  return ROTULO_SEM_DADO;
-}
-
 const CLASSE_BVOC_LABEL: Record<string, string> = {
   baixo: 'Baixa',
   moderado: 'Moderada',
@@ -31,9 +30,6 @@ const CLASSE_BVOC_LABEL: Record<string, string> = {
   desconhecido: 'Desconhecida',
   indeterminado: 'Indeterminada',
 };
-
-// Constantes da planilha de projeção do orientador — iguais para todas as espécies.
-const CENARIO_PROJECAO = 'Muda de DAP 3 cm e altura 1,5 m, plantada em boas condições.';
 
 const NOTA_FAIXA_OPERACIONAL = 'Faixa operacional de incerteza; não é intervalo de confiança estatístico.';
 
@@ -51,18 +47,14 @@ function modoSelo(disponivel: boolean, valor: unknown): ModoSelo {
   return disponivel && valor != null ? 'detalhes' : 'tabela';
 }
 
-/** Texto que a ficha exibe como lacuna (NULL, vazio, "Não encontrado") conta como NULL para o selo. */
-function textoOuNull(valor: string | null | undefined, formatado: string): string | null {
-  return formatado === ROTULO_SEM_DADO ? null : valor ?? null;
-}
-
 /**
  * Selos de um tile, que pode juntar mais de um campo (ex.: diâmetro e classe da copa). Cada campo com
- * registro ganha o seu selo; sem nenhum registro, um único "Origem não registrada" se algum dos
- * valores estiver preenchido e a consulta de proveniência tiver resolvido.
+ * registro ganha o seu selo, com o nome do campo na frente quando o tile tem mais de um; sem nenhum
+ * registro, um único "Origem não registrada" se algum dos valores estiver preenchido e a consulta de
+ * proveniência tiver resolvido.
  */
 function SelosDoCampo({ campos, provenance, disponivel, className }: {
-  campos: { campo: keyof Arvore; valor: unknown }[];
+  campos: { campo: keyof Arvore; valor: unknown; rotulo?: string }[];
   provenance: ProvenanceMap;
   disponivel: boolean;
   className?: string;
@@ -74,30 +66,42 @@ function SelosDoCampo({ campos, provenance, disponivel, className }: {
   }
   return (
     <>
-      {comRegistro.map(({ campo }) => (
+      {comRegistro.map(({ campo, rotulo }) => (campos.length > 1 && rotulo ? (
+        <div key={campo} className="mt-1 flex flex-wrap items-baseline gap-x-1">
+          <span className="text-[11px] font-medium text-muted-foreground">{`${rotulo}:`}</span>
+          <ProvenanceBadge record={provenance[campo]} modo="detalhes" className={className} />
+        </div>
+      ) : (
         <ProvenanceBadge key={campo} record={provenance[campo]} modo="detalhes" className={className} />
-      ))}
+      )))}
     </>
   );
 }
 
-function AtributoTile({ label, valor, campos, provenance, disponivel }: {
+function camposComValor(arvore: Arvore, campos: CampoSelo[]) {
+  return campos.map(({ campo, rotulo }) => ({ campo, rotulo, valor: valorParaSelo(arvore, campo) }));
+}
+
+function AtributoTile({ campo, label, valor, selos }: {
+  /** Campo principal do tile, exposto em `data-campo`. */
+  campo: keyof Arvore;
   label: string;
-  valor: ReactNode;
-  campos: { campo: keyof Arvore; valor: unknown }[];
-  provenance: ProvenanceMap;
-  disponivel: boolean;
+  valor: string;
+  selos: ReactNode;
 }) {
   return (
-    <div className="bg-muted rounded-md px-2 py-1.5">
-      <div className="text-[9px] text-muted-foreground">{label}</div>
-      <div className="text-xs font-semibold text-foreground">{valor}</div>
-      <SelosDoCampo campos={campos} provenance={provenance} disponivel={disponivel} />
+    <div data-campo={campo} className="min-w-0 rounded-[10px] bg-muted px-[11px] py-[9px]">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className={`text-[15px] font-semibold [overflow-wrap:anywhere] ${valor === ROTULO_SEM_DADO ? 'text-muted-foreground' : 'text-foreground'}`}>
+        {valor}
+      </div>
+      {selos}
     </div>
   );
 }
 
-function ProjecaoTile({ label, valor, detalhe, calculoEstimado, selos }: {
+function ProjecaoTile({ campo, label, valor, detalhe, calculoEstimado, selos }: {
+  campo: keyof Arvore;
   label: string;
   valor: string;
   detalhe?: string;
@@ -107,12 +111,12 @@ function ProjecaoTile({ label, valor, detalhe, calculoEstimado, selos }: {
   selos?: ReactNode;
 }) {
   return (
-    <div className="bg-muted rounded-md px-2 py-1.5">
-      <div className="text-[9px] text-muted-foreground">{label}</div>
-      <div className="text-xs font-semibold text-foreground">{valor}</div>
-      {detalhe && <div className="text-[9px] text-muted-foreground">{detalhe}</div>}
+    <div data-campo={campo} className="min-w-0 rounded-[10px] bg-muted px-[11px] py-[9px]">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-[15px] font-semibold text-foreground [overflow-wrap:anywhere]">{valor}</div>
+      {detalhe && <div className="text-[11px] leading-snug text-muted-foreground">{detalhe}</div>}
       {calculoEstimado && (
-        <span className="mt-0.5 inline-block rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+        <span className="mt-1 inline-block rounded-full bg-amber-100 px-[7px] py-px text-[11px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
           Cálculo estimado
         </span>
       )}
@@ -121,73 +125,32 @@ function ProjecaoTile({ label, valor, detalhe, calculoEstimado, selos }: {
   );
 }
 
-const HORIZONTES_PROJECAO = [
-  {
-    label: '10 anos',
-    dap: 'dap_10a_cm',
-    dapMin: 'dap_10a_min_cm',
-    dapMax: 'dap_10a_max_cm',
-    altura: 'altura_10a_m',
-    alturaMin: 'altura_10a_min_m',
-    alturaMax: 'altura_10a_max_m',
-  },
-  {
-    label: '20 anos',
-    dap: 'dap_20a_cm',
-    dapMin: 'dap_20a_min_cm',
-    dapMax: 'dap_20a_max_cm',
-    altura: 'altura_20a_m',
-    alturaMin: 'altura_20a_min_m',
-    alturaMax: 'altura_20a_max_m',
-  },
-  {
-    label: '30 anos',
-    dap: 'dap_30a_cm',
-    dapMin: 'dap_30a_min_cm',
-    dapMax: 'dap_30a_max_cm',
-    altura: 'altura_30a_m',
-    alturaMin: 'altura_30a_min_m',
-    alturaMax: 'altura_30a_max_m',
-  },
+const LINHAS_PROJECAO = [
+  { rotulo: 'DAP', unidade: 'cm', valor: 'dap', min: 'dapMin', max: 'dapMax' },
+  { rotulo: 'Altura', unidade: 'm', valor: 'altura', min: 'alturaMin', max: 'alturaMax' },
 ] as const;
 
-function GrowthProjectionTable({ arvore, provenance, disponivel }: { arvore: Arvore; provenance: ProvenanceMap; disponivel: boolean }) {
-  const hasProjection = HORIZONTES_PROJECAO.some(periodo => [
-    arvore[periodo.dap], arvore[periodo.dapMin], arvore[periodo.dapMax],
-    arvore[periodo.altura], arvore[periodo.alturaMin], arvore[periodo.alturaMax],
-  ].some(value => value != null));
-
-  if (!hasProjection) return null;
-
-  const linhas = [
-    {
-      rotulo: 'DAP',
-      unidade: 'cm',
-      campos: HORIZONTES_PROJECAO.map(periodo => ({
-        label: periodo.label, valor: periodo.dap, min: periodo.dapMin, max: periodo.dapMax,
-      })),
-    },
-    {
-      rotulo: 'Altura',
-      unidade: 'm',
-      campos: HORIZONTES_PROJECAO.map(periodo => ({
-        label: periodo.label, valor: periodo.altura, min: periodo.alturaMin, max: periodo.alturaMax,
-      })),
-    },
-  ].map(linha => ({
+function celulasProjecao(arvore: Arvore, provenance: ProvenanceMap) {
+  return LINHAS_PROJECAO.map(linha => ({
     rotulo: linha.rotulo,
-    celulas: linha.campos.map(campo => {
-      const record = provenance[campo.valor];
+    celulas: HORIZONTES_PROJECAO.map(periodo => {
+      const campo = periodo[linha.valor];
+      const record = provenance[campo];
       return {
-        label: campo.label,
+        campo,
+        label: periodo.label,
         record,
-        semDado: arvore[campo.valor] == null,
-        modo: modoSelo(disponivel, arvore[campo.valor]),
-        formato: formatProjection(arvore[campo.valor], arvore[campo.min], arvore[campo.max], linha.unidade, record),
+        semDado: arvore[campo] == null,
+        valor: arvore[campo],
+        formato: formatProjection(arvore[campo], arvore[periodo[linha.min]], arvore[periodo[linha.max]], linha.unidade, record),
       };
     }),
   }));
+}
 
+/** A tabela sempre aparece na aba Crescimento: célula sem valor mostra "Não avaliado", como os demais NULL. */
+function GrowthProjectionTable({ arvore, provenance, disponivel }: { arvore: Arvore; provenance: ProvenanceMap; disponivel: boolean }) {
+  const linhas = celulasProjecao(arvore, provenance);
   const temFaixaOperacional = linhas.some(linha =>
     linha.celulas.some(celula => celula.formato.faixaTipo === 'operacional'));
 
@@ -196,32 +159,32 @@ function GrowthProjectionTable({ arvore, provenance, disponivel }: { arvore: Arv
       <table aria-label="Projeção de crescimento" className="w-full table-fixed text-left">
         <caption className="sr-only">DAP e altura projetados para cada horizonte, com faixas quando disponíveis</caption>
         <thead>
-          <tr className="text-[9px] text-muted-foreground">
-            <th scope="col" className="w-[20%] pb-1 font-medium" />
+          <tr className="text-xs text-muted-foreground">
+            <th scope="col" className="w-[16%] pb-1 font-medium" />
             {HORIZONTES_PROJECAO.map(periodo => (
-              <th key={periodo.label} scope="col" className="pb-1 text-center font-medium">{periodo.label}</th>
+              <th key={periodo.label} scope="col" className="pb-1 text-center font-semibold">{periodo.label}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {linhas.map(linha => (
-            <tr key={linha.rotulo}>
-              <th scope="row" className="py-1 pr-1 align-top text-[10px] font-medium text-muted-foreground">{linha.rotulo}</th>
+            <tr key={linha.rotulo} className="border-t border-border">
+              <th scope="row" className="py-2 pr-1 align-top text-[13px] font-medium text-muted-foreground">{linha.rotulo}</th>
               {linha.celulas.map(celula => (
-                <td key={celula.label} className="px-0.5 py-1 text-center align-top">
-                  <div className={`text-xs font-semibold ${celula.semDado ? 'text-muted-foreground' : 'text-foreground'}`}>
+                <td key={celula.label} data-campo={celula.campo} className="px-0.5 py-2 text-center align-top">
+                  <div className={`text-[15px] font-semibold ${celula.semDado ? 'text-muted-foreground' : 'text-foreground'}`}>
                     {celula.formato.valor}
                   </div>
                   {celula.formato.faixaTipo === 'ponto_publicado' && (
-                    <div className="text-[9px] leading-tight text-muted-foreground">ponto publicado</div>
+                    <div className="text-[11px] leading-tight text-muted-foreground">ponto publicado</div>
                   )}
                   {celula.formato.faixaTipo === 'operacional' && (
                     <>
-                      <div className="text-[9px] leading-tight text-muted-foreground">{celula.formato.faixa}</div>
-                      <div className="text-[9px] leading-tight text-muted-foreground">faixa operacional</div>
+                      <div className="text-[11px] leading-tight text-muted-foreground">{celula.formato.faixa}</div>
+                      <div className="text-[11px] leading-tight text-muted-foreground">faixa operacional</div>
                     </>
                   )}
-                  <ProvenanceBadge record={celula.record} modo={celula.modo} className="mt-0.5 items-center" />
+                  <ProvenanceBadge record={celula.record} modo={modoSelo(disponivel, celula.valor)} className="mt-1 items-center" />
                 </td>
               ))}
             </tr>
@@ -229,177 +192,170 @@ function GrowthProjectionTable({ arvore, provenance, disponivel }: { arvore: Arv
         </tbody>
       </table>
       {temFaixaOperacional && (
-        <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">{NOTA_FAIXA_OPERACIONAL}</p>
+        <p className="text-xs leading-snug text-muted-foreground">{NOTA_FAIXA_OPERACIONAL}</p>
       )}
     </>
   );
 }
 
-function ProjecaoSection({ arvore, provenance, disponivel }: { arvore: Arvore; provenance: ProvenanceMap; disponivel: boolean }) {
-  const has10YearIndicators = [
-    arvore.biomassa_aerea_10a_kg,
-    arvore.carbono_armazenado_10a_kg,
-    arvore.co2e_10a_kg,
-    arvore.co2e_esperado_por_muda_10a_kg,
-    arvore.sobrevivencia_10a_pct,
-  ].some(value => value != null);
-  const hasBvocData = arvore.classe_bvoc != null || arvore.exibir_aviso_bvoc;
-  const hasGrowthData = HORIZONTES_PROJECAO.some(periodo => [
-    arvore[periodo.dap], arvore[periodo.dapMin], arvore[periodo.dapMax],
-    arvore[periodo.altura], arvore[periodo.alturaMin], arvore[periodo.alturaMax],
-  ].some(value => value != null));
+const INDICADORES = [
+  { campo: 'biomassa_aerea_10a_kg', label: 'Biomassa aérea', unidade: 'kg', calculoEstimado: true },
+  { campo: 'carbono_armazenado_10a_kg', label: 'Carbono armazenado', unidade: 'kg', calculoEstimado: true },
+  {
+    campo: 'co2e_10a_kg',
+    label: 'CO₂ equivalente armazenado na biomassa aérea',
+    unidade: 'kg',
+    detalhe: 'estoque aos 10 anos; não é remoção anual',
+    calculoEstimado: true,
+  },
+  {
+    campo: 'sobrevivencia_10a_pct',
+    label: 'Sobrevivência (cenário)',
+    unidade: '%',
+    detalhe: 'premissa do cenário, não taxa publicada da espécie',
+  },
+  {
+    campo: 'co2e_esperado_por_muda_10a_kg',
+    label: 'CO₂e esperado por muda',
+    unidade: 'kg',
+    detalhe: '(CO₂e aos 10 anos − CO₂e da muda inicial) × sobrevivência do cenário',
+  },
+] as const;
 
-  if (!hasGrowthData && !has10YearIndicators && !hasBvocData) return null;
+function indicadoresExibidos(arvore: Arvore) {
+  return INDICADORES.filter(indicador => arvore[indicador.campo] != null);
+}
 
-  const selosDe = (campo: keyof Arvore) => (
-    <SelosDoCampo campos={[{ campo, valor: arvore[campo] }]} provenance={provenance} disponivel={disponivel} />
-  );
+function PainelCrescimento({ arvore, provenance, disponivel }: { arvore: Arvore; provenance: ProvenanceMap; disponivel: boolean }) {
+  const indicadores = indicadoresExibidos(arvore);
 
   return (
-    <div className="py-3 px-3.5 border-b border-border last:border-b-0">
-      <div className="flex items-center gap-1.5 mb-2">
-        <TrendingUp size={13} className="text-primary" />
-        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-          Projeções de crescimento
-        </span>
+    <>
+      <div className="flex flex-col gap-1.5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground font-sans!">DAP e altura projetados</h4>
+        <GrowthProjectionTable arvore={arvore} provenance={provenance} disponivel={disponivel} />
       </div>
-      <GrowthProjectionTable arvore={arvore} provenance={provenance} disponivel={disponivel} />
 
-      {has10YearIndicators && (
-        <>
-          <div className="mt-3 mb-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-            Indicadores em 10 anos
-          </div>
-          <div className="grid grid-cols-2 gap-1.5">
-            {arvore.biomassa_aerea_10a_kg != null && (
+      {indicadores.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground font-sans!">Indicadores em 10 anos</h4>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {indicadores.map(indicador => (
               <ProjecaoTile
-                label="Biomassa aérea"
-                valor={formatMedida(arvore.biomassa_aerea_10a_kg, 'kg', 1)}
-                calculoEstimado
-                selos={selosDe('biomassa_aerea_10a_kg')}
+                key={indicador.campo}
+                campo={indicador.campo}
+                label={indicador.label}
+                valor={formatMedida(arvore[indicador.campo], indicador.unidade, 1)}
+                detalhe={'detalhe' in indicador ? indicador.detalhe : undefined}
+                calculoEstimado={'calculoEstimado' in indicador}
+                selos={
+                  <SelosDoCampo
+                    campos={[{ campo: indicador.campo, valor: arvore[indicador.campo] }]}
+                    provenance={provenance}
+                    disponivel={disponivel}
+                  />
+                }
               />
-            )}
-            {arvore.carbono_armazenado_10a_kg != null && (
-              <ProjecaoTile
-                label="Carbono armazenado"
-                valor={formatMedida(arvore.carbono_armazenado_10a_kg, 'kg', 1)}
-                calculoEstimado
-                selos={selosDe('carbono_armazenado_10a_kg')}
-              />
-            )}
-            {arvore.co2e_10a_kg != null && (
-              <ProjecaoTile
-                label="CO₂ equivalente armazenado na biomassa aérea"
-                valor={formatMedida(arvore.co2e_10a_kg, 'kg', 1)}
-                detalhe="estoque aos 10 anos; não é remoção anual"
-                calculoEstimado
-                selos={selosDe('co2e_10a_kg')}
-              />
-            )}
-            {arvore.sobrevivencia_10a_pct != null && (
-              <ProjecaoTile
-                label="Sobrevivência (cenário)"
-                valor={formatMedida(arvore.sobrevivencia_10a_pct, '%', 1)}
-                detalhe="premissa do cenário, não taxa publicada da espécie"
-                selos={selosDe('sobrevivencia_10a_pct')}
-              />
-            )}
-            {arvore.co2e_esperado_por_muda_10a_kg != null && (
-              <ProjecaoTile
-                label="CO₂e esperado por muda"
-                valor={formatMedida(arvore.co2e_esperado_por_muda_10a_kg, 'kg', 1)}
-                detalhe="(CO₂e aos 10 anos − CO₂e da muda inicial) × sobrevivência do cenário"
-                selos={selosDe('co2e_esperado_por_muda_10a_kg')}
-              />
-            )}
+            ))}
           </div>
           {arvore.co2e_esperado_por_muda_10a_kg != null && (
-            <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">{NOTA_LINHA_DE_BASE}</p>
+            <p className="text-xs leading-snug text-muted-foreground">{NOTA_LINHA_DE_BASE}</p>
           )}
-        </>
+        </div>
       )}
 
       {arvore.classe_bvoc && (
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+        <div className="flex flex-wrap gap-1.5">
+          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[13px] font-medium text-primary">
             Emissão de BVOC: {CLASSE_BVOC_LABEL[arvore.classe_bvoc] ?? arvore.classe_bvoc}
           </span>
         </div>
       )}
 
       {arvore.exibir_aviso_bvoc && (
-        <div className="flex items-start gap-1.5 mt-2">
-          <Info size={11} className="text-muted-foreground shrink-0 mt-0.5" />
-          <span className="text-[10px] text-muted-foreground leading-snug">
+        <div className="flex items-start gap-1.5">
+          <Info size={12} className="mt-0.5 shrink-0 text-muted-foreground" />
+          <span className="text-xs leading-snug text-muted-foreground">
             Classificação de BVOC com evidência limitada
             {arvore.evidencia_bvoc ? ` (${arvore.evidencia_bvoc})` : ''}
             {arvore.confianca_bvoc ? ` — confiança ${arvore.confianca_bvoc}` : ''}.
           </span>
         </div>
       )}
-
-      {(hasGrowthData || has10YearIndicators) && (
-        <p className="text-[10px] text-muted-foreground mt-2 leading-snug">{CENARIO_PROJECAO}</p>
-      )}
-    </div>
+    </>
   );
 }
 
-function BarIndicator({ label, value, record, modo }: { label: string; value: number | null; record?: ProvenanceRecord; modo: ModoSelo }) {
+function Grupo({ grupo, arvore, provenance, disponivel }: {
+  grupo: GrupoFicha;
+  arvore: Arvore;
+  provenance: ProvenanceMap;
+  disponivel: boolean;
+}) {
   return (
-    <div>
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-foreground/80">{label}</span>
-        {value == null ? (
-          <span className="text-[11px] text-muted-foreground">{ROTULO_SEM_DADO}</span>
-        ) : (
-          <div className="flex gap-0.5">
-            {[1, 2, 3, 4, 5].map(i => (
-              <div
-                key={i}
-                className={`w-2.5 h-2.5 rounded-sm ${
-                  i <= value ? 'bg-primary' : 'bg-border'
-                }`}
+    <div className="flex flex-col gap-2">
+      <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground font-sans!">{grupo.titulo}</h4>
+      <div className={`grid ${grupo.colunas} ${grupo.layout === 'tiles' ? 'gap-2' : 'gap-x-7 gap-y-0.5'}`}>
+        {grupo.itens.map(item => {
+          if (item.tipo === 'escala') {
+            const valor = arvore[item.campo] as number | null;
+            return (
+              <EscalaNota
+                key={item.campo}
+                campo={item.campo}
+                rotulo={item.rotulo}
+                dica={item.dica}
+                valor={valor}
+                polaridade={item.polaridade}
+                selo={<ProvenanceBadge record={provenance[item.campo]} modo={modoSelo(disponivel, valor)} />}
               />
-            ))}
-          </div>
-        )}
+            );
+          }
+          return (
+            <AtributoTile
+              key={item.campos[0].campo}
+              campo={item.campos[0].campo}
+              label={item.rotulo}
+              valor={item.valor(arvore)}
+              selos={<SelosDoCampo campos={camposComValor(arvore, item.campos)} provenance={provenance} disponivel={disponivel} />}
+            />
+          );
+        })}
       </div>
-      <ProvenanceBadge record={record} modo={modo} className="items-end" />
     </div>
   );
 }
 
-function LightIndicator({ label, value, record, modo }: { label: string; value: boolean | null; record?: ProvenanceRecord; modo: ModoSelo }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-foreground/80">{label}</span>
-        <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            value == null ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'
-          }`}
-        >
-          {value == null ? ROTULO_SEM_DADO : value ? 'Sim' : 'Não'}
-        </span>
-      </div>
-      <ProvenanceBadge record={record} modo={modo} className="items-end" />
-    </div>
-  );
-}
-
-function AttributeChip({ children, record, modo }: { children: ReactNode; record?: ProvenanceRecord; modo: ModoSelo }) {
-  return (
-    <div className="flex flex-col items-start gap-0.5">
-      <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">{children}</span>
-      <ProvenanceBadge record={record} modo={modo} />
-    </div>
-  );
+/** "N atributos" ou "N atributos · M não avaliados": itens exibidos na aba e quantos mostram a lacuna. */
+function contagemDaAba(aba: AbaFicha, arvore: Arvore, provenance: ProvenanceMap): string {
+  let total = 0;
+  let semDado = 0;
+  for (const grupo of aba.grupos) {
+    for (const item of grupo.itens) {
+      total += 1;
+      const lacuna = item.tipo === 'escala' ? arvore[item.campo] == null : item.valor(arvore) === ROTULO_SEM_DADO;
+      if (lacuna) semDado += 1;
+    }
+  }
+  if (aba.id === 'crescimento') {
+    for (const linha of celulasProjecao(arvore, provenance)) {
+      for (const celula of linha.celulas) {
+        total += 1;
+        if (celula.formato.valor === ROTULO_SEM_DADO) semDado += 1;
+      }
+    }
+    total += indicadoresExibidos(arvore).length;
+  }
+  const texto = `${total} atributos`;
+  return semDado > 0 ? `${texto} · ${semDado} não avaliados` : texto;
 }
 
 export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleFavorite }: TreeDetailModalProps) {
   const [lastArvore, setLastArvore] = useState<Arvore | null>(arvore);
   if (arvore && arvore !== lastArvore) setLastArvore(arvore);
+  // A aba escolhida continua quando outra espécie é aberta: o componente fica montado nas páginas.
+  const [aba, setAba] = useState<AbaId>('geral');
+  const idBase = useId();
 
   const displayArvore = arvore ?? lastArvore;
   // Proveniência só é consultada com a ficha aberta. `disponivel` distingue "consulta resolvida (talvez
@@ -407,32 +363,29 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
   const { provenance, disponivel } = useTreeProvenance(isOpen && displayArvore ? displayArvore.id : null);
   if (!displayArvore) return null;
 
-  const toleranceFields: { label: string; campo: keyof Arvore; value: number | null }[] = [
-    { label: 'Seca', campo: 'tolerancia_seca_1a5', value: displayArvore.tolerancia_seca_1a5 },
-    { label: 'Encharcamento', campo: 'tolerancia_encharcamento_1a5', value: displayArvore.tolerancia_encharcamento_1a5 },
-    { label: 'Poluição Atmosférica', campo: 'tolerancia_poluicao_atmosferica_1a5', value: displayArvore.tolerancia_poluicao_atmosferica_1a5 },
-    { label: 'Compactação do Solo', campo: 'tolerancia_compactacao_solo_1a5', value: displayArvore.tolerancia_compactacao_solo_1a5 },
-    { label: 'Ventos Fortes', campo: 'tolerancia_ventos_fortes_1a5', value: displayArvore.tolerancia_ventos_fortes_1a5 },
-    { label: 'Potencial Sujeira', campo: 'potencial_sujeira_1a5', value: displayArvore.potencial_sujeira_1a5 },
-    { label: 'Potencial Dano Calçada', campo: 'potencial_dano_calcada_1a5', value: displayArvore.potencial_dano_calcada_1a5 },
-    { label: 'Atração de Fauna', campo: 'atracao_fauna_1a5', value: displayArvore.atracao_fauna_1a5 },
-    { label: 'Potencial Sombra', campo: 'potencial_sombra_1a5', value: displayArvore.potencial_sombra_1a5 },
-    { label: 'Contribuição Biodiversidade', campo: 'contribuicao_biodiversidade_1a5', value: displayArvore.contribuicao_biodiversidade_1a5 },
-    { label: 'Tolerância à Poda', campo: 'tolerancia_poda_1a5', value: displayArvore.tolerancia_poda_1a5 },
-  ];
-
-  const bifurcacaoBruta = displayArvore.altura_primeira_bifurcacao_m ?? displayArvore.altura_primeira_bifurcacao_faixa;
-  const bifurcacao = formatBifurcacao(bifurcacaoBruta);
+  const nativa = displayArvore.origem === 'Nativa BR';
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-3xl">
       <div className="relative">
-        <TreePhoto
-          foto={displayArvore.foto}
-          alt={displayArvore.nome_popular}
-          className="w-full h-64 rounded-t-2xl"
-        />
-        {/* Favorite Button */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-5 sm:px-6 sm:pt-6">
+          <TreePhoto
+            foto={displayArvore.foto}
+            alt={displayArvore.nome_popular}
+            className="h-44 w-full sm:h-[150px] sm:w-[200px] sm:shrink-0 sm:rounded-xl"
+          />
+          <div className="min-w-0 px-4 pt-3.5 sm:px-0 sm:pr-24 sm:pt-0">
+            <h2 className="text-primary text-[22px] font-bold leading-tight font-display sm:text-[26px]">{displayArvore.nome_popular}</h2>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+              <p className="text-[15px] italic text-muted-foreground">{displayArvore.nome_cientifico}</p>
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                {nativa ? <Home size={11} aria-hidden="true" /> : <Globe size={11} aria-hidden="true" />}
+                {nativa ? 'Nativa BR' : 'Exótica'}
+              </span>
+            </div>
+          </div>
+        </div>
+        {/* Favorite Button (o botão de fechar é do Modal, no mesmo canto) */}
         {onToggleFavorite && (
           <button
             onClick={onToggleFavorite}
@@ -460,151 +413,46 @@ export function TreeDetailModal({ arvore, isOpen, onClose, isFavorite, onToggleF
           </button>
         )}
       </div>
-      <div className="p-4 md:p-6">
-        <h2 className="text-primary text-xl font-bold mb-0.5 font-display">{displayArvore.nome_popular}</h2>
-        <p className="text-muted-foreground italic text-sm mb-3">{displayArvore.nome_cientifico}</p>
 
-        {/* Morfologia */}
-        <div className="py-3 px-3.5 border-b border-border last:border-b-0">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Sprout size={13} className="text-primary" />
-            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-              Morfologia
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1.5">
-            <AtributoTile
-              label="Altura adulta"
-              valor={formatMedida(displayArvore.altura_adulta_max_m, 'm')}
-              campos={[{ campo: 'altura_adulta_max_m', valor: displayArvore.altura_adulta_max_m }]}
-              provenance={provenance}
-              disponivel={disponivel}
-            />
-            <AtributoTile
-              label="Copa"
-              valor={formatMedidaClasse(displayArvore.diametro_copa_adulto_max_m, 'm', displayArvore.copa_classe)}
-              campos={[
-                { campo: 'diametro_copa_adulto_max_m', valor: displayArvore.diametro_copa_adulto_max_m },
-                { campo: 'copa_classe', valor: displayArvore.copa_classe },
-              ]}
-              provenance={provenance}
-              disponivel={disponivel}
-            />
-            <AtributoTile
-              label="Porte"
-              valor={displayArvore.porte_altura_classe ?? ROTULO_SEM_DADO}
-              campos={[{ campo: 'porte_altura_classe', valor: displayArvore.porte_altura_classe }]}
-              provenance={provenance}
-              disponivel={disponivel}
-            />
-            <AtributoTile
-              label="Forma da Copa"
-              valor={formatTexto(displayArvore.forma_copa)}
-              campos={[{ campo: 'forma_copa', valor: textoOuNull(displayArvore.forma_copa, formatTexto(displayArvore.forma_copa)) }]}
-              provenance={provenance}
-              disponivel={disponivel}
-            />
-            <AtributoTile
-              label="DAP (Diâmetro)"
-              valor={formatMedida(displayArvore.dap_adulto_max_cm, 'cm')}
-              campos={[{ campo: 'dap_adulto_max_cm', valor: displayArvore.dap_adulto_max_cm }]}
-              provenance={provenance}
-              disponivel={disponivel}
-            />
-            <AtributoTile
-              label="1ª Bifurcação"
-              valor={bifurcacao}
-              campos={[{ campo: 'altura_primeira_bifurcacao_m', valor: textoOuNull(bifurcacaoBruta, bifurcacao) }]}
-              provenance={provenance}
-              disponivel={disponivel}
-            />
-          </div>
-        </div>
-
-        {/* Tolerâncias Ecológicas */}
-        <div className="py-3 px-3.5 border-b border-border last:border-b-0">
-          <div className="flex items-center gap-1.5 mb-2">
-            <ShieldCheck size={13} className="text-primary" />
-            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-              Tolerâncias Ecológicas
-            </span>
-          </div>
-          <div className="space-y-1.5 mb-2">
-            <LightIndicator label="Sol Pleno" value={displayArvore.tolerancia_sol_pleno} record={provenance.tolerancia_sol_pleno} modo={modoSelo(disponivel, displayArvore.tolerancia_sol_pleno)} />
-            <LightIndicator label="Meia Sombra" value={displayArvore.tolerancia_meia_sombra} record={provenance.tolerancia_meia_sombra} modo={modoSelo(disponivel, displayArvore.tolerancia_meia_sombra)} />
-            <LightIndicator label="Sombra" value={displayArvore.tolerancia_sombra} record={provenance.tolerancia_sombra} modo={modoSelo(disponivel, displayArvore.tolerancia_sombra)} />
-          </div>
-          <div className="space-y-1.5">
-            {toleranceFields.map(({ label, campo, value }) => (
-              <BarIndicator key={label} label={label} value={value} record={provenance[campo]} modo={modoSelo(disponivel, value)} />
-            ))}
-          </div>
-        </div>
-
-        {/* Fenologia */}
-        <div className="py-3 px-3.5 border-b border-border last:border-b-0">
-          <div className="flex items-center gap-1.5 mb-2">
-            <CalendarDays size={13} className="text-primary" />
-            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-              Fenologia
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <AttributeChip record={provenance.decidua_perenifolia} modo={modoSelo(disponivel, displayArvore.decidua_perenifolia)}>
-              {displayArvore.decidua_perenifolia ?? ROTULO_SEM_DADO}
-            </AttributeChip>
-            <AttributeChip
-              record={provenance.epoca_floracao}
-              modo={modoSelo(disponivel, textoOuNull(displayArvore.epoca_floracao, formatTexto(displayArvore.epoca_floracao)))}
-            >
-              Floração: {formatTexto(displayArvore.epoca_floracao)}
-            </AttributeChip>
-            <AttributeChip
-              record={provenance.epoca_frutificacao}
-              modo={modoSelo(disponivel, textoOuNull(displayArvore.epoca_frutificacao, formatTexto(displayArvore.epoca_frutificacao)))}
-            >
-              Frutificação: {formatTexto(displayArvore.epoca_frutificacao)}
-            </AttributeChip>
-          </div>
-        </div>
-
-        {/* Urbanismo & Manutenção */}
-        <div className="py-3 px-3.5 border-b border-border last:border-b-0">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Building2 size={13} className="text-primary" />
-            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
-              Urbanismo & Manutenção
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <AttributeChip record={provenance.compat_fiacao} modo={modoSelo(disponivel, displayArvore.compat_fiacao)}>
-              Fiação: {compatFiacaoLabel(displayArvore.compat_fiacao)}
-            </AttributeChip>
-            <AttributeChip record={provenance.faixa_serv_min_m_recomendada} modo={modoSelo(disponivel, displayArvore.faixa_serv_min_m_recomendada)}>
-              Faixa Serviço Mín: {formatMedida(displayArvore.faixa_serv_min_m_recomendada, 'm')}
-            </AttributeChip>
-            <AttributeChip record={provenance.berco_area_min_m2_recomendada} modo={modoSelo(disponivel, displayArvore.berco_area_min_m2_recomendada)}>
-              Berço Mín: {formatMedida(displayArvore.berco_area_min_m2_recomendada, 'm²')}
-            </AttributeChip>
-            <AttributeChip record={provenance.volume_solo_min_m3_recomendado} modo={modoSelo(disponivel, displayArvore.volume_solo_min_m3_recomendado)}>
-              Vol. Solo Mín: {formatMedida(displayArvore.volume_solo_min_m3_recomendado, 'm³')}
-            </AttributeChip>
-            <AttributeChip record={provenance.presenca_espinhos} modo={modoSelo(disponivel, displayArvore.presenca_espinhos)}>
-              Espinhos: {displayArvore.presenca_espinhos == null
-                ? ROTULO_SEM_DADO
-                : displayArvore.presenca_espinhos ? 'Sim' : 'Não'}
-            </AttributeChip>
-            <AttributeChip record={provenance.presenca_subst_irritantes} modo={modoSelo(disponivel, displayArvore.presenca_subst_irritantes)}>
-              Subst. Irritantes: {displayArvore.presenca_subst_irritantes == null
-                ? ROTULO_SEM_DADO
-                : displayArvore.presenca_subst_irritantes ? 'Sim' : 'Não'}
-            </AttributeChip>
-          </div>
-        </div>
-
-        <ProjecaoSection arvore={displayArvore} provenance={provenance} disponivel={disponivel} />
-
+      <div className="mt-4 px-1 sm:px-6">
+        <FichaAbas abas={ABAS_FICHA} ativa={aba} onChange={setAba} idBase={idBase} />
       </div>
+
+      {ABAS_FICHA.map(definicao => {
+        // A legenda fica logo antes do primeiro grupo de notas de 1 a 5, perto do que ela explica.
+        const primeiroGrupoDeEscalas = definicao.grupos.find(grupo => grupo.layout === 'escalas');
+        return (
+          <div
+            key={definicao.id}
+            role="tabpanel"
+            id={`${idBase}-painel-${definicao.id}`}
+            aria-labelledby={`${idBase}-aba-${definicao.id}`}
+            hidden={definicao.id !== aba}
+            className="flex flex-col gap-5 px-4 pb-6 pt-[18px] sm:px-6"
+          >
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">{definicao.titulo}</h3>
+              <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">{definicao.descricao}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{contagemDaAba(definicao, displayArvore, provenance)}</p>
+            </div>
+
+            {definicao.grupos.map(grupo => (
+              <Fragment key={grupo.titulo}>
+                {grupo === primeiroGrupoDeEscalas && <LegendaNiveis />}
+                <Grupo grupo={grupo} arvore={displayArvore} provenance={provenance} disponivel={disponivel} />
+              </Fragment>
+            ))}
+
+            {definicao.id === 'crescimento' && (
+              <PainelCrescimento arvore={displayArvore} provenance={provenance} disponivel={disponivel} />
+            )}
+
+            {definicao.id === 'geral' && (
+              <ResumoOrigem contagem={contarOrigens(displayArvore, provenance, disponivel)} />
+            )}
+          </div>
+        );
+      })}
     </Modal>
   );
 }

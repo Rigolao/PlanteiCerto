@@ -388,3 +388,33 @@ describe('ResultScreen: cartão da espécie', () => {
     expect(within(approvedGrid()).getByText('Porte Médio')).toBeInTheDocument();
   });
 });
+
+describe('ResultScreen: cores por nível', () => {
+  it('paints the score seal by level with dark text on a light fill', () => {
+    renderScreen({
+      trees: [approved({ score: 35 }), approved({ id: 3, score: 55 }), approved({ id: 4, score: 94 })],
+      pendingTrees: [],
+    });
+
+    const casos = [
+      { score: '35', nivel: 'baixo' },
+      { score: '55', nivel: 'medio' },
+      { score: '94', nivel: 'alto' },
+    ];
+    for (const { score, nivel } of casos) {
+      const selo = screen.getByLabelText(`${score} pontos`);
+      expect(selo).toHaveClass(`bg-nivel-${nivel}-fundo`, `ring-nivel-${nivel}`);
+      expect(within(selo).getByText(score)).toHaveClass(`text-nivel-${nivel}-texto`);
+    }
+  });
+
+  it('paints a 2/10 criterion bar with the low level and no saturated red', () => {
+    renderScreen({
+      trees: [approved({ scoreBreakdown: [criterion({ label: 'Adequação à calçada', points: 2, maxPoints: 10 })] })],
+      pendingTrees: [],
+    });
+
+    expect(approvedGrid().querySelector('.bg-nivel-baixo')).not.toBeNull();
+    expect(document.querySelector('.bg-red-400')).toBeNull();
+  });
+});

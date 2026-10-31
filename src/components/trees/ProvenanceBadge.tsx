@@ -80,7 +80,7 @@ export function ProvenanceBadge({ record, modo = 'tabela', className = 'items-st
     if (modo !== 'detalhes') return null;
     return (
       <div className={`flex min-w-0 max-w-full flex-col ${className}`}>
-        <span className="text-[9px] leading-tight text-muted-foreground">Origem não registrada</span>
+        <span className="text-[11px] leading-tight text-muted-foreground">Origem não registrada</span>
       </div>
     );
   }
@@ -101,32 +101,32 @@ export function ProvenanceBadge({ record, modo = 'tabela', className = 'items-st
     <div className={`flex min-w-0 max-w-full flex-col gap-0.5 ${className}`}>
       <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
         {rotulo && (
-          <span className={`rounded-full px-1.5 py-px text-[9px] font-medium leading-tight ${ESTILO_POR_CLASSE[origemClasse(record.origem)]}`}>
+          <span className={`rounded-full px-[7px] py-px text-[11px] font-medium leading-snug ${ESTILO_POR_CLASSE[origemClasse(record.origem)]}`}>
             {rotulo}
           </span>
         )}
         {confiancaInline && (
-          <span className="text-[9px] leading-tight text-muted-foreground">{confiancaInline}</span>
+          <span className="text-[11px] leading-tight text-muted-foreground">{confiancaInline}</span>
         )}
         <button
           type="button"
           aria-expanded={aberto}
           aria-controls={aberto ? painelId : undefined}
           onClick={() => setAberto(valorAtual => !valorAtual)}
-          className="cursor-pointer border-none bg-transparent p-0 text-[9px] leading-tight text-muted-foreground underline hover:text-foreground"
+          className="cursor-pointer border-none bg-transparent p-0 text-[11px] leading-tight text-muted-foreground underline hover:text-foreground"
         >
           {aberto ? 'Ocultar detalhes' : 'Ver detalhes'}
         </button>
       </div>
       {record.valor_alterado_em && (
-        <span className="text-[9px] leading-tight text-amber-800 dark:text-amber-300">
+        <span className="text-[11px] leading-tight text-amber-800 dark:text-amber-300">
           Valor alterado após o registro da fonte
         </span>
       )}
       {aberto && (
         <dl
           id={painelId}
-          className="w-full space-y-0.5 rounded-md bg-muted px-2 py-1 text-left text-[9px] leading-snug"
+          className="w-full space-y-0.5 rounded-md bg-muted px-2.5 py-2 text-left text-[11px] leading-snug"
         >
           {detalhes.map(({ rotulo: nome, valor }) => (
             <div key={nome}>
